@@ -69,30 +69,23 @@ vector<int> random_boson_config(int M,int N){
     return alpha;
 }
 
-vector<Kink> create_kinks_vector(vector<int> alpha, int M){
+vector<Kink> create_kinks_vector(vector<int> &alpha, int M){
 
     // Pre-allocate kinks. Recall: (tau,n,site,dir,prev,next)
-    Kink kink (-1,-1,-1,-1,-1,-1);
-    int num_pre_allocated_kinks = 100;
-    vector<Kink> kinks_vector (num_pre_allocated_kinks,kink);
-    
+    vector<Kink> kinks_vector(100,Kink(-1,-1,-1,-1,-1,-1));
+
     // Initialize the first M=L^D kinks
     for (int i=0; i<M; i++){
-        kinks_vector[i].tau = 0;
-        kinks_vector[i].n = 1;
-        kinks_vector[i].site = i;
-        kinks_vector[i].dir = 0;
-        kinks_vector[i].prev = -1;
-        kinks_vector[i].next = -1;
+        kinks_vector[i] = Kink(0,alpha[i],i,0,-1,-1);
     }
     return kinks_vector;
 }
 
 void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &worm_head_idx,
                  int &worm_tail_idx, int M, int N, float U, float mu, float t,
-                 float beta, float eta, bool canonical, int &N_tracker,
-                 int &insert_worm_attemps, int &insert_worm_accepts,
-                 int &insert_anti_attemps, int &insert_anti_accepts){
+                 float beta, float eta, bool canonical, double &N_tracker,
+                 int &insert_worm_attempts, int &insert_worm_accepts,
+                 int &insert_anti_attempts, int &insert_anti_accepts){
     
     // Variable declarations
     int k,n,site,dir,prev,next,n_head,n_tail;
@@ -128,10 +121,14 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &worm_head_idx,
     tau_t = tau_prev + tau_flat*rnum(rng);
     
     // Based on worm end time, determine worm type: antiworm or worm
-    if (tau_h > tau_t)
+    if (tau_h > tau_t){
         is_worm = true;
-    else
+        insert_worm_accepts += 1; // Attempts counter
+    }
+    else{
         is_worm = false;
+        insert_anti_attempts += 1;
+    }
     
     // Determine the no. of particles after each worm end
     if (is_worm){
@@ -165,27 +162,60 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &worm_head_idx,
     R = eta * eta * n_tail * exp(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
     num_kinks * tau_flat * tau_flat;
 
-//    // Metropolis sampling
-//    if (rnum(rng) < R){ // Accept
-//        // Activate the first two available kinks
-//        kinks_vector[num_kinks] =
-//
-//    }
-//    else // Reject
-//        return;
+    // Metropolis sampling
+    if (rnum(rng) < R){ // Accept
+
+        // Activate the first two available kinks
+        if (is_worm){
+            kinks_vector[num_kinks]= Kink(tau_t,n_tail,site,0,k,num_kinks+1);
+            kinks_vector[num_kinks+1]= Kink(tau_h,n_head,site,0,num_kinks,next);
+            
+            // Save indices of head & tail kinks
+            worm_head_idx = num_kinks + 1;
+            worm_tail_idx = num_kinks;
+            
+            // Add to Acceptance counter
+            insert_worm_accepts += 1;
+        }
+        else{ // Antiworm
+            kinks_vector[num_kinks]= Kink(tau_h,n_head,site,0,k,num_kinks+1);
+            kinks_vector[num_kinks+1]= Kink(tau_t,n_tail,site,0,num_kinks,next);
+            
+            // Save indices of head & tail kinks
+            worm_head_idx = num_kinks;
+            worm_tail_idx = num_kinks+1;
+            
+            // Add to Acceptance counter
+            insert_anti_accepts += 1;
+        }
+        
+        // "Connect" next of lower bound kink to nearest worm end
+        kinks_vector[k].next = num_kinks;
+        
+        // "Connect" prev of next kink to nearest worm end
+        kinks_vector[next].prev = num_kinks+1;
+        
+        // Update trackers for: num of active kinks, total particles
+        num_kinks += 2;
+        N_tracker += dN;
+        
+        return;
+    }
+    else // Reject
+        return;
 }
 
 void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &worm_head_idx,
                  int &worm_tail_idx, int M, int N, float U, float mu, float t,
-                 float beta, float eta, bool canonical, int &N_tracker,
-                 int &delete_worm_attemps, int &delete_worm_accepts,
-                 int &delete_anti_attemps, int &delete_anti_accepts){
+                 float beta, float eta, bool canonical, double &N_tracker,
+                 int &delete_worm_attempts, int &delete_worm_accepts,
+                 int &delete_anti_attempts, int &delete_anti_accepts){
 }
 
 // Main
 int main(){
     
-    // Create an uniform distribution with support: [0.0,1.0)
+    // Create a uniform distribution with support: [0.0,1.0)
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
     // Bose-Hubbard parameters
@@ -196,40 +226,61 @@ int main(){
     
     // Simulation parameters
     float eta = 1.0, beta = 1.0;
+    bool canonical = true;
     
-    // Counters and trackers
+    // Trackers
     int num_kinks = M;
+    double N_tracker = N;
     int worm_head_idx = -1, worm_tail_idx = -1;
     
-    // Generate the data structure (vector of kinks)
-    vector<Kink> kinks_vector = create_kinks_vector(alpha, M);
-    
-    // Print total number of lattice points
-    cout << "total_sites: " << M << endl;
-    
-    // Print out the number of kinks
-    cout << "num_kinks: " << num_kinks << endl;
-
-    // Generate some random numbers to test the generator
-    for (int i = 0; i < 10; ++i) {
-        std::cout << rnum(rng) << "\n";
-    }
+    // Attempt/Acceptance counters
+    int insert_worm_attempts=0, insert_worm_accepts=0;
+    int insert_anti_attempts=0, insert_anti_accepts=0;
+    int delete_worm_attempts=0, delete_worm_accepts=0;
+    int delete_anti_attempts=0, delete_anti_accepts=0;
     
     // Generate a random fock state
     alpha = random_boson_config(M,N);
+    
+    // Print out the generated random Fock state
     for (int i=0;i<M;i++){
         cout << alpha[i];
     }
     cout << endl;
-    
+
+    // Generate the data structure (vector of kinks)
+    vector<Kink> kinks_vector = create_kinks_vector(alpha, M);
+
     // Print out the data structure
-    for (int i=0;i<100;i++){
+    for (int i=0;i<8;i++){
+        cout << kinks_vector[i] << endl;
+    }
+
+    // Perform an insert_worm
+    insert_worm(kinks_vector,num_kinks,worm_head_idx,worm_tail_idx,
+                M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                insert_worm_attempts,insert_worm_accepts,
+                insert_anti_attempts,insert_anti_accepts);
+
+    // Print out the data structure
+    for (int i=0;i<8;i++){
         cout << kinks_vector[i] << endl;
     }
     
-    kinks_vector[1] = Kink (6,6,6,6,6,6);
+    // Print out the head and tail indices
+    cout << "worm_head_idx: " << worm_head_idx << endl;
+    cout << "worm_tail_idx: " << worm_tail_idx << endl;
     
-    cout << kinks_vector[1] << endl;
+    // Print out the N_tracker
+    cout << "N_tracker: " << N_tracker << endl;
+    
+    // Print out number of active kinks
+    cout << "num_kinks: " << num_kinks << endl;
+    
+    // Print out accept/reject statistics
+    cout<<"Insert Worm: "<<insert_worm_accepts<<"/"<<insert_worm_attempts<<endl;
+    cout<<"Insert Anti: "<<insert_anti_accepts<<"/"<<insert_anti_attempts<<endl;
+    
     
     return 0;
 }
