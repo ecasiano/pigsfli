@@ -46,7 +46,7 @@ Kink::Kink (float a,int b,int c,int d,int e,int f){
 ostream& operator<<(ostream& os, const Kink& dt)
 {
     os << '<' << dt.tau << ',' << dt.n << ',' << dt.site << ','
-    << dt.dir << ',' << dt.prev << ',' << dt.next << '>' << endl;
+    << dt.dir << ',' << dt.prev << ',' << dt.next << '>';
     
     return os;
 }
@@ -123,7 +123,7 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     // Based on worm end time, determine worm type: antiworm or worm
     if (tau_h > tau_t){
         is_worm = true;
-        insert_worm_accepts += 1; // Attempts counter
+        insert_worm_attempts += 1; // Attempts counter
     }
     else{
         is_worm = false;
@@ -167,8 +167,8 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 
         // Activate the first two available kinks
         if (is_worm){
-            kinks_vector[num_kinks]= Kink(tau_t,n_tail,site,0,k,num_kinks+1);
-            kinks_vector[num_kinks+1]= Kink(tau_h,n_head,site,0,num_kinks,next);
+            kinks_vector[num_kinks]=Kink(tau_t,n_tail,site,0,k,num_kinks+1);
+            kinks_vector[num_kinks+1]=Kink(tau_h,n_head,site,0,num_kinks,next);
             
             // Save indices of head & tail kinks
             head_idx = num_kinks + 1;
@@ -178,8 +178,8 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             insert_worm_accepts += 1;
         }
         else{ // Antiworm
-            kinks_vector[num_kinks]= Kink(tau_h,n_head,site,0,k,num_kinks+1);
-            kinks_vector[num_kinks+1]= Kink(tau_t,n_tail,site,0,num_kinks,next);
+            kinks_vector[num_kinks]=Kink(tau_h,n_head,site,0,k,num_kinks+1);
+            kinks_vector[num_kinks+1]=Kink(tau_t,n_tail,site,0,num_kinks,next);
             
             // Save indices of head & tail kinks
             head_idx = num_kinks;
@@ -213,7 +213,7 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     
     // Variable declarations
     int k,n,site,dir,prev,next,n_head,n_tail;
-    int head_prev,head_next,tail_prev,tail_next;
+    int prev_h,next_h,prev_t,next_t;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R;
     bool is_worm;
     
@@ -221,25 +221,25 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     if (head_idx == -1 || tail_idx == -1){return;}
     
     // Can only delete worm if wormends are on same flat interval
-    if (kinks_vector[head_idx].next != kinks_vector[tail_idx].prev &&
-        kinks_vector[tail_idx].next != kinks_vector[head_idx].prev)
+    if (head_idx != kinks_vector[tail_idx].prev &&
+        tail_idx != kinks_vector[head_idx].prev)
         return;
-        
+    
     // Extract worm end attributes
     tau_h = kinks_vector[head_idx].tau; // Head attributes
     n_head = kinks_vector[head_idx].n;
     site = kinks_vector[head_idx].site;
     dir = kinks_vector[head_idx].dir;
-    head_prev = kinks_vector[head_idx].prev;
-    head_next = kinks_vector[head_idx].next;
+    prev_h = kinks_vector[head_idx].prev;
+    next_h = kinks_vector[head_idx].next;
     
-    tau_t = kinks_vector[head_idx].tau; // Tail attributes
-    n_tail = kinks_vector[head_idx].n;
-    site = kinks_vector[head_idx].site;
-    dir = kinks_vector[head_idx].dir;
-    tail_prev = kinks_vector[head_idx].prev;
-    tail_next = kinks_vector[head_idx].next;
-    
+    tau_t = kinks_vector[tail_idx].tau; // Tail attributes
+    n_tail = kinks_vector[tail_idx].n;
+    site = kinks_vector[tail_idx].site;
+    dir = kinks_vector[tail_idx].dir;
+    prev_t = kinks_vector[tail_idx].prev;
+    next_t = kinks_vector[tail_idx].next;
+
     // Identify the type of worm
     if (tau_h > tau_t)
         is_worm = true;
@@ -248,20 +248,22 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     
     // Identify lower and upper bound of flat interval where worm lives
     if(is_worm){
-        tau_prev = kinks_vector[tail_prev].tau;
+        tau_prev = kinks_vector[prev_t].tau;
+        delete_worm_attempts += 1; // Attempts counter
         if(kinks_vector[head_idx].next == -1)
             tau_next = beta;
         else
-            tau_next = kinks_vector[int(head_next)].tau;
-        n = kinks_vector[tail_prev].n; // particles originally in the flat
+            tau_next = kinks_vector[int(next_h)].tau;
+        n = kinks_vector[prev_t].n; // particles originally in the flat
             }
     else{ // antiworm
-        tau_prev = kinks_vector[head_prev].tau;
+        tau_prev = kinks_vector[prev_h].tau;
+        delete_anti_attempts += 1; // Attempts counter
         if (kinks_vector[tail_idx].next == -1)
             tau_next = beta;
         else
-            tau_next = kinks_vector[tail_next].tau;
-        n = kinks_vector[head_prev].n;
+            tau_next = kinks_vector[next_t].tau;
+        n = kinks_vector[prev_h].n;
             }
     
     // Calculate the length of the flat interval
@@ -269,12 +271,12 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     
     // Determine length of modified path and particle change
     l_path = tau_h - tau_t;
-    dN = l_path/beta;
+    dN = -l_path/beta;
     
     // Canonical simulaton: Restrict updates to interval  N: (N-1,N+1)
     if (canonical)
         if ((N_tracker+dN) <= (N-1) || (N_tracker+dN) >= (N+1)){return;}
-    
+        
     // Calculate the difference in diagonal energy dV = \epsilon_w - \epsilon
     dV = (U/2)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
@@ -286,43 +288,68 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     R = 1/R;
     
     // Metropolis sampling
+    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     if (rnum(rng) < R){ // Accept
+        
         // Reconnect the lower,upper bounds of the flat interval
         if (is_worm){
-            kinks_vector[tail_prev].next = head_next;
-            kinks_vector[head_next].prev = tail_prev;
+            kinks_vector[prev_t].next = next_h;
+            kinks_vector[next_h].prev = prev_t;
         }
         else{ // antiworm
-            kinks_vector[head_prev].next = tail_next;
-            kinks_vector[tail_next].prev = head_prev;
+            kinks_vector[prev_h].next = next_t;
+            kinks_vector[next_t].prev = prev_h;
         }
         
-        // Swap head kink with last active kink
-        kinks_vector[head_idx] = kinks_vector[num_kinks-1]
-        kinks_vector[num_kinks-1] = kinks_vector[head_idx]
-        prv = int(kinks[head_idx[0]][4])
-        nxt = int(kinks[head_idx[0]][5])
-        kinks[prv][5] = head_idx[0]
-        kinks[nxt][4] = head_idx[0]
+        // num_kinks-1,num_kinks-2 will be swapped. Modify links to these.
+        kinks_vector[kinks_vector[num_kinks-1].next].prev = head_idx;
+        kinks_vector[kinks_vector[num_kinks-1].prev].next = head_idx;
+                
+        swap(kinks_vector[head_idx],kinks_vector[num_kinks-1]);
+
+        kinks_vector[kinks_vector[num_kinks-2].next].prev = tail_idx;
+        kinks_vector[kinks_vector[num_kinks-2].prev].next = tail_idx;
         
-        // Swap tail kink with second-to-last active kink
-        kinks[tail_idx],kinks[num_kinks-2] = kinks[num_kinks-2],kinks[tail_idx]
-        prv = int(kinks[tail_idx[0]][4])
-        nxt = int(kinks[tail_idx[0]][5])
-        kinks[prv][5] = tail_idx[0]
-        kinks[nxt][4] = tail_idx[0]
-        
-        // Reduce number of active kinks tracker
-        num_kinks[0] -= 2;
+        swap(kinks_vector[tail_idx],kinks_vector[num_kinks-2]);
+
+        // Upper,lower bounds of flat could've been swapped. Correct if so.
+        if (prev_h==num_kinks-1){prev_h=head_idx;}
+        if (next_h==num_kinks-1){next_h=head_idx;}
+
+        if (prev_t==num_kinks-2){prev_t=tail_idx;}
+        if (next_t==num_kinks-2){next_t=tail_idx;}
+
+        // Link tau_prev & tau_next kinks
+        if (is_worm){
+            kinks_vector[prev_t].next = next_h;
+            kinks_vector[next_h].prev = prev_t;
+            
+            // Add to Acceptance counter
+            delete_worm_accepts += 1;
+        }
+        else{ // antiworm
+            kinks_vector[prev_h].next = next_t;
+            kinks_vector[next_t].prev = prev_h;
+            
+            // Add to Acceptance counter
+            delete_anti_accepts += 1;
+        }
         
         // Deactivate the head,tail indices
-        head_idx[0],tail_idx[0] = -1,-1;
+        head_idx = -1;
+        tail_idx = -1;
+        
+        // Update trackers for: num of active kinks, total particles
+        num_kinks -= 2;
+        N_tracker += dN;
         
         return;
     }
-        else // Reject
+        
+    else{ // Reject
             return;
     }
+}
 
 // Main
 int main(){
@@ -393,5 +420,37 @@ int main(){
     cout<<"Insert Worm: "<<insert_worm_accepts<<"/"<<insert_worm_attempts<<endl;
     cout<<"Insert Anti: "<<insert_anti_accepts<<"/"<<insert_anti_attempts<<endl;
     
+    // Print out the data structure
+    for (int i=0;i<8;i++){
+        cout << kinks_vector[i] << endl;
+    }
+    
+    // Perform a delete_worm
+    delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
+                M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                delete_worm_attempts,delete_worm_accepts,
+                delete_anti_attempts,delete_anti_accepts);
+    
+    // Print out the data structure
+    cout << endl;
+    for (int i=0;i<8;i++){
+        cout << kinks_vector[i] << endl;
+    }
+    
+    // Print out the head and tail indices
+    cout << "head_idx: " << head_idx << endl;
+    cout << "tail_idx: " << tail_idx << endl;
+    
+    // Print out the N_tracker
+    cout << "N_tracker: " << N_tracker << endl;
+    
+    // Print out number of active kinks
+    cout << "num_kinks: " << num_kinks << endl;
+    
+    // Print out accept/reject statistics
+    cout<<"Delete Worm: "<<delete_worm_accepts<<"/"<<delete_worm_attempts<<endl;
+    cout<<"Delete Anti: "<<delete_anti_accepts<<"/"<<delete_anti_attempts<<endl;
+    
     return 0;
+
 }
