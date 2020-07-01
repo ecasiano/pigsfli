@@ -72,7 +72,7 @@ vector<int> random_boson_config(int M,int N){
 vector<Kink> create_kinks_vector(vector<int> &alpha, int M){
 
     // Pre-allocate kinks. Recall: (tau,n,site,dir,prev,next)
-    vector<Kink> kinks_vector(100,Kink(-1,-1,-1,-1,-1,-1));
+    vector<Kink> kinks_vector(10000000,Kink(-1,-1,-1,-1,-1,-1));
 
     // Initialize the first M=L^D kinks
     for (int i=0; i<M; i++){
@@ -448,6 +448,44 @@ int main(){
     cout << "num_kinks: " << num_kinks << endl;
     
     // Print out accept/reject statistics
+    cout<<"Delete Worm: "<<delete_worm_accepts<<"/"<<delete_worm_attempts<<endl;
+    cout<<"Delete Anti: "<<delete_anti_accepts<<"/"<<delete_anti_attempts<<endl;
+        
+    for (int i; i<100000000; i++){
+        
+        // Perform an insert_worm
+        insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
+                    M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                    insert_worm_attempts,insert_worm_accepts,
+                    insert_anti_attempts,insert_anti_accepts);
+        
+        // Perform a delete_worm
+        delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
+                    M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                    delete_worm_attempts,delete_worm_accepts,
+                    delete_anti_attempts,delete_anti_accepts);
+    }
+    
+    
+    // Print out the data structure
+    cout << endl;
+    for (int i=0;i<8;i++){
+        cout << kinks_vector[i] << endl;
+    }
+    
+    // Print out the head and tail indices
+    cout << "head_idx: " << head_idx << endl;
+    cout << "tail_idx: " << tail_idx << endl;
+    
+    // Print out the N_tracker
+    cout << "N_tracker: " << N_tracker << endl;
+    
+    // Print out number of active kinks
+    cout << "num_kinks: " << num_kinks << endl;
+    
+    // Print out accept/reject statistics
+    cout<<"Insert Worm: "<<insert_worm_accepts<<"/"<<insert_worm_attempts<<endl;
+    cout<<"Insert Anti: "<<insert_anti_accepts<<"/"<<insert_anti_attempts<<endl;
     cout<<"Delete Worm: "<<delete_worm_accepts<<"/"<<delete_worm_attempts<<endl;
     cout<<"Delete Anti: "<<delete_anti_accepts<<"/"<<delete_anti_attempts<<endl;
     
