@@ -12,8 +12,10 @@
 #include<vector>
 #include<boost/random.hpp>
 #include<cmath>
+#include<chrono>
 
 using namespace std;
+using namespace std::chrono;
 
 // Set the random number generator
 boost::random::mt19937 rng;
@@ -346,14 +348,36 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         return;
     }
         
-    else{ // Reject
+    else // Reject
             return;
+}
+
+void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
+int &tail_idx, int M, int N, float U, float mu, float t,
+float beta, float eta, bool canonical, double &N_tracker,
+int &delete_worm_attempts, int &delete_worm_accepts,
+               int &delete_anti_attempts, int &delete_anti_accepts){
+    
+    // Variable declarations
+    int k,n,site,dir,prev,next,n_head,n_tail;
+    int prev_h,next_h,prev_t,next_t;
+    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R;
+    bool is_worm;
+    
+    // Metropolis sampling
+    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rnum(rng) < R){
+        return;
     }
+    else // Reject
+        return;
 }
 
 // Main
 int main(){
     
+    auto start = high_resolution_clock::now();
+
     // Create a uniform distribution with support: [0.0,1.0)
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
@@ -390,68 +414,69 @@ int main(){
     // Generate the data structure (vector of kinks)
     vector<Kink> kinks_vector = create_kinks_vector(alpha, M);
 
-    // Print out the data structure
-    for (int i=0;i<8;i++){
-        cout << kinks_vector[i] << endl;
-    }
-
-    // Perform an insert_worm
-    insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
-                M,N,U,mu,t,beta,eta,canonical,N_tracker,
-                insert_worm_attempts,insert_worm_accepts,
-                insert_anti_attempts,insert_anti_accepts);
-
-    // Print out the data structure
-    for (int i=0;i<8;i++){
-        cout << kinks_vector[i] << endl;
-    }
-    
-    // Print out the head and tail indices
-    cout << "head_idx: " << head_idx << endl;
-    cout << "tail_idx: " << tail_idx << endl;
-    
-    // Print out the N_tracker
-    cout << "N_tracker: " << N_tracker << endl;
-    
-    // Print out number of active kinks
-    cout << "num_kinks: " << num_kinks << endl;
-    
-    // Print out accept/reject statistics
-    cout<<"Insert Worm: "<<insert_worm_accepts<<"/"<<insert_worm_attempts<<endl;
-    cout<<"Insert Anti: "<<insert_anti_accepts<<"/"<<insert_anti_attempts<<endl;
-    
-    // Print out the data structure
-    for (int i=0;i<8;i++){
-        cout << kinks_vector[i] << endl;
-    }
-    
-    // Perform a delete_worm
-    delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
-                M,N,U,mu,t,beta,eta,canonical,N_tracker,
-                delete_worm_attempts,delete_worm_accepts,
-                delete_anti_attempts,delete_anti_accepts);
-    
-    // Print out the data structure
-    cout << endl;
-    for (int i=0;i<8;i++){
-        cout << kinks_vector[i] << endl;
-    }
-    
-    // Print out the head and tail indices
-    cout << "head_idx: " << head_idx << endl;
-    cout << "tail_idx: " << tail_idx << endl;
-    
-    // Print out the N_tracker
-    cout << "N_tracker: " << N_tracker << endl;
-    
-    // Print out number of active kinks
-    cout << "num_kinks: " << num_kinks << endl;
-    
-    // Print out accept/reject statistics
-    cout<<"Delete Worm: "<<delete_worm_accepts<<"/"<<delete_worm_attempts<<endl;
-    cout<<"Delete Anti: "<<delete_anti_accepts<<"/"<<delete_anti_attempts<<endl;
+//    // Print out the data structure
+//    for (int i=0;i<8;i++){
+//        cout << kinks_vector[i] << endl;
+//    }
+//
+//    // Perform an insert_worm
+//    insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
+//                M,N,U,mu,t,beta,eta,canonical,N_tracker,
+//                insert_worm_attempts,insert_worm_accepts,
+//                insert_anti_attempts,insert_anti_accepts);
+//
+//    // Print out the data structure
+//    for (int i=0;i<8;i++){
+//        cout << kinks_vector[i] << endl;
+//    }
+//
+//    // Print out the head and tail indices
+//    cout << "head_idx: " << head_idx << endl;
+//    cout << "tail_idx: " << tail_idx << endl;
+//
+//    // Print out the N_tracker
+//    cout << "N_tracker: " << N_tracker << endl;
+//
+//    // Print out number of active kinks
+//    cout << "num_kinks: " << num_kinks << endl;
+//
+//    // Print out accept/reject statistics
+//    cout<<"Insert Worm: "<<insert_worm_accepts<<"/"<<insert_worm_attempts<<endl;
+//    cout<<"Insert Anti: "<<insert_anti_accepts<<"/"<<insert_anti_attempts<<endl;
+//
+//    // Print out the data structure
+//    for (int i=0;i<8;i++){
+//        cout << kinks_vector[i] << endl;
+//    }
+//
+//    // Perform a delete_worm
+//    delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
+//                M,N,U,mu,t,beta,eta,canonical,N_tracker,
+//                delete_worm_attempts,delete_worm_accepts,
+//                delete_anti_attempts,delete_anti_accepts);
+//
+//    // Print out the data structure
+//    cout << endl;
+//    for (int i=0;i<8;i++){
+//        cout << kinks_vector[i] << endl;
+//    }
+//
+//    // Print out the head and tail indices
+//    cout << "head_idx: " << head_idx << endl;
+//    cout << "tail_idx: " << tail_idx << endl;
+//
+//    // Print out the N_tracker
+//    cout << "N_tracker: " << N_tracker << endl;
+//
+//    // Print out number of active kinks
+//    cout << "num_kinks: " << num_kinks << endl;
+//
+//    // Print out accept/reject statistics
+//    cout<<"Delete Worm: "<<delete_worm_accepts<<"/"<<delete_worm_attempts<<endl;
+//    cout<<"Delete Anti: "<<delete_anti_accepts<<"/"<<delete_anti_attempts<<endl;
         
-    for (int i; i<100000000; i++){
+    // Perform many insert/deletes back-to-back
+    for (int i=0; i<1000000; i++){
         
         // Perform an insert_worm
         insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -485,9 +510,19 @@ int main(){
     
     // Print out accept/reject statistics
     cout<<"Insert Worm: "<<insert_worm_accepts<<"/"<<insert_worm_attempts<<endl;
-    cout<<"Insert Anti: "<<insert_anti_accepts<<"/"<<insert_anti_attempts<<endl;
     cout<<"Delete Worm: "<<delete_worm_accepts<<"/"<<delete_worm_attempts<<endl;
+    cout<<"Insert Anti: "<<insert_anti_accepts<<"/"<<insert_anti_attempts<<endl;
     cout<<"Delete Anti: "<<delete_anti_accepts<<"/"<<delete_anti_attempts<<endl;
+    
+    auto end = high_resolution_clock::now();
+    
+    auto elapsed_time = duration_cast<nanoseconds>(end - start);
+    float duration = elapsed_time.count() * 1e-9;
+    
+    //elapsed_time *= 1
+    
+    cout << "Elapsed time: " << duration << " seconds" << endl;
+
     
     return 0;
 
