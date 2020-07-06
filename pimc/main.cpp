@@ -20,22 +20,25 @@ using namespace std::chrono;
 // Set the random number generator
 boost::random::mt19937 rng;
 
+// Time code execution
+auto start = high_resolution_clock::now();
+
 class Kink
 {
     public:
     // Attribute declarations
-    float tau;
+    double tau;
     int n,site,dir,prev,next;
     
     // Member function declarations (prototypes)
-    Kink (float,int,int,int,int,int); // Kink constructor
+    Kink (double,int,int,int,int,int); // Kink constructor
     
     // Make "<<" a friend of the Kink class
     friend ostream& operator<<(ostream& os, const Kink& dt);
 };
 
 // Member function definitions
-Kink::Kink (float a,int b,int c,int d,int e,int f){
+Kink::Kink (double a,int b,int c,int d,int e,int f){
     tau = a;
     n = b;
     site = c;
@@ -82,6 +85,8 @@ vector<Kink> create_kinks_vector(vector<int> &alpha, int M){
     }
     return kinks_vector;
 }
+
+/*************************************************************************************************/
 
 void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, float U, float mu, float t,
@@ -293,16 +298,6 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     if (rnum(rng) < R){ // Accept
         
-        // Reconnect the lower,upper bounds of the flat interval
-        if (is_worm){
-            kinks_vector[prev_t].next = next_h;
-            kinks_vector[next_h].prev = prev_t;
-        }
-        else{ // antiworm
-            kinks_vector[prev_h].next = next_t;
-            kinks_vector[next_t].prev = prev_h;
-        }
-        
         // num_kinks-1,num_kinks-2 will be swapped. Modify links to these.
         kinks_vector[kinks_vector[num_kinks-1].next].prev = head_idx;
         kinks_vector[kinks_vector[num_kinks-1].prev].next = head_idx;
@@ -321,7 +316,7 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         if (prev_t==num_kinks-2){prev_t=tail_idx;}
         if (next_t==num_kinks-2){next_t=tail_idx;}
 
-        // Link tau_prev & tau_next kinks
+        // Reconnect the lower,upper bounds of the flat interval
         if (is_worm){
             kinks_vector[prev_t].next = next_h;
             kinks_vector[next_h].prev = prev_t;
@@ -352,6 +347,166 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             return;
 }
 
+/*************************************************************************************************/
+
+void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
+                int &tail_idx, int M, int N, float U, float mu, float t,
+                float beta, float eta, bool canonical, double &N_tracker,
+                int N_zero, int N_beta,
+                int &insertZero_worm_attempts, int &insertZero_worm_accepts,
+                int &insertZero_anti_attempts, int &insertZero_anti_accepts){
+    
+    // Variable declarations
+    int k,n,site,dir,prev,next,n_head,n_tail,i,N_b;
+    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,
+    l_path,dN,dV,p_iw,p_dw,R,p_type,tau_new,p_wormend,C,W,p_dz,p_iz;
+    bool is_worm;
+
+    // Cannot insert if there's two worm ends present
+    if (head_idx != -1 and tail_idx != -1){return;}
+    
+    // Randomly select site on which to insert worm/antiworm from tau=0
+    boost::random::uniform_int_distribution<> sites(0, M);
+    i = sites(rng);
+    
+    // Extract the flat interval where insertion is proposed & its attributes
+    Kink insertion_flat = kinks_vector[i];
+    // tau = insertion_flat.tau; tau is just zero
+    n = insertion_flat.n;
+    site = insertion_flat.site;
+    dir = insertion_flat.dir;
+    prev = insertion_flat.prev;
+    next = insertion_flat.next;
+    
+    // Determine the length of insertion flat interval
+    if (next != -1)
+        tau_flat = kinks_vector[next].tau;
+    else
+        tau_flat = beta;
+    
+    // Choose worm/antiworm insertion based on worm ends present
+    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (head_idx==-1 and tail_idx==-1){ // no worm ends present
+        if (n==0){ // can only insert worm, not antiworm
+            is_worm = true;
+            p_type = 1;
+        }
+        else{ // choose worm or antiworm insertion with equal probability
+            if (rnum(rng) < 0.5)
+                is_worm = true;
+            else
+                is_worm = false;
+            p_type = 0.5;
+        }
+    }
+    else if (head_idx!=-1){ // only worm head present, can insert antiworm only
+        if (n==0){
+            insertZero_anti_attempts += 1;
+            return; // cannot insert proposed antiworm, no particles present
+        }
+        else{
+            is_worm = false;
+            p_type = 1;
+        }
+    }
+    else{ // only tail present, can insert worm only
+        is_worm = true;
+        p_type = 1;
+    }
+    
+    // Add to worm/antiworm insertion attempt counters
+    if (is_worm){insertZero_worm_attempts += 1;}
+    else {insertZero_anti_attempts += 1;}
+    
+    // Randomly choose where to insert worm end on the flat interval
+    tau_new = tau_flat*rnum(rng);
+    
+    // Determine the no. of particles after each worm end
+    if (is_worm){
+        n_tail = n + 1;
+        n_head = n;
+    }
+    else{
+        n_tail = n;
+        n_head = n - 1;
+    }
+    
+    // Calculate the diagonal energy difference dV = \epsilon_w - \epsilon
+    dV = (U/2)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    
+    // deleteZero (reverse update) might've had to choose either head or tail
+    if (head_idx==-1 and tail_idx==-1) // only one end after insertZero
+        p_wormend = 1;
+    else{                              // two worm ends after insertZero
+        if (is_worm){
+            if (kinks_vector[kinks_vector[tail_idx].prev].tau != 0)
+                p_wormend = 1; // cannot choose tail. was not coming from tau=0.
+            else
+                p_wormend = 0.5; // deleteZero could choose either head or tail
+        }
+        else{ // if insert anti (i.e, a tail) the end present was a head
+            if (kinks_vector[kinks_vector[head_idx].prev].tau != 0)
+                p_wormend = 1;
+            else
+                p_wormend = 0.5;
+        }
+    }
+    
+    // Determine the length of the path to be modified
+    l_path = tau_new;
+    
+    // Determine the total particle change based on worm type
+    if (is_worm)
+        dN = +1 * l_path/beta;
+    else
+        dN = -1 * l_path/beta;
+    
+    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    if (canonical)
+        if ((N_tracker+dN) <= (N-1) || (N_tracker+dN) >= (N+1)){return;}
+    
+    // Count the TOTAL number of particles at tau=0
+    N_b = N_zero;
+    
+    // Build the weight ratio W'/W
+    // C = 1;
+    if (is_worm){
+        C = sqrt(N_b+1)/sqrt(n+1);
+        W = eta * sqrt(n_tail) * C * exp(-dV*tau_new);
+    }
+    else{
+        C = sqrt(n)/sqrt(N_b);
+        W = eta * sqrt(n_tail) * C * exp(dV*tau_new);
+    }
+    
+    // Build the Metropolis Ratio (R)
+    p_dz = 0.5;
+    p_iz = 0.5;
+    R = W * (p_dz/p_iz) * M * p_wormend * tau_flat / p_type;
+    
+    // Metropolis sampling
+    if (rnum(rng) < R){ // Accept
+        
+        // Activate the first available kink
+        if (is_worm){
+            kinks_vector[num_kinks] = Kink (tau_new,n_head,i,0,i,next);
+        }
+        else{ // antiworm
+            
+        }
+        
+        return;
+    }
+    else // Reject
+        return;
+}
+
+    
+    
+    
+    
+/*************************************************************************************************/
+
 void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 int &tail_idx, int M, int N, float U, float mu, float t,
 float beta, float eta, bool canonical, double &N_tracker,
@@ -373,10 +528,76 @@ int &delete_worm_attempts, int &delete_worm_accepts,
         return;
 }
 
+/*************************************************************************************************/
+
+//class new_finite_exponential_random {
+//public:
+//  new_finite_exponential_random(double x, double l, double t)
+//   : random_x(x), lambda(l), time(t) {}
+//
+//  double operator()() {
+//    if(fabs(lambda*time)<1e-8)
+//      return time*random_x;
+//    else if(lambda<0)
+//    {
+//      if(lambda*time > std::log(std::numeric_limits<double>::min()))
+//      {
+//        double factor=std::exp(lambda*time);
+//        return 1./lambda*std::log(factor+(1.-factor)*random_x);
+//      }
+//      else
+//      {
+//        double t= 1./lambda*std::log(random_x);
+//        return (t < time ? t : time-std::numeric_limits<double>::epsilon());
+//       }
+//    }
+//    else
+//    {
+//      if(-lambda*time > std::log(std::numeric_limits<double>::min()))
+//      {
+//        double factor=std::exp(-lambda*time);
+//        return time - 1./(-lambda)*std::log(factor+(1.-factor)*random_x);
+//        }
+//      else
+//      {
+//        double t = time -1./(-lambda)*std::log(random_x);
+//        return (t>0 ? t : std::numeric_limits<double>::epsilon());
+//      }
+//    }
+//  }
+//
+//private:
+//  double random_x;
+//  double lambda;
+//  double time;
+//};   // new_finite_exponential_random
+//
+//template <class RNG>
+//class finite_exponential_random {
+//public:
+//  finite_exponential_random(RNG& r, double l, double t)
+//   : rng(r,boost::uniform_real<>()), lambda(l), time(t) {}
+//
+//  double operator()() {
+//#ifdef SIMPLE
+//    return time*rng();
+//#else
+//  return new_finite_exponential_random(rng(), lambda, time)();
+//#endif
+//  }
+//
+//private:
+// boost::variate_generator<RNG&, boost::uniform_real<> > rng;
+// double lambda;
+// double time;
+//};   // finite_exponential_random
+
+/*************************************************************************************************/
+
 // Main
 int main(){
     
-    auto start = high_resolution_clock::now();
+//    auto start = high_resolution_clock::now();
 
     // Create a uniform distribution with support: [0.0,1.0)
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
@@ -476,7 +697,7 @@ int main(){
 //    cout<<"Delete Anti: "<<delete_anti_accepts<<"/"<<delete_anti_attempts<<endl;
         
     // Perform many insert/deletes back-to-back
-    for (int i=0; i<1000000; i++){
+    for (int i=0; i<10000000; i++){
         
         // Perform an insert_worm
         insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
