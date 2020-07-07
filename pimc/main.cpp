@@ -202,7 +202,7 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         // "Connect" prev of next kink to nearest worm end
         kinks_vector[next].prev = num_kinks+1;
         
-        // Update trackers for: num of active kinks, total particles
+        // Update trackers for: no of active kinks, total particles
         num_kinks += 2;
         N_tracker += dN;
         
@@ -352,7 +352,7 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, float U, float mu, float t,
                 float beta, float eta, bool canonical, double &N_tracker,
-                int N_zero, int N_beta,
+                int &N_zero, int &N_beta,
                 int &insertZero_worm_attempts, int &insertZero_worm_accepts,
                 int &insertZero_anti_attempts, int &insertZero_anti_accepts){
     
@@ -364,9 +364,9 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 
     // Cannot insert if there's two worm ends present
     if (head_idx != -1 and tail_idx != -1){return;}
-    
+        
     // Randomly select site on which to insert worm/antiworm from tau=0
-    boost::random::uniform_int_distribution<> sites(0, M);
+    boost::random::uniform_int_distribution<> sites(0, M-1);
     i = sites(rng);
     
     // Extract the flat interval where insertion is proposed & its attributes
@@ -456,10 +456,12 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     l_path = tau_new;
     
     // Determine the total particle change based on worm type
-    if (is_worm)
+    if (is_worm){
         dN = +1 * l_path/beta;
-    else
+    }
+    else{
         dN = -1 * l_path/beta;
+    }
     
     // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
     if (canonical)
@@ -483,17 +485,45 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     p_dz = 0.5;
     p_iz = 0.5;
     R = W * (p_dz/p_iz) * M * p_wormend * tau_flat / p_type;
-    
+
     // Metropolis sampling
     if (rnum(rng) < R){ // Accept
         
         // Activate the first available kink
         if (is_worm){
             kinks_vector[num_kinks] = Kink (tau_new,n_head,i,0,i,next);
+            
+            // Save head index
+            head_idx = num_kinks;
+            
+            // Update the number of particles in the initial kink at site i
+            kinks_vector[i].n = n_tail;
+            
+            // Add to Acceptance counter
+            insertZero_worm_accepts += 1;
         }
         else{ // antiworm
+            kinks_vector[num_kinks] = Kink (tau_new,n_tail,i,0,i,next);
             
+            // Save head index
+            tail_idx = num_kinks;
+            
+            // Update the number of particles in the initial kink at site i
+            kinks_vector[i].n = n_head;
+            
+            // Add to Acceptance counter
+            insertZero_anti_accepts += 1;
         }
+        
+        // "Connect" next of lower bound kink to the new worm end
+        kinks_vector[i].next = num_kinks;
+        
+        // "Connect" prev of next kink to the new worm end
+        kinks_vector[next].prev = num_kinks;
+        
+        // Update trackers for: no. of active kinks, total particles
+        num_kinks += 1;
+        N_tracker += dN;
         
         return;
     }
@@ -501,10 +531,6 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         return;
 }
 
-    
-    
-    
-    
 /*************************************************************************************************/
 
 void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
@@ -616,13 +642,16 @@ int main(){
     int num_kinks = M;
     double N_tracker = N;
     int head_idx = -1, tail_idx = -1;
+    int N_zero=N, N_beta=N;
     
     // Attempt/Acceptance counters
     int insert_worm_attempts=0, insert_worm_accepts=0;
     int insert_anti_attempts=0, insert_anti_accepts=0;
     int delete_worm_attempts=0, delete_worm_accepts=0;
     int delete_anti_attempts=0, delete_anti_accepts=0;
-    
+    int insertZero_worm_attempts=0, insertZero_worm_accepts=0;
+    int insertZero_anti_attempts=0, insertZero_anti_accepts=0;
+
     // Generate a random fock state
     alpha = random_boson_config(M,N);
     
@@ -635,46 +664,114 @@ int main(){
     // Generate the data structure (vector of kinks)
     vector<Kink> kinks_vector = create_kinks_vector(alpha, M);
 
-//    // Print out the data structure
-//    for (int i=0;i<8;i++){
-//        cout << kinks_vector[i] << endl;
-//    }
-//
-//    // Perform an insert_worm
+    // Print out the data structure
+    for (int i=0;i<8;i++){
+        cout << kinks_vector[i] << endl;
+    }
+
+    // Perform an insert_worm
 //    insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
 //                M,N,U,mu,t,beta,eta,canonical,N_tracker,
 //                insert_worm_attempts,insert_worm_accepts,
 //                insert_anti_attempts,insert_anti_accepts);
-//
-//    // Print out the data structure
-//    for (int i=0;i<8;i++){
-//        cout << kinks_vector[i] << endl;
-//    }
-//
-//    // Print out the head and tail indices
-//    cout << "head_idx: " << head_idx << endl;
-//    cout << "tail_idx: " << tail_idx << endl;
-//
-//    // Print out the N_tracker
-//    cout << "N_tracker: " << N_tracker << endl;
-//
-//    // Print out number of active kinks
-//    cout << "num_kinks: " << num_kinks << endl;
-//
-//    // Print out accept/reject statistics
-//    cout<<"Insert Worm: "<<insert_worm_accepts<<"/"<<insert_worm_attempts<<endl;
-//    cout<<"Insert Anti: "<<insert_anti_accepts<<"/"<<insert_anti_attempts<<endl;
-//
-//    // Print out the data structure
-//    for (int i=0;i<8;i++){
-//        cout << kinks_vector[i] << endl;
-//    }
-//
-//    // Perform a delete_worm
+
+    // Print out the data structure
+    for (int i=0;i<8;i++){
+        cout << kinks_vector[i] << endl;
+    }
+
+    // Print out the head and tail indices
+    cout << "head_idx: " << head_idx << endl;
+    cout << "tail_idx: " << tail_idx << endl;
+
+    // Print out the N_tracker
+    cout << "N_tracker: " << N_tracker << endl;
+
+    // Print out number of active kinks
+    cout << "num_kinks: " << num_kinks << endl;
+
+    // Print out accept/reject statistics
+    cout<<"Insert Worm: "<<insert_worm_accepts<<"/"<<insert_worm_attempts<<endl;
+    cout<<"Insert Anti: "<<insert_anti_accepts<<"/"<<insert_anti_attempts<<endl;
+
+    // Print out the data structure
+    for (int i=0;i<8;i++){
+        cout << kinks_vector[i] << endl;
+    }
+
+    // Perform a delete_worm
 //    delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
 //                M,N,U,mu,t,beta,eta,canonical,N_tracker,
 //                delete_worm_attempts,delete_worm_accepts,
 //                delete_anti_attempts,delete_anti_accepts);
+
+    // Print out the data structure
+    cout << endl;
+    for (int i=0;i<8;i++){
+        cout << kinks_vector[i] << endl;
+    }
+
+    // Print out the head and tail indices
+    cout << "head_idx: " << head_idx << endl;
+    cout << "tail_idx: " << tail_idx << endl;
+
+    // Print out the N_tracker
+    cout << "N_tracker: " << N_tracker << endl;
+
+    // Print out number of active kinks
+    cout << "num_kinks: " << num_kinks << endl;
+
+    // Print out accept/reject statistics
+    cout<<"Delete Worm: "<<delete_worm_accepts<<"/"<<delete_worm_attempts<<endl;
+    cout<<"Delete Anti: "<<delete_anti_accepts<<"/"<<delete_anti_attempts<<endl;
+    
+    // Perform a delete_worm
+    insertZero(kinks_vector,num_kinks,head_idx,tail_idx,
+               M,N,U,mu,t,beta,eta,canonical,N_tracker,
+               N_zero,N_beta,
+               insertZero_worm_attempts,insertZero_worm_accepts,
+               insertZero_anti_attempts,insertZero_anti_accepts);
+
+    // Print out the data structure
+    cout << endl;
+    for (int i=0;i<8;i++){
+        cout << kinks_vector[i] << endl;
+    }
+
+    // Print out the head and tail indices
+    cout << "head_idx: " << head_idx << endl;
+    cout << "tail_idx: " << tail_idx << endl;
+
+    // Print out the N_tracker
+    cout << "N_tracker: " << N_tracker << endl;
+
+    // Print out number of active kinks
+    cout << "num_kinks: " << num_kinks << endl;
+
+    // Print out accept/reject statistics
+    cout<<"InsertZero Worm: "<<insertZero_worm_accepts<<"/"<<
+                               insertZero_worm_attempts<<endl;
+    cout<<"InsertZero Anti: "<<insertZero_anti_accepts<<"/"<<
+                               insertZero_anti_attempts<<endl;
+        
+    /************************************* insert/delete benchmarking ******************************************/
+
+//    // Perform many insert/deletes back-to-back
+//    for (int i=0; i<10000000; i++){
+//
+//        // Perform an insert_worm
+//        insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
+//                    M,N,U,mu,t,beta,eta,canonical,N_tracker,
+//                    insert_worm_attempts,insert_worm_accepts,
+//                    insert_anti_attempts,insert_anti_accepts);
+//
+//        // Perform a delete_worm
+//        delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
+//                    M,N,U,mu,t,beta,eta,canonical,N_tracker,
+//                    delete_worm_attempts,delete_worm_accepts,
+//                    delete_anti_attempts,delete_anti_accepts);
+//    }
+//
 //
 //    // Print out the data structure
 //    cout << endl;
@@ -693,56 +790,22 @@ int main(){
 //    cout << "num_kinks: " << num_kinks << endl;
 //
 //    // Print out accept/reject statistics
+//    cout<<"Insert Worm: "<<insert_worm_accepts<<"/"<<insert_worm_attempts<<endl;
 //    cout<<"Delete Worm: "<<delete_worm_accepts<<"/"<<delete_worm_attempts<<endl;
+//    cout<<"Insert Anti: "<<insert_anti_accepts<<"/"<<insert_anti_attempts<<endl;
 //    cout<<"Delete Anti: "<<delete_anti_accepts<<"/"<<delete_anti_attempts<<endl;
-        
-    // Perform many insert/deletes back-to-back
-    for (int i=0; i<10000000; i++){
-        
-        // Perform an insert_worm
-        insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
-                    M,N,U,mu,t,beta,eta,canonical,N_tracker,
-                    insert_worm_attempts,insert_worm_accepts,
-                    insert_anti_attempts,insert_anti_accepts);
-        
-        // Perform a delete_worm
-        delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
-                    M,N,U,mu,t,beta,eta,canonical,N_tracker,
-                    delete_worm_attempts,delete_worm_accepts,
-                    delete_anti_attempts,delete_anti_accepts);
-    }
+//
+//    auto end = high_resolution_clock::now();
+//
+//    auto elapsed_time = duration_cast<nanoseconds>(end - start);
+//    float duration = elapsed_time.count() * 1e-9;
+//
+//    //elapsed_time *= 1
+//
+//    cout << "Elapsed time: " << duration << " seconds" << endl;
     
-    
-    // Print out the data structure
-    cout << endl;
-    for (int i=0;i<8;i++){
-        cout << kinks_vector[i] << endl;
-    }
-    
-    // Print out the head and tail indices
-    cout << "head_idx: " << head_idx << endl;
-    cout << "tail_idx: " << tail_idx << endl;
-    
-    // Print out the N_tracker
-    cout << "N_tracker: " << N_tracker << endl;
-    
-    // Print out number of active kinks
-    cout << "num_kinks: " << num_kinks << endl;
-    
-    // Print out accept/reject statistics
-    cout<<"Insert Worm: "<<insert_worm_accepts<<"/"<<insert_worm_attempts<<endl;
-    cout<<"Delete Worm: "<<delete_worm_accepts<<"/"<<delete_worm_attempts<<endl;
-    cout<<"Insert Anti: "<<insert_anti_accepts<<"/"<<insert_anti_attempts<<endl;
-    cout<<"Delete Anti: "<<delete_anti_accepts<<"/"<<delete_anti_attempts<<endl;
-    
-    auto end = high_resolution_clock::now();
-    
-    auto elapsed_time = duration_cast<nanoseconds>(end - start);
-    float duration = elapsed_time.count() * 1e-9;
-    
-    //elapsed_time *= 1
-    
-    cout << "Elapsed time: " << duration << " seconds" << endl;
+    /*************************************************************************************************/
+
 
     
     return 0;
