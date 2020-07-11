@@ -554,12 +554,6 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 
     // Cannot delete if there are no worm ends present
     if (head_idx==-1 and tail_idx==-1){return;}
-    
-    cout << endl;
-    cout << "---------------------------" << endl;
-    cout << head_idx << " " << tail_idx << endl;
-    cout << "FINAL FLASH!!!!" << endl;
-    cout << "---------------------------" << endl;
 
     // Cannot delete if there are no worm ends coming from tau=0
     if (head_idx!=-1 and tail_idx!=-1){
@@ -575,8 +569,8 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 
     // Decide which worm end to delete
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    if (head_idx==-1 and tail_idx==-1){ // both wormends present
-        if (kinks_vector[kinks_vector[head_idx].prev].tau == 0 and
+    if (head_idx!=-1 && tail_idx!=-1){ // both wormends present
+        if (kinks_vector[kinks_vector[head_idx].prev].tau == 0 &&
             kinks_vector[kinks_vector[tail_idx].prev].tau == 0){ //both near 0
             if (rnum(rng) < 0.5)
                 delete_head = true;
@@ -689,6 +683,9 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     // Metropolis sampling
     if (rnum(rng) < R){ // accept
         
+        // Update the number of particles in the initial kink at site i
+        kinks_vector[kinks_vector[worm_end_idx].prev].n = n;
+        
         // num_kinks-1 (1st available kink) will be swapped. Modify links to it.
         kinks_vector[kinks_vector[num_kinks-1].next].prev = worm_end_idx;
         kinks_vector[kinks_vector[num_kinks-1].prev].next = worm_end_idx;
@@ -712,16 +709,11 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         else{
             tail_idx = -1;
             
-            // Update the number of particles in the initial kink at site i
-            kinks_vector[i].n = n_tail;
-            
             // Add to Acceptance counter
             deleteZero_anti_accepts += 1;
         }
         
-        // Update the number of particles in the initial kink at site i
-        kinks_vector[kinks_vector[worm_end_idx].prev].n = n;
-        
+        cout << "dN: " << dN << endl;
         // Update trackers for: num of active kinks, total particles
         num_kinks -= 1;
         N_tracker += dN;
@@ -960,7 +952,6 @@ int main(){
                                insertZero_anti_attempts<<endl;
     
     for (int i=0; i<1000; i++){
-        if (head_idx==-1 || tail_idx==-1){break;}
     // Perform a deleteZero
     deleteZero(kinks_vector,num_kinks,head_idx,tail_idx,
                M,N,U,mu,t,beta,eta,canonical,N_tracker,
@@ -989,7 +980,11 @@ int main(){
                                deleteZero_worm_attempts<<endl;
     cout<<"DeleteZero Anti: "<<deleteZero_anti_accepts<<"/"<<
                                deleteZero_anti_attempts<<endl;
+        
+    // Stop looping as soon as a worm end is deleted
+    if (head_idx==-1 || tail_idx==-1){break;}
     }
+
         
     /************************************* insert/delete benchmarking ******************************************/
 
@@ -1042,9 +1037,6 @@ int main(){
 //    cout << "Elapsed time: " << duration << " seconds" << endl;
     
     /*************************************************************************************************/
-
-
     
     return 0;
-
 }
