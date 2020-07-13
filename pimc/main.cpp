@@ -951,7 +951,7 @@ int main(){
     cout<<"InsertZero Anti: "<<insertZero_anti_accepts<<"/"<<
                                insertZero_anti_attempts<<endl;
     
-    for (int i=0; i<1000; i++){
+    for (int i=0; i<3000; i++){
     // Perform a deleteZero
     deleteZero(kinks_vector,num_kinks,head_idx,tail_idx,
                M,N,U,mu,t,beta,eta,canonical,N_tracker,
@@ -982,7 +982,7 @@ int main(){
                                deleteZero_anti_attempts<<endl;
         
     // Stop looping as soon as a worm end is deleted
-    if (head_idx==-1 || tail_idx==-1){break;}
+//    if (head_idx==-1 || tail_idx==-1){break;}
     }
 
         

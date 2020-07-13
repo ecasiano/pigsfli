@@ -240,7 +240,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/Cellar/boost/1.72.0_3/include/;
+				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/Cellar/boost/1.72.0_3/include;
 				NEW_SETTING = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

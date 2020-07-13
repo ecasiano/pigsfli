@@ -6,7 +6,7 @@
 	<integer>10</integer>
 	<key>logs</key>
 	<dict>
-		<key>DF695748-260A-469C-AD6C-19F07EAC7BF7</key>
+		<key>A2A5A2D1-5456-45E2-BE7F-871E8C1846E4</key>
 		<dict>
 			<key>className</key>
 			<string>IDEActivityLogMajorGroupSection</string>
@@ -15,7 +15,35 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.target.product-type.tool</string>
 			<key>fileName</key>
-			<string>DF695748-260A-469C-AD6C-19F07EAC7BF7.xcactivitylog</string>
+			<string>A2A5A2D1-5456-45E2-BE7F-871E8C1846E4.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>W</string>
+			</dict>
+			<key>signature</key>
+			<string>pimc-cwyxwyaiparcqdhewspmoqzuaiws</string>
+			<key>timeStartedRecording</key>
+			<real>616337336.13359404</real>
+			<key>timeStoppedRecording</key>
+			<real>616337337.28726995</real>
+			<key>title</key>
+			<string>Build target pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>A2A5A2D1-5456-45E2-BE7F-871E8C1846E4</string>
+		</dict>
+		<key>F2DBA6E7-E322-4297-BCA1-D4408D20F296</key>
+		<dict>
+			<key>className</key>
+			<string>IDEActivityLogMajorGroupSection</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.target.product-type.tool</string>
+			<key>fileName</key>
+			<string>F2DBA6E7-E322-4297-BCA1-D4408D20F296.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -26,13 +54,13 @@
 			<key>signature</key>
 			<string>pimc-eygfwokcblatcyasxkwsfexernor</string>
 			<key>timeStartedRecording</key>
-			<real>615928685.35202897</real>
+			<real>616341424.97585106</real>
 			<key>timeStoppedRecording</key>
-			<real>615928686.93678999</real>
+			<real>616341426.05366397</real>
 			<key>title</key>
 			<string>Build target pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>DF695748-260A-469C-AD6C-19F07EAC7BF7</string>
+			<string>F2DBA6E7-E322-4297-BCA1-D4408D20F296</string>
 		</dict>
 	</dict>
 	<key>preserveOldLogs</key>
