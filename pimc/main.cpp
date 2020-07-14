@@ -95,6 +95,7 @@ vector<Kink> create_kinks_vector(vector<int> &alpha, int M){
 void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, float U, float mu, float t,
                  float beta, float eta, bool canonical, double &N_tracker,
+                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                  int &insert_worm_attempts, int &insert_worm_accepts,
                  int &insert_anti_attempts, int &insert_anti_accepts){
     
@@ -210,6 +211,12 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         num_kinks += 2;
         N_tracker += dN;
         
+        // If later worm end is last kink on site, update last kinks tracker vec
+        if (next==-1){
+            if (is_worm){last_kinks[site]=head_idx;}
+            else {last_kinks[site]=tail_idx;}
+        }
+        
         return;
     }
     else // Reject
@@ -221,6 +228,7 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, float U, float mu, float t,
                  float beta, float eta, bool canonical, double &N_tracker,
+                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                  int &delete_worm_attempts, int &delete_worm_accepts,
                  int &delete_anti_attempts, int &delete_anti_accepts){
     
@@ -346,6 +354,13 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         num_kinks -= 2;
         N_tracker += dN;
         
+        // If later worm end is last kink on site, update last kinks tracker vec
+        if (is_worm){
+            if (next_h==-1){last_kinks[site]=prev_t;}
+        }
+        else
+            if (next_t==-1){last_kinks[site]=prev_h;}
+        
         return;
     }
         
@@ -358,7 +373,7 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, float U, float mu, float t,
                 float beta, float eta, bool canonical, double &N_tracker,
-                int &N_zero, int &N_beta,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
                 int &insertZero_worm_attempts, int &insertZero_worm_accepts,
                 int &insertZero_anti_attempts, int &insertZero_anti_accepts){
     
@@ -477,7 +492,7 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     N_b = N_zero;
     
     // Build the weight ratio W'/W
-    C = 1;
+    // C = 1;
     if (is_worm){
         C = sqrt(N_b+1)/sqrt(n+1);
         W = eta * sqrt(n_tail) * C * exp(-dV*tau_new);
@@ -531,6 +546,12 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         num_kinks += 1;
         N_tracker += dN;
         
+        // If new worm end is last kink on site, update last_kinks vector
+        if (next==-1){
+            if (is_worm){last_kinks[site]=head_idx;}
+            else {last_kinks[site]=tail_idx;}
+        }
+        
         return;
     }
     else // Reject
@@ -542,7 +563,7 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, float U, float mu, float t,
                 float beta, float eta, bool canonical, double &N_tracker,
-                int &N_zero, int &N_beta,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
                 int &deleteZero_worm_attempts, int &deleteZero_worm_accepts,
                 int &deleteZero_anti_attempts, int &deleteZero_anti_accepts){
     
@@ -664,7 +685,7 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         N_b = N_zero+1;
     
     // Build the weigh ratio W'/W
-    C = 1;
+    // C = 1;
     if (delete_head){ // delete worm
         C = sqrt(N_b+1)/sqrt(n+1);
         W = eta * sqrt(n_tail) * C * exp(-dV*tau);
@@ -697,11 +718,27 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         
         // The other worm end could've been swapped. Reindex it if so.
         if (delete_head==true){
+            
             if (tail_idx==num_kinks-1){tail_idx=worm_end_idx;}
+            
+            // If other end was last on its site, also reindex last_kinks array
+            if (kinks_vector[tail_idx].next==-1){
+                last_kinks[kinks_vector[tail_idx].site] = tail_idx;
+            }
+            
+            
         }
         else{
             if (head_idx==num_kinks-1){head_idx=worm_end_idx;}
+            
+            // If other end was last on its site, also reindex last_kinks array
+            if (kinks_vector[head_idx].next==-1){
+                last_kinks[kinks_vector[head_idx].site] = head_idx;
+            }
         }
+        
+        // Last kink on site could've been swapped. Correct if so.
+        //if (last_kinks[site]==(num_kinks-1)){last_kinks[site]=worm_end_idx;}
         
         // Reconnect the lower,upper bounds of the flat interval.
         kinks_vector[prev].next = next;
@@ -724,6 +761,9 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         // Update trackers for: num of active kinks, total particles
         num_kinks -= 1;
         N_tracker += dN;
+        
+        // If worm end was last kink on site, update last kinks tracker vec.
+        if (next==-1){last_kinks[site]=prev;}
         
         return;
     }
@@ -779,6 +819,7 @@ int main(){
     double N_tracker = N;
     int head_idx = -1, tail_idx = -1;
     int N_zero=N, N_beta=N;
+    vector<int> last_kinks (M,-1);
     
     // Attempt/Acceptance counters
     int insert_worm_attempts=0, insert_worm_accepts=0;
@@ -802,6 +843,11 @@ int main(){
 
     // Generate the data structure (vector of kinks)
     vector<Kink> kinks_vector = create_kinks_vector(alpha, M);
+    
+    // Initialize array containing indices of last kinks at each site
+    for (int i=0; i<M; i++){
+        last_kinks[i] = i;
+    }
 
     cout << endl;
     // Print out the data structure
@@ -1050,7 +1096,7 @@ int main(){
     boost::random::uniform_int_distribution<> updates(0, 3);
     int label;
     
-    sweeps = 500000;
+    sweeps = 5000000;
     sweeps *= (beta*M);
     sweeps = static_cast<int>(sweeps);
     for (int m=0; m < sweeps; m++){
@@ -1059,19 +1105,21 @@ int main(){
         if (label==0){     // worm_insert
             insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
                         M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                        N_zero, N_beta, last_kinks,
                         insert_worm_attempts,insert_worm_accepts,
                         insert_anti_attempts,insert_anti_accepts);
         }
         else if (label==1){ // worm_delete
             delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
                         M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                        N_zero, N_beta, last_kinks,
                         delete_worm_attempts,delete_worm_accepts,
                         delete_anti_attempts,delete_anti_accepts);
         }
         else if (label==2){ // insertZero
             insertZero(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,beta,eta,canonical,N_tracker,
-                       N_zero,N_beta,
+                       N_zero, N_beta, last_kinks,
                        insertZero_worm_attempts,insertZero_worm_accepts,
                        insertZero_anti_attempts,insertZero_anti_accepts);
             
@@ -1079,13 +1127,42 @@ int main(){
         else if (label==3){ // deleteZero
             deleteZero(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,beta,eta,canonical,N_tracker,
-                       N_zero,N_beta,
+                       N_zero, N_beta, last_kinks,
                        deleteZero_worm_attempts,deleteZero_worm_accepts,
                        deleteZero_anti_attempts,deleteZero_anti_accepts);
         }
         else{
             // lol
         }
+        
+//        // Print out the data structure
+//        cout << endl << label << endl;
+//        for (int i=0;i<8;i++){
+//            cout << kinks_vector[i] << endl;
+//        }
+//
+//        // Print out the head and tail indices
+//        cout << "head_idx: " << head_idx << endl;
+//        cout << "tail_idx: " << tail_idx << endl;
+//
+//        // Print out the N_tracker
+//        cout << "N_tracker: " << N_tracker << endl;
+//
+//        // Print out number of active kinks
+//        cout << "num_kinks: " << num_kinks << endl;
+//
+//        // Print out the indices of each sites last kink
+//        cout << "Last kink indices: ";
+//        for (int i=0; i<M ; i++){
+//            cout << last_kinks[i] << " ";
+//        }
+//        cout << endl;
+//
+//        if (last_kinks[0]==5 && last_kinks[3]==5){
+//            cout << "You were supposed to be the chosen one!!!!" << endl;
+//            cout << "Move that betrayed the Jedi: " << label << endl;
+//            break;
+//        }
     }
 
     // Print out the data structure
@@ -1123,6 +1200,13 @@ int main(){
                                insertZero_anti_attempts<<endl;
     cout<<"DeleteZero Anti: "<<deleteZero_anti_accepts<<"/"<<
                                deleteZero_anti_attempts<<endl;
+    
+    // Print out the indices of each sites last kink
+    cout << endl << "Last kink indices: ";
+    for (int i=0; i<M ; i++){
+        cout << last_kinks[i] << " ";
+    }
+    cout << endl;
 
     
     return 0;
