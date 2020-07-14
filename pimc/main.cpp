@@ -1037,7 +1037,7 @@ int main(){
 //    }
 
         
-    /************************************* insert/delete benchmarking ******************************************/
+    /************************************ insert/delete benchmarking ******************************************/
 
 //    // Perform many insert/deletes back-to-back
 //    for (int i=0; i<1000000; i++){
