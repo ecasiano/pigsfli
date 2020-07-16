@@ -642,7 +642,7 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         tau_next = beta;
     else
         tau_next = kinks_vector[next].tau;
-    tau_flat = tau_next;a
+    tau_flat = tau_next;
 
     // No. of particles before,after the worm end to be deleted
     if (delete_head) // delete worm
@@ -662,7 +662,7 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     }
 
     // Add to deleteZero PROPOSAL counters
-    if (delete_head==true) // delete head (delete worm)
+    if (delete_head) // delete head (delete worm)
         deleteZero_worm_attempts += 1;
     else                   // delete tail (delete antiworm)
         deleteZero_anti_attempts += 1;
@@ -671,7 +671,7 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     l_path = tau;
     
     // Determine the total particle change based on worm type
-    if (delete_head==true) // delete worm
+    if (delete_head) // delete worm
         dN = -1 * l_path / beta;
     else // delete anti
         dN = +1 * l_path / beta;
@@ -713,7 +713,7 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         kinks_vector[kinks_vector[worm_end_idx].prev].n = n;
         
         // num_kinks-1 (last available kink) will be swapped. Modify links to it
-        if (kinks_vector[num_kinks-1].next!=-1)
+        if (kinks_vector[num_kinks-1].next!=-1) // avoids access with -1 index
             kinks_vector[kinks_vector[num_kinks-1].next].prev = worm_end_idx;
         kinks_vector[kinks_vector[num_kinks-1].prev].next = worm_end_idx;
         
@@ -723,7 +723,7 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         if (next==num_kinks-1){next=worm_end_idx;}
         
         // The other worm end could've been swapped. Reindex it if so.
-        if (delete_head==true){
+        if (delete_head){
             
             if (tail_idx==num_kinks-1){tail_idx=worm_end_idx;}
             
@@ -746,7 +746,7 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         kinks_vector[next].prev = prev;
 
         // Deactivate the worm end
-        if (delete_head==true){
+        if (delete_head){
             head_idx = -1;
             
             // Add to Acceptance counter
@@ -1060,7 +1060,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     }
 
     // Add to deleteBeta PROPOSAL counters
-    if (delete_head==true) // delete antiworm
+    if (delete_head) // delete antiworm
         deleteBeta_anti_attempts += 1;
     else                   // delete worm
         deleteBeta_worm_attempts += 1;
@@ -1069,7 +1069,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     l_path = beta - tau;
     
     // Determine the total particle change based on worm type
-    if (delete_head==true) // delete antiworm
+    if (delete_head) // delete antiworm
         dN = +1 * l_path / beta;
     else // delete worm
         dN = -1 * l_path / beta;
@@ -1082,19 +1082,19 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     dV = (U/2)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
     // Determine the number of total bosons before the worm/anti was inserted
-    if (delete_head==false)  // delete worm
-        N_b = N_beta-1;
-    else                     // delete antiworm
+    if (delete_head)     // delete antiworm
         N_b = N_beta+1;
+    else                 // delete worm
+        N_b = N_beta-1;
     
     // Build the weigh ratio W'/W
     // C = 1;
     if (delete_head==false){ // delete worm
-        C = sqrt(N_b+1)/sqrt(n+1);
+        C = sqrt(N_b+1)/sqrt(n);
         W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau));
     }
     else{ // delete antiworm
-        C = sqrt(n)/sqrt(N_b);
+        C = sqrt(n+1)/sqrt(N_b);
         W = eta * sqrt(n_tail) * C * exp(-dV*(tau-beta));
     }
     
@@ -1108,7 +1108,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     if (rnum(rng) < R){ // acclast
         
         // num_kinks-1 (last available kink) will be swapped. Modify links to it
-        if (kinks_vector[num_kinks-1].next!=-1)
+        if (kinks_vector[num_kinks-1].next!=-1) // avoids access with -1 index
             kinks_vector[kinks_vector[num_kinks-1].next].prev = worm_end_idx;
         kinks_vector[kinks_vector[num_kinks-1].prev].next = worm_end_idx;
         
@@ -1118,7 +1118,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         if (prev==num_kinks-1){prev=worm_end_idx;}
         
         // The other worm end could've been swapped. Reindex it if so.
-        if (delete_head==true){
+        if (delete_head){
             
             if (tail_idx==num_kinks-1){tail_idx=worm_end_idx;}
             
@@ -1141,7 +1141,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         kinks_vector[next].prev = prev;
 
         // Deactivate the worm end
-        if (delete_head==true){
+        if (delete_head){
             head_idx = -1;
             
             // Add to Acceptance counter
@@ -1207,7 +1207,7 @@ int main(){
     
     // Bose-Hubbard parameters
     int L = 4, D = 1, N = 4;
-    float t = 1.0, U = 1.0, mu = 0.5;
+    float t = 0.0, U = 1.0, mu = 0.5;
     vector<int> alpha;
     int M = pow(L,D); // total sites
     
