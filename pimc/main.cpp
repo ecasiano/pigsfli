@@ -1302,6 +1302,52 @@ void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         return;
 }
 
+/*---------------------------- Estimators ------------------------------------*/
+
+double energy(vector<Kink> &kinks_vector, int num_kinks,
+              int M, int N, float U, float mu, float t, float beta){
+    
+    float diagonal_energy=0;
+    vector<int> fock_state_half (M,0); // Store the Fock State at tau=beta/2
+    int current_kink_idx, n_at_half, next_kink_idx;
+    float tau_current, tau_next;
+    int n_i;
+    
+    for (int site=0; site<M; site++){
+        current_kink_idx = site;
+        next_kink_idx = kinks_vector[current_kink_idx].next;
+        n_at_half = kinks_vector[current_kink_idx].n;
+        while (next_kink_idx!=-1){
+            tau_current = kinks_vector[current_kink_idx].tau;
+            tau_next = kinks_vector[next_kink_idx].tau;
+            if (tau_next<beta/2){
+                n_at_half = kinks_vector[next_kink_idx].n;
+            }
+            else{
+                if (tau_next-beta/2<beta/2-tau_current){
+                    n_at_half = kinks_vector[next_kink_idx].n;
+                }
+                else{
+                    n_at_half = kinks_vector[current_kink_idx].n;
+                }
+            }
+            
+            current_kink_idx++;
+
+        }
+        
+        fock_state_half[site] = n_at_half;
+    }
+    
+    for (int site=0; site<M; site++){
+        n_i = fock_state_half[site];
+        diagonal_energy += (U/2)*n_i*(n_i-1) - mu*n_i;
+    }
+    return diagonal_energy;
+}
+
+
+
 /*----------------------------------------------------------------------------*/
 
 // Main
@@ -1315,14 +1361,14 @@ int main(){
     
     // Bose-Hubbard parameters
     int L = 4, D = 1, N = L;
-    float t = 0.0, U = 1.0, mu = 0.5;
+    float t = 0.0, U = 1, mu = 0.5;
     vector<int> alpha;
     int M = pow(L,D); // total sites
     
     // Simulation parameters
     float eta = 1.0, beta = 1.0;
-    bool canonical = true;
-    int sweeps;
+    bool canonical = canonical;
+    int sweeps=10000000;
     
     // Trackers
     int num_kinks = M;
@@ -1355,9 +1401,14 @@ int main(){
     
     int advance_tail_attempts=0, advance_tail_accepts=0;
     int recede_tail_attempts=0, recede_tail_accepts=0;
-
     
-
+    // Observables
+    double N_sum=0;
+    double diagonal_energy=0;
+    
+    // Non-observables
+    int Z_ctr=0;
+    
     // Generate a random fock state
     alpha = random_boson_config(M,N);
     
@@ -1391,7 +1442,6 @@ int main(){
     boost::random::uniform_int_distribution<> updates(0, 6);
     int label;
     
-    sweeps = 1000000;
     sweeps *= (beta*M);
     sweeps = static_cast<int>(sweeps);
     for (int m=0; m < sweeps; m++){
@@ -1482,6 +1532,16 @@ int main(){
 //            cout << "Move that betrayed the Jedi: " << label << endl;
 //            break;
 //        }
+        
+        // Measure N
+        if (m%(static_cast<int>(M*beta))==0 && m>0.2*sweeps){
+            if (head_idx==-1 and tail_idx==-1){
+                N_sum += N_tracker;
+                diagonal_energy+=energy(kinks_vector,num_kinks,M,N,U,mu,t,beta);
+                Z_ctr += 1;
+            }
+        }
+            
     }
 
     // Print out the data structure
@@ -1555,6 +1615,10 @@ int main(){
 
     auto elapsed_time = duration_cast<nanoseconds>(end - start);
     float duration = elapsed_time.count() * 1e-9;
+    
+    cout << endl << "<n>: " << (N_sum/M)/Z_ctr << endl;
+    cout << endl << "<V/t>: " << (diagonal_energy)/Z_ctr + mu*N << endl;
+    cout << endl << "Z_ctr: " << Z_ctr << endl;
     
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
             
