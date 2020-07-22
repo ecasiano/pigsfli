@@ -1174,7 +1174,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 }
 /*----------------------------------------------------------------------------*/
 
-void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
+void timeshift_uniform(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, float U, float mu, float t,
                 float beta, float eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
@@ -1242,7 +1242,7 @@ void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     // Calculate length of flat interval
     tau_flat = tau_next - tau_prev;
 
-    // Sample the new time of the worm end
+    // Sample the new time of the worm end from uniform distribution
     tau_new = tau_prev + tau_flat*rnum(rng);
     
     // Add to PROPOSAL counter
@@ -1302,6 +1302,136 @@ void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         return;
 }
 
+/*----------------------------------------------------------------------------*/
+
+void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
+                int &tail_idx, int M, int N, float U, float mu, float t,
+                float beta, float eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                int &advance_head_attempts, int &advance_head_accepts,
+                int &recede_head_attempts, int &recede_head_accepts,
+                int &advance_tail_attempts, int &advance_tail_accepts,
+                int &recede_tail_attempts, int &recede_tail_accepts){
+    
+    // Variable declarations
+    int k,n,site,dir,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
+    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
+    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,C,W,p_dz,p_iz,
+    p_db,p_ib;
+    bool is_worm,delete_head,shift_head;
+    
+    // Reject update if there is no worm end present
+    if (head_idx==-1 && tail_idx==-1){return;}
+
+    // Choose which worm end to move
+    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (head_idx!=-1 && tail_idx!=-1){ // both worm ends present
+        tau_h = kinks_vector[head_idx].tau;
+        tau_t = kinks_vector[tail_idx].tau;
+
+        // Randomly choose to shift HEAD or TAIL
+        if (rnum(rng) < 0.5)
+            shift_head = true;
+        else
+            shift_head = false;
+        }
+    else if (head_idx!=-1){ // only head present
+        tau_h = kinks_vector[head_idx].tau;
+        shift_head = true;
+    }
+    else{ // only tail present
+        tau_t = kinks_vector[tail_idx].tau;
+        shift_head = false;
+    }
+    
+    // Save the kink index of the end that will be shifted
+    if (shift_head){worm_end_idx=head_idx;}
+    else {worm_end_idx=tail_idx;}
+    
+    // Extract worm end attributes
+    tau = kinks_vector[worm_end_idx].tau;
+    n = kinks_vector[worm_end_idx].n;
+    site = kinks_vector[worm_end_idx].site;
+    dir = kinks_vector[worm_end_idx].dir;
+    prev = kinks_vector[worm_end_idx].prev;
+    next = kinks_vector[worm_end_idx].next;
+    
+    // Measure diagonal energy difference dV=eps_w-eps
+    if (shift_head)
+        dV=U*n-mu;     // dV=eps_w-eps
+    else
+        dV=U*(n-1)-mu; // dV=eps_w-eps
+    
+    // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
+    if (!shift_head){dV *= -1;} // dV=eps-eps_w
+        
+    // Determine the lower and upper bounds of the worm end to be timeshifted
+    if (next==-1)
+        tau_next = beta;
+    else
+        tau_next = kinks_vector[next].tau;
+    tau_prev = kinks_vector[prev].tau;
+    
+    // Calculate length of flat interval
+    tau_flat = tau_next - tau_prev;
+
+    // Sample the new time of the worm end from truncated exponential dist.
+    /*:::::::::::::::::::: Truncated Exponential RVS :::::::::::::::::::::::::*/
+    Z = 1 - exp(-dV*(tau_next-tau_prev));
+    tau_new = tau_prev - log(1-Z*rnum(rng))  / dV;
+    /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    
+    // Add to PROPOSAL counter
+    if (shift_head){
+        if (tau_new > tau){advance_head_attempts+=1;}
+        else{recede_head_attempts+=1;}
+    }
+    else{ // shift tail
+        if (tau_new > tau){advance_tail_attempts+=1;}
+        else{recede_tail_attempts+=1;}
+    }
+    
+    // Determine the length of path to be modified
+    l_path = tau_new - tau;
+    
+    // Determine the total particle change based on wormend to be shifted
+    if (shift_head)
+        dN = +1 * l_path/beta;
+    else // shift tail
+        dN = -1 * l_path/beta;
+    
+    // Canonical simulaton: Restrict updates to interval  N: (N-1,N+1)
+    if (canonical)
+        if ((N_tracker+dN) <= (N-1) || (N_tracker+dN) >= (N+1)){return;}
+    
+    // Build the Metropolis condition (R)
+    R = 1; // Sampling worm end time from truncated exponential makes R unity.
+
+    // Metropolis sampling
+    if (rnum(rng) < R){
+        
+        // Add to ACCEPTANCE counter
+        if (shift_head){
+            if (tau_new > tau){advance_head_accepts+=1;}
+            else{recede_head_accepts+=1;}
+        }
+        else{ // shift tail
+            if (tau_new > tau){advance_tail_accepts+=1;}
+            else{recede_tail_accepts+=1;}
+        }
+        
+        // Modify the worm end time
+        kinks_vector[worm_end_idx].tau = tau_new;
+        
+        // Modify total particle number tracker
+        N_tracker += dN;
+        
+        return;
+    }
+    else // Reject
+        return;
+}
+
 /*---------------------------- Estimators ------------------------------------*/
 
 double energy(vector<Kink> &kinks_vector, int num_kinks,
@@ -1311,7 +1441,7 @@ double energy(vector<Kink> &kinks_vector, int num_kinks,
     vector<int> fock_state_half (M,0); // Store the Fock State at tau=beta/2
     int current_kink_idx, n_at_half, next_kink_idx;
     float tau_current, tau_next;
-    int n_i;
+    int n_i, N_half;
     
     for (int site=0; site<M; site++){
         current_kink_idx = site;
@@ -1343,8 +1473,20 @@ double energy(vector<Kink> &kinks_vector, int num_kinks,
         n_i = fock_state_half[site];
         diagonal_energy += (U/2)*n_i*(n_i-1) - mu*n_i;
     }
-    return diagonal_energy;
+    
+    // Sum the total particles at tau=beta/2
+    N_half=0;
+    for (int i=0; i<M; i++){
+        N_half += fock_state_half[i];
+    }
+    
+    return N_half;
+    
+    // This bad boy is actually returning the total particles at tau=beta/2
 }
+
+/*----------------------------------------------------------------------------*/
+
 
 
 
@@ -1367,9 +1509,9 @@ int main(){
     
     // Simulation parameters
     float eta = 1.0, beta = 1.0;
-    bool canonical = canonical;
+    bool canonical = false;
     int sweeps=10000000;
-    
+        
     // Trackers
     int num_kinks = M;
     double N_tracker = N;
@@ -1617,7 +1759,8 @@ int main(){
     float duration = elapsed_time.count() * 1e-9;
     
     cout << endl << "<n>: " << (N_sum/M)/Z_ctr << endl;
-    cout << endl << "<V/t>: " << (diagonal_energy)/Z_ctr + mu*N << endl;
+//    cout << endl << "<V/t>: " << (diagonal_energy/M)/Z_ctr << endl;
+//    cout << endl << "<V/t>: " << (diagonal_energy)/Z_ctr + mu*N << endl;
     cout << endl << "Z_ctr: " << Z_ctr << endl;
     
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
