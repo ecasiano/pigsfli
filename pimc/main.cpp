@@ -1356,11 +1356,13 @@ void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     prev = kinks_vector[worm_end_idx].prev;
     next = kinks_vector[worm_end_idx].next;
     
-    // Measure diagonal energy difference dV=eps_w-eps
-    if (shift_head)
-        dV=U*n-mu;     // dV=eps_w-eps
-    else
-        dV=U*(n-1)-mu; // dV=eps_w-eps
+//    // Measure diagonal energy difference dV=eps_w-eps
+//    if (shift_head)
+//        dV=U*n-mu;     // dV=eps_w-eps
+//    else
+//        dV=U*(n-1)-mu; // dV=eps_w-eps
+    
+    dV=U*(n-!shift_head)-mu;
     
     // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
     if (!shift_head){dV *= -1;} // dV=eps-eps_w
@@ -1503,7 +1505,7 @@ int main(){
     
     // Bose-Hubbard parameters
     int L = 4, D = 1, N = L;
-    float t = 0.0, U = 1, mu = 0.5;
+    float t = 0.0, U = 10, mu = 5;
     vector<int> alpha;
     int M = pow(L,D); // total sites
     
@@ -1714,9 +1716,9 @@ int main(){
 //    cout << endl;
 
     cout<< endl << "Insert Worm: "<<insert_worm_accepts<<"/"<<
-                           insert_worm_attempts<<endl;
-    cout<<"Delete Worm: "<<delete_worm_accepts<<"/"<<
-                           delete_worm_attempts<<endl;
+                                    insert_worm_attempts<<endl;
+    cout<<         "Delete Worm: "<<delete_worm_accepts<<"/"<<
+                                    delete_worm_attempts<<endl;
     
     cout<< endl <<"Insert Anti: "<<insert_anti_accepts<<"/"<<
                            insert_anti_attempts<<endl;
