@@ -90,73 +90,86 @@ vector<Kink> create_kinks_vector(vector<int> &alpha, int M){
 }
 /*----------------------------------------------------------------------------*/
 
-double (int A[])
-void build_adjacency_matrix_nn(int L,int D,string boundary_condition,
-                               int adjacency_matrix){
+// Create function that calculates vector norm given array
+double norm(int point[3]){
+    
+    double squared_sum=0;
+    
+    for (int i=0; i<3; i++){
+        squared_sum += point[i]*point[i];
+    }
+    
+    return sqrt(squared_sum);
+}
 
-    // Variable declarations
-    int M = pow(L,D); // Number of lattice points
-    int ctr,a1,a2,a3;
-    double r_NN;
-    int A[M][M];
-    
-    // Initialize normalized basis vectors
-    int a1_vec[3] = {1,0,0};
-    int a2_vec[3] = {0,1,0};
-    int a3_vec[3] = {0,0,1};\
+/*----------------------------------------------------------------------------*/
 
-    // Norm of basis vectors (in the future, norms might need to be calculated)
-    a1 = 1;
-    a2 = 1;
-    a3 = 1;
-    
-    // Build the lattice vectors
-    M = pow(L,D);
-    ctr = 0;
-    if (D==1){
-        int points[M]; // stores lattice points
-        for (int i1=0; i1<L; i1++){
-            points[i1] = i1*a1;
-        }
-    }
-    else if (D==2){
-        int points[M][2];
-        for (int i1=0; i1<L; i1++){
-            for (int i2=0; i2<L; i2++){
-                points[ctr][0] = i1*a1;
-                points[ctr][1] = i2*a2;
-                ctr++;
-            }
-        }
-    }
-    else{ // D==3
-        int points[M][3];
-        for (int i1=0; i1<L; i1++){
-            for (int i2=0; i2<L; i2++){
-                for (int i3=0; i3<L; i3++){
-                    points[ctr][0] = i1*a1;
-                    points[ctr][1] = i2*a2;
-                    points[ctr][2] = i3*a3;
-                    ctr++;
-                }
-            }
-        }
-    }
-    
-    // Set the nearest-neighbor distance
-    r_NN = a1;
-    
-    // Build the adjacency matrix by comparing internode distances
-    for (int i=0; i<M; i++){
-        for (int j=1+1; j<M; j++){
-            if (boundary_condition=="pbc"){
-                A[i][j] = points[i]-points[j] <= (r_NN ||
-                                                  points[i]-points[j]==L-1)
-            }
-        }
-    }
-    
- }
+//void build_adjacency_matrix_nn(int L,int D,string boundary_condition,
+//                               int adjacency_matrix){
+//
+//    // Variable declarations
+//    int M = pow(L,D); // Number of lattice points
+//    int ctr,a1,a2,a3;
+//    double r_NN;
+//    int A[M][M];
+//
+//    // Initialize normalized basis vectors
+//    int a1_vec[3] = {1,0,0};
+//    int a2_vec[3] = {0,1,0};
+//    int a3_vec[3] = {0,0,1};\
+//
+//    // Norm of basis vectors (in the future, norms might need to be calculated)
+//    a1 = 1;
+//    a2 = 1;
+//    a3 = 1;
+//
+//    // Build the lattice vectors
+//    M = pow(L,D);
+//    ctr = 0;
+//    if (D==1){
+//        int points[M]; // stores lattice points
+//        for (int i1=0; i1<L; i1++){
+//            points[i1] = i1*a1;
+//        }
+//    }
+//    else if (D==2){
+//        int points[M][2];
+//        for (int i1=0; i1<L; i1++){
+//            for (int i2=0; i2<L; i2++){
+//                points[ctr][0] = i1*a1;
+//                points[ctr][1] = i2*a2;
+//                ctr++;
+//            }
+//        }
+//    }
+//    else{ // D==3
+//        int points[M][3];
+//        for (int i1=0; i1<L; i1++){
+//            for (int i2=0; i2<L; i2++){
+//                for (int i3=0; i3<L; i3++){
+//                    points[ctr][0] = i1*a1;
+//                    points[ctr][1] = i2*a2;
+//                    points[ctr][2] = i3*a3;
+//                    ctr++;
+//                }
+//            }
+//        }
+//    }
+//
+//    // Set the nearest-neighbor distance
+//    r_NN = a1;
+//
+//    // Build the adjacency matrix by comparing internode distances
+//    for (int i=0; i<M; i++){
+//        for (int j=1+1; j<M; j++){
+//            if (boundary_condition=="pbc"){
+//                A[i][j] = points[i]-points[j] <= (r_NN ||
+//                                                  points[i]-points[j]==L-1)
+//            }
+//        }
+//    }
+//
+// }
 /*----------------------------------------------------------------------------*/
 
 void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
@@ -1579,7 +1592,7 @@ int main(){
     // Simulation parameters
     float eta = 1.0, beta = 1.0;
     bool canonical = false;
-    int sweeps=10000000;
+    int sweeps=1000000;
         
     // Trackers
     int num_kinks = M;
@@ -1833,6 +1846,10 @@ int main(){
     cout << endl << "Z_ctr: " << Z_ctr << endl;
     
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
+    
+    int point[3] = {4,3,0};
+    
+    cout << "Homemade norm is: " << norm(point) << endl;
             
     return 0;
 }
