@@ -104,16 +104,13 @@ double norm(int point[3]){
 
 /*----------------------------------------------------------------------------*/
 
-void build_adjacency_matrix(int L,int D,int M,string boundary_condition,
-                               int (&adjacency_matrix)[][M]){
-    
-    // VEGEGTA
+void build_adjacency_matrix(int L,int D,string boundary_condition,vector<vector<bool>>&adjacency_matrix){
 
     // Variable declarations
-    //int M = pow(L,D); // Number of lattice points
+    int M = pow(L,D); // Number of lattice points
     int ctr,a1,a2,a3;
     double r_NN;
-    
+
     // Initialize normalized basis vectors
     int a1_vec[3] = {1,0,0};
     int a2_vec[3] = {0,1,0};
@@ -133,7 +130,7 @@ void build_adjacency_matrix(int L,int D,int M,string boundary_condition,
         for (int j=0; j<L; j++){
             for (int k=0; k<L; k++){
                 if (D==1){
-                    points[ctr][0] = i*a1;
+                    points[ctr][0] = 5;
                     points[ctr][1] = 0;
                     points[ctr][2] = 0;
                 }
@@ -172,6 +169,8 @@ void build_adjacency_matrix(int L,int D,int M,string boundary_condition,
         }
     }
     
+    adjacency_matrix[0][2] = 5;
+
     return;
  }
 /*----------------------------------------------------------------------------*/
@@ -1852,8 +1851,17 @@ int main(){
     
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
     
-    int adjacency_matrix[M][M];
-    build_adjacency_matrix(L,D,M,boundary_condition,&adjacency_matrix);
-            
+    vector<bool> rows (M,0);
+    vector<vector<bool>> adjacency_matrix (M,rows);
+    
+    build_adjacency_matrix(4,1,"pbc",adjacency_matrix);
+    
+    for (int i=0; i<M; i++){
+        for (int j=0; j<M; j++){
+            cout << adjacency_matrix[i][j] << " ";
+        }
+        cout << endl;
+    }
+    
     return 0;
 }
