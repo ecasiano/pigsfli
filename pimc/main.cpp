@@ -105,7 +105,7 @@ double norm(vector<double> point){
 /*----------------------------------------------------------------------------*/
 
 void build_adjacency_matrix(int L,int D,string boundary_condition,
-                            vector<vector<int>>&adjacency_matrix){
+                            vector<vector<bool>>&adjacency_matrix){
 
     // Variable declarations
     int M = pow(L,D); // Number of lattice points
@@ -1860,8 +1860,8 @@ int main(){
     
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
     
-    vector<int> adjacency_matrix_rows (M,0);
-    vector<vector<int>> adjacency_matrix (M,adjacency_matrix_rows);
+    vector<bool> adjacency_matrix_rows (M,0);
+    vector<vector<bool>> adjacency_matrix (M,adjacency_matrix_rows);
 
     build_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
 
