@@ -6,34 +6,6 @@
 	<integer>10</integer>
 	<key>logs</key>
 	<dict>
-		<key>8C6C81EF-9AD2-4004-8C49-9C97C7D8A3EE</key>
-		<dict>
-			<key>className</key>
-			<string>IDEActivityLogMajorGroupSection</string>
-			<key>documentTypeString</key>
-			<string>&lt;nil&gt;</string>
-			<key>domainType</key>
-			<string>Xcode.IDEActivityLogDomainType.target.product-type.tool</string>
-			<key>fileName</key>
-			<string>8C6C81EF-9AD2-4004-8C49-9C97C7D8A3EE.xcactivitylog</string>
-			<key>hasPrimaryLog</key>
-			<true/>
-			<key>primaryObservable</key>
-			<dict>
-				<key>highLevelStatus</key>
-				<string>W</string>
-			</dict>
-			<key>signature</key>
-			<string>pimc-eygfwokcblatcyasxkwsfexernor</string>
-			<key>timeStartedRecording</key>
-			<real>617645972.01445401</real>
-			<key>timeStoppedRecording</key>
-			<real>617645973.30395997</real>
-			<key>title</key>
-			<string>Build target pimc</string>
-			<key>uniqueIdentifier</key>
-			<string>8C6C81EF-9AD2-4004-8C49-9C97C7D8A3EE</string>
-		</dict>
 		<key>A2A5A2D1-5456-45E2-BE7F-871E8C1846E4</key>
 		<dict>
 			<key>className</key>
@@ -61,6 +33,34 @@
 			<string>Build target pimc</string>
 			<key>uniqueIdentifier</key>
 			<string>A2A5A2D1-5456-45E2-BE7F-871E8C1846E4</string>
+		</dict>
+		<key>DAF0DD77-CDED-4BCD-BBBA-0543114EA9DC</key>
+		<dict>
+			<key>className</key>
+			<string>IDEActivityLogMajorGroupSection</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.target.product-type.tool</string>
+			<key>fileName</key>
+			<string>DAF0DD77-CDED-4BCD-BBBA-0543114EA9DC.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>W</string>
+			</dict>
+			<key>signature</key>
+			<string>pimc-eygfwokcblatcyasxkwsfexernor</string>
+			<key>timeStartedRecording</key>
+			<real>617646209.776703</real>
+			<key>timeStoppedRecording</key>
+			<real>617646211.10267103</real>
+			<key>title</key>
+			<string>Build target pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>DAF0DD77-CDED-4BCD-BBBA-0543114EA9DC</string>
 		</dict>
 	</dict>
 	<key>preserveOldLogs</key>

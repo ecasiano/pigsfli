@@ -28,7 +28,7 @@ class Kink
     public:
     // Attribute declarations
     double tau;
-    int n,site,dir,prev,next;
+    int n,site,dest,prev,next;
     
     // Member function declarations (prototypes)
     Kink (double,int,int,int,int,int); // Kink constructor
@@ -42,7 +42,7 @@ Kink::Kink (double a,int b,int c,int d,int e,int f){
     tau = a;
     n = b;
     site = c;
-    dir = d;
+    dest = d;
     prev = e;
     next = f;
 }
@@ -51,7 +51,7 @@ Kink::Kink (double a,int b,int c,int d,int e,int f){
 ostream& operator<<(ostream& os, const Kink& dt)
 {
     os << '<' << dt.tau << ',' << dt.n << ',' << dt.site << ','
-    << dt.dir << ',' << dt.prev << ',' << dt.next << '>';
+    << dt.dest << ',' << dt.prev << ',' << dt.next << '>';
     
     return os;
 }
@@ -79,7 +79,7 @@ vector<int> random_boson_config(int M,int N){
 
 vector<Kink> create_kinks_vector(vector<int> &alpha, int M){
 
-    // Pre-allocate kinks. Recall: (tau,n,site,dir,prev,next)
+    // Pre-allocate kinks. Recall: (tau,n,site,dest,prev,next)
     vector<Kink> kinks_vector(10000000,Kink(-1,-1,-1,-1,-1,-1));
 
     // Initialize the first M=L^D kinks
@@ -192,7 +192,7 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  int &insert_anti_attempts, int &insert_anti_accepts){
     
     // Variable declarations
-    int k,n,site,dir,prev,next,n_head,n_tail;
+    int k,n,site,dest,prev,next,n_head,n_tail;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R;
     bool is_worm;
     
@@ -207,7 +207,7 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     tau = kinks_vector[k].tau;
     n = kinks_vector[k].n;
     site = kinks_vector[k].site;
-    dir = kinks_vector[k].dir;
+    dest = kinks_vector[k].dest;
     prev = kinks_vector[k].prev;
     next = kinks_vector[k].next;
     
@@ -325,7 +325,7 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  int &delete_anti_attempts, int &delete_anti_accepts){
     
     // Variable declarations
-    int k,n,site,dir,prev,next,n_head,n_tail;
+    int k,n,site,dest,prev,next,n_head,n_tail;
     int prev_h,next_h,prev_t,next_t;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R;
     bool is_worm;
@@ -342,14 +342,14 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     tau_h = kinks_vector[head_idx].tau; // Head attributes
     n_head = kinks_vector[head_idx].n;
     site = kinks_vector[head_idx].site;
-    dir = kinks_vector[head_idx].dir;
+    dest = kinks_vector[head_idx].dest;
     prev_h = kinks_vector[head_idx].prev;
     next_h = kinks_vector[head_idx].next;
     
     tau_t = kinks_vector[tail_idx].tau; // Tail attributes
     n_tail = kinks_vector[tail_idx].n;
     site = kinks_vector[tail_idx].site;
-    dir = kinks_vector[tail_idx].dir;
+    dest = kinks_vector[tail_idx].dest;
     prev_t = kinks_vector[tail_idx].prev;
     next_t = kinks_vector[tail_idx].next;
 
@@ -470,7 +470,7 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &insertZero_anti_attempts, int &insertZero_anti_accepts){
     
     // Variable declarations
-    int k,n,site,dir,prev,next,n_head,n_tail,i,N_b;
+    int k,n,site,dest,prev,next,n_head,n_tail,i,N_b;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,
     l_path,dN,dV,p_iw,p_dw,R,p_type,tau_new,p_wormend,C,W,p_dz,p_iz;
     bool is_worm;
@@ -487,7 +487,7 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     tau_prev = insertion_flat.tau; // tau is just zero
     n = insertion_flat.n;
     site = insertion_flat.site;
-    dir = insertion_flat.dir;
+    dest = insertion_flat.dest;
     prev = insertion_flat.prev;
     next = insertion_flat.next;
     
@@ -666,7 +666,7 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &deleteZero_anti_attempts, int &deleteZero_anti_accepts){
     
     // Variable declarations
-    int k,n,site,dir,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
+    int k,n,site,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,
     l_path,dN,dV,p_iw,p_dw,R,p_type,tau_new,p_wormend,C,W,p_dz,p_iz;
     bool is_worm,delete_head;
@@ -725,7 +725,7 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     tau = kinks_vector[worm_end_idx].tau;
     n = kinks_vector[worm_end_idx].n;
     site = kinks_vector[worm_end_idx].site;
-    dir = kinks_vector[worm_end_idx].dir;
+    dest = kinks_vector[worm_end_idx].dest;
     prev = kinks_vector[worm_end_idx].prev;
     next = kinks_vector[worm_end_idx].next;
 
@@ -879,7 +879,7 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &insertBeta_anti_attempts, int &insertBeta_anti_accepts){
     
     // Variable declarations
-    int k,n,site,dir,prev,next,n_head,n_tail,i,N_b;
+    int k,n,site,dest,prev,next,n_head,n_tail,i,N_b;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,
     l_path,dN,dV,p_iw,p_dw,R,p_type,tau_new,p_wormend,C,W,p_dz,p_iz,
     p_db,p_ib;
@@ -897,7 +897,7 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     tau_prev = insertion_flat.tau; // tau is just zero
     n = insertion_flat.n;
     site = insertion_flat.site;
-    dir = insertion_flat.dir;
+    dest = insertion_flat.dest;
     prev = insertion_flat.prev;
     next = insertion_flat.next;
     
@@ -1066,7 +1066,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &deleteBeta_anti_attempts, int &deleteBeta_anti_accepts){
     
     // Variable declarations
-    int k,n,site,dir,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
+    int k,n,site,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,
     l_path,dN,dV,p_iw,p_dw,R,p_type,tau_new,p_wormend,C,W,p_dz,p_iz,
     p_db,p_ib;
@@ -1126,7 +1126,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     tau = kinks_vector[worm_end_idx].tau;
     n = kinks_vector[worm_end_idx].n;
     site = kinks_vector[worm_end_idx].site;
-    dir = kinks_vector[worm_end_idx].dir;
+    dest = kinks_vector[worm_end_idx].dest;
     prev = kinks_vector[worm_end_idx].prev;
     next = kinks_vector[worm_end_idx].next;
 
@@ -1276,7 +1276,7 @@ void timeshift_uniform(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx
                 int &recede_tail_attempts, int &recede_tail_accepts){
     
     // Variable declarations
-    int k,n,site,dir,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
+    int k,n,site,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,
     l_path,dN,dV,p_iw,p_dw,R,p_type,tau_new,p_wormend,C,W,p_dz,p_iz,
     p_db,p_ib;
@@ -1314,7 +1314,7 @@ void timeshift_uniform(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx
     tau = kinks_vector[worm_end_idx].tau;
     n = kinks_vector[worm_end_idx].n;
     site = kinks_vector[worm_end_idx].site;
-    dir = kinks_vector[worm_end_idx].dir;
+    dest = kinks_vector[worm_end_idx].dest;
     prev = kinks_vector[worm_end_idx].prev;
     next = kinks_vector[worm_end_idx].next;
     
@@ -1406,7 +1406,7 @@ void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &recede_tail_attempts, int &recede_tail_accepts){
     
     // Variable declarations
-    int k,n,site,dir,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
+    int k,n,site,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
     l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,C,W,p_dz,p_iz,
     p_db,p_ib;
@@ -1444,7 +1444,7 @@ void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     tau = kinks_vector[worm_end_idx].tau;
     n = kinks_vector[worm_end_idx].n;
     site = kinks_vector[worm_end_idx].site;
-    dir = kinks_vector[worm_end_idx].dir;
+    dest = kinks_vector[worm_end_idx].dest;
     prev = kinks_vector[worm_end_idx].prev;
     next = kinks_vector[worm_end_idx].next;
     
@@ -1604,8 +1604,8 @@ int main(){
     
     // Simulation parameters
     float eta = 1.0, beta = 1.0;
-    bool canonical = false;
-    int sweeps=100;
+    bool canonical = true;
+    int sweeps=100000;
         
     // Trackers
     int num_kinks = M;
@@ -1873,9 +1873,6 @@ int main(){
         cout << endl;
     }
     cout << endl;
-
-//    vector<double> vec {0,-3,4};
-//    cout << "Homemade norm is: " << norm(vec) << endl;
     
     return 0;
 }
