@@ -77,14 +77,14 @@ vector<int> random_boson_config(int M,int N){
 
 /*----------------------------------------------------------------------------*/
 
-vector<Kink> create_kinks_vector(vector<int> &alpha, int M){
+vector<Kink> create_kinks_vector(vector<int> &fock_state, int M){
 
     // Pre-allocate kinks. Recall: (tau,n,src,dest,prev,next)
     vector<Kink> kinks_vector(10000000,Kink(-1,-1,-1,-1,-1,-1));
 
     // Initialize the first M=L^D kinks
     for (int site=0; site<M; site++){
-        kinks_vector[site] = Kink(0,alpha[site],site,site,-1,-1);
+        kinks_vector[site] = Kink(0,fock_state[site],site,site,-1,-1);
     }
     return kinks_vector;
 }
@@ -604,7 +604,7 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         
         // Activate the first available kink
         if (is_worm){
-            kinks_vector[num_kinks] = Kink (tau_new,n_head,src,0,src,next);
+            kinks_vector[num_kinks] = Kink (tau_new,n_head,src,dest,src,next);
             
             // Save head index
             head_idx = num_kinks;
@@ -619,7 +619,7 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             N_zero += 1;
         }
         else{ // antiworm
-            kinks_vector[num_kinks] = Kink (tau_new,n_tail,src,0,src,next);
+            kinks_vector[num_kinks] = Kink (tau_new,n_tail,src,dest,src,next);
             
             // Save head index
             tail_idx = num_kinks;
@@ -1011,7 +1011,7 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         
         // Activate the first available kink
         if (is_worm){
-            kinks_vector[num_kinks] = Kink (tau_new,n_tail,src,0,
+            kinks_vector[num_kinks] = Kink (tau_new,n_tail,src,dest,
                                             last_kinks[src],next);
             
             // Save tail index
@@ -1024,7 +1024,7 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             N_beta += 1;
         }
         else{ // antiworm
-            kinks_vector[num_kinks] = Kink (tau_new,n_head,src,0,
+            kinks_vector[num_kinks] = Kink (tau_new,n_head,src,dest,
                                             last_kinks[src],next);
             
             // Save head index
@@ -1596,7 +1596,7 @@ int main(){
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
     // Bose-Hubbard parameters
-    int L = 3, D = 2, N = L;
+    int L = 4, D = 1, N = L;
     float t = 0.0, U = 10, mu = 5;
     vector<int> alpha;
     int M = pow(L,D); // total sites
