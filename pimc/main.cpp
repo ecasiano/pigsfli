@@ -38,13 +38,14 @@ class Kink
 };
 
 // Member function definitions
-Kink::Kink (double a,int b,int c,int d,int e,int f){
-    tau = a;
-    n = b;
-    src = c;
-    dest = d;
-    prev = e;
-    next = f;
+Kink::Kink (double time,int particles,int source,int destination,
+            int prev_kink,int next_kink){
+    tau = time;
+    n = particles;
+    src = source;
+    dest = destination;
+    prev = prev_kink;
+    next = next_kink;
 }
 
 // Overload "<<" operator
@@ -1558,6 +1559,9 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     j = adjacency_matrix[head_idx][nn_sites(rng)];
     p_site = 1/total_nn;
     
+    // Extract the worm head site
+    i = kinks_vector[head_idx].src;
+    
     // Retrieve the time of the worm head (and tail if present)
     tau_h = kinks_vector[head_idx].tau;
     if (tail_idx!=-1)
@@ -1618,7 +1622,32 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         // Add to acceptance counter
         ikbh_accepts += 1;
         
-        // Insert the new kink at num_kinks
+        // Change kink that stored head information to a regular kink
+        kinks_vector[head_idx].tau = tau_kink;
+        kinks_vector[head_idx].n = n_i;
+        kinks_vector[head_idx].src = i;
+        kinks_vector[head_idx].dest = j;
+        kinks_vector[head_idx].prev = prev_i;
+        kinks_vector[head_idx].next = next_i;
+        
+        // Create the kinks on the destination site
+        kinks_vector[num_kinks]=Kink(tau_kink,n_wj,i,j,prev_j,num_kinks+1);
+        kinks_vector[num_kinks+1]=Kink(tau_h,n_j,j,j,num_kinks,next_j);
+        
+         // "Connect" next of lower bound kink to new kink
+        kinks_vector[prev_j].next = num_kinks;
+        
+        // "Connect" prev of next kink to nearest worm end
+        if(next_j!=-1){kinks_vector[next_j].prev = num_kinks+1;}
+        
+        // Update number of kinks tracker
+        num_kinks += 2;
+        
+        // Modify new worm head index
+        head_idx = num_kinks+1;
+        
+        // If worm head is last kink on site j, update last kinks tracker vector
+        if (next_j==-1){last_kinks[j]=head_idx;}
         
         return;
         
@@ -1707,7 +1736,13 @@ int main(){
     float eta = 1.0, beta = 1.0;
     bool canonical = true;
     int sweeps=100000;
-        
+    
+    // Adjacency matrix
+    vector<bool> adjacency_matrix_rows (M,0);
+    vector<vector<bool>> adjacency_matrix (M,adjacency_matrix_rows);
+    build_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
+    int total_nn = adjacency_matrix_rows
+    
     // Trackers
     int num_kinks = M;
     double N_tracker = N;
@@ -1739,6 +1774,8 @@ int main(){
     
     int advance_tail_attempts=0, advance_tail_accepts=0;
     int recede_tail_attempts=0, recede_tail_accepts=0;
+    
+    int ikbh_attempts=0, ikbh_accepts=0;
     
     // Observables
     double N_sum=0;
@@ -1777,7 +1814,7 @@ int main(){
     
 /*---------------------------- Monte Carlo -----------------------------------*/
 
-    boost::random::uniform_int_distribution<> updates(0, 6);
+    boost::random::uniform_int_distribution<> updates(0, 7);
     int label;
     
     sweeps *= (beta*M);
@@ -1837,6 +1874,13 @@ int main(){
                        recede_head_attempts, recede_head_accepts,
                        advance_tail_attempts, advance_tail_accepts,
                        recede_tail_attempts, recede_tail_accepts);
+        }
+        else if (label==7){ // insert kink before head
+            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker,
+                       N_zero, N_beta, last_kinks,
+                       ikbh_attempts, ikbh_accepts);
         }
         else{
             // lol
@@ -1961,11 +2005,7 @@ int main(){
     
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
     
-    vector<bool> adjacency_matrix_rows (M,0);
-    vector<vector<bool>> adjacency_matrix (M,adjacency_matrix_rows);
-
-    build_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
-
+    // Print out adjacency matrix
     cout << endl << "Adjacency Matrix: " << endl << endl;
     for (int i=0; i<M; i++){
         for (int j=0; j<M; j++){
