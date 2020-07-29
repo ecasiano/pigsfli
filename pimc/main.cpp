@@ -894,7 +894,7 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     
     // Extract the flat interval where insertion is proposed & its attributes
     Kink insertion_flat = kinks_vector[last_kinks[i]];
-    tau_prev = insertion_flat.tau; // tau is just zero
+    tau_prev = insertion_flat.tau;
     n = insertion_flat.n;
     src = insertion_flat.src;
     dest = insertion_flat.dest;
@@ -1525,6 +1525,107 @@ void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     else // Reject
         return;
 }
+
+/*----------------------------------------------------------------------------*/
+
+void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
+                int &head_idx,int &tail_idx,
+                int M, int N, float U, float mu, float t,
+                vector<vector<bool>> &adjacency_matrix, int total_nn,
+                float beta, float eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                int &ikbh_attempts, int &ikbh_accepts){
+    
+    // Variable declarations
+    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx,j,
+    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
+    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
+    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
+    p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j;
+    bool is_worm,delete_head,shift_head;
+    
+    // Update not possible if no worm head present
+    if (head_idx==-1){return;}
+    
+    // Need at least two sites to perform a spaceshift
+    if (M<2){return;}
+    
+    // Add to proposal counter
+    ikbh_attempts += 1;
+    
+    // Randomly choose a nearest neighbor site
+    boost::random::uniform_int_distribution<> nn_sites(0, total_nn);
+    j = adjacency_matrix[head_idx][nn_sites(rng)];
+    p_site = 1/total_nn;
+    
+    // Retrieve the time of the worm head (and tail if present)
+    tau_h = kinks_vector[head_idx].tau;
+    if (tail_idx!=-1)
+        tau_t = kinks_vector[tail_idx].tau;
+    
+    // Determine index of lower/upper kinks of flat where head is (site i)
+    prev_i = kinks_vector[head_idx].prev;
+    next_i = kinks_vector[head_idx].next;
+    
+    // Determine index of lower/upper kinks of flat where head jumps to (site j)
+    tau = 0;            // tau_prev_j candidate
+    prev = j;           // prev_j candidate
+    prev_j = j;         // this avoids "variable maybe not initialized" warning
+    while (tau<tau_h){
+        
+        // Set the lower bound index
+        prev_j = prev;
+        
+        // Update lower bound index and tau candidates
+        prev = kinks_vector[prev].next;
+        if (prev==-1){break;}
+        tau = kinks_vector[prev].tau;
+    }
+    next_j = kinks_vector[prev_j].next;
+    
+    // Retrieve the tau_min candidates from src & dest sites (i,j)
+    tau_prev_i = kinks_vector[prev_i].tau;
+    tau_prev_j = kinks_vector[prev_j].tau;
+    if (tau_prev_i>tau_prev_j){tau_min=tau_prev_i;}
+    else {tau_min=tau_prev_j;}
+    
+    // Extract no. of particles in the flats adjacent to the new kink
+    n_wi = kinks_vector[prev_i].n;
+    n_i = n_wi-1;
+    n_j = kinks_vector[prev_j].n;
+    n_wj = n_j+1;                   // "w": segment with the extra particle
+    
+    // Randomly choose the time of the kink
+    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    tau_kink = tau_min + rnum(rng)*(tau_h-tau_min);
+    if (tau_kink == tau_min){return;}
+    
+    // Calculate the diagonal energy difference on both sites
+    dV_i = (U/2)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+    dV_j = (U/2)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
+    
+    // Calculate the weight ratio W'/W
+    W = t * n_wj * exp((dV_i-dV_j)*(tau_h-tau_kink));
+    
+    // Build the Metropolis ratio (R)
+    p_dkbh = 0.5;
+    p_ikbh = 0.5;
+    R = W * (p_dkbh/p_ikbh) * (tau_h-tau_min)/p_site;
+    
+    // Metropolis Sampling
+    if (rnum(rng) < R){ // Accept
+        
+        // Add to acceptance counter
+        ikbh_accepts += 1;
+        
+        // Insert the new kink at num_kinks
+        
+        return;
+        
+    }
+    else // Reject
+        return;
+    }
 
 /*---------------------------- Estimators ------------------------------------*/
 
