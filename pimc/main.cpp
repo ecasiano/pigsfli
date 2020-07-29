@@ -83,8 +83,8 @@ vector<Kink> create_kinks_vector(vector<int> &alpha, int M){
     vector<Kink> kinks_vector(10000000,Kink(-1,-1,-1,-1,-1,-1));
 
     // Initialize the first M=L^D kinks
-    for (int i=0; i<M; i++){
-        kinks_vector[i] = Kink(0,alpha[i],i,0,-1,-1);
+    for (int site=0; site<M; site++){
+        kinks_vector[site] = Kink(0,alpha[site],site,site,-1,-1);
     }
     return kinks_vector;
 }
@@ -271,8 +271,8 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 
         // Activate the first two available kinks
         if (is_worm){
-            kinks_vector[num_kinks]=Kink(tau_t,n_tail,src,0,k,num_kinks+1);
-            kinks_vector[num_kinks+1]=Kink(tau_h,n_head,src,0,num_kinks,next);
+            kinks_vector[num_kinks]=Kink(tau_t,n_tail,src,dest,k,num_kinks+1);
+            kinks_vector[num_kinks+1]=Kink(tau_h,n_head,src,dest,num_kinks,next);
             
             // Save indices of head & tail kinks
             head_idx = num_kinks + 1;
@@ -282,8 +282,8 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             insert_worm_accepts += 1;
         }
         else{ // Antiworm
-            kinks_vector[num_kinks]=Kink(tau_h,n_head,src,0,k,num_kinks+1);
-            kinks_vector[num_kinks+1]=Kink(tau_t,n_tail,src,0,num_kinks,next);
+            kinks_vector[num_kinks]=Kink(tau_h,n_head,src,dest,k,num_kinks+1);
+            kinks_vector[num_kinks+1]=Kink(tau_t,n_tail,src,dest,num_kinks,next);
             
             // Save indices of head & tail kinks
             head_idx = num_kinks;
