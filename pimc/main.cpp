@@ -1741,7 +1741,7 @@ int main(){
     vector<bool> adjacency_matrix_rows (M,0);
     vector<vector<bool>> adjacency_matrix (M,adjacency_matrix_rows);
     build_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
-    int total_nn = adjacency_matrix_rows
+    int total_nn=0;
     
     // Trackers
     int num_kinks = M;
@@ -1800,6 +1800,10 @@ int main(){
     // Initialize array containing indices of last kinks at each site
     for (int i=0; i<M; i++){
         last_kinks[i] = i;
+        
+        // Count number of nearest neighbors of each site
+        total_nn += (adjacency_matrix[0][i]==1);
+
     }
 
     cout << endl;
@@ -1876,11 +1880,11 @@ int main(){
                        recede_tail_attempts, recede_tail_accepts);
         }
         else if (label==7){ // insert kink before head
-            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-                       M,N,U,mu,t,adjacency_matrix,total_nn,
-                       beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       ikbh_attempts, ikbh_accepts);
+//            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+//                       M,N,U,mu,t,adjacency_matrix,total_nn,
+//                       beta,eta,canonical,N_tracker,
+//                       N_zero, N_beta, last_kinks,
+//                       ikbh_attempts, ikbh_accepts);
         }
         else{
             // lol
@@ -2014,6 +2018,8 @@ int main(){
         cout << endl;
     }
     cout << endl;
+    
+    cout << "Total neighbors: " << total_nn << endl;
     
     return 0;
 }
