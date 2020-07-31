@@ -1539,29 +1539,47 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     
     // Variable declarations
     int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx,j,
-    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
+    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,ctr;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
     l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
     p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j;
     bool is_worm,delete_head,shift_head;
-    
+    vector<int> nn_sites (total_nn,0);
+        
     // Update not possible if no worm head present
     if (head_idx==-1){return;}
     
     // Need at least two sites to perform a spaceshift
     if (M<2){return;}
-    
+        
     // Add to proposal counter
     ikbh_attempts += 1;
-    
-    // Randomly choose a nearest neighbor site
-    boost::random::uniform_int_distribution<> nn_sites(0, total_nn);
-    j = adjacency_matrix[head_idx][nn_sites(rng)];
-    p_site = 1/total_nn;
     
     // Extract the worm head site
     i = kinks_vector[head_idx].src;
     
+    // Extract the site indices of the worm head site's nearest neighbors
+    ctr = 0;
+    for (int site=0; site<M; site++){
+        if (adjacency_matrix[site][i]==1){
+            nn_sites[ctr]=site;
+            ctr++;
+            if (ctr==total_nn){break;} // All NN's have been found. Exit loop.
+        }
+    }
+    
+//    cout << "Head site: " << i << endl;
+//    cout << "Nearest neighbors" << endl;
+//    for (int lol=0; lol<total_nn; lol++){
+//        cout << nn_sites[lol] << " ";
+//    }
+//    cout << endl;
+    
+    // Randomly choose a nearest neighbor site
+    boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
+    j = nn_sites[random_nn(rng)];
+    p_site = 1.0/total_nn;
+
     // Retrieve the time of the worm head (and tail if present)
     tau_h = kinks_vector[head_idx].tau;
     if (tail_idx!=-1)
@@ -1580,12 +1598,11 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         // Set the lower bound index
         prev_j = prev;
         
-        // Update lower bound index and tau candidates
+        // Update lower bound index and tau candidates for next iteration
         prev = kinks_vector[prev].next;
         if (prev==-1){break;}
         tau = kinks_vector[prev].tau;
     }
-    next_j = kinks_vector[prev_j].next;
     
     // Retrieve the tau_min candidates from src & dest sites (i,j)
     tau_prev_i = kinks_vector[prev_i].tau;
@@ -1603,7 +1620,7 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     tau_kink = tau_min + rnum(rng)*(tau_h-tau_min);
     if (tau_kink == tau_min){return;}
-    
+        
     // Calculate the diagonal energy difference on both sites
     dV_i = (U/2)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
@@ -1616,12 +1633,28 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     p_ikbh = 0.5;
     R = W * (p_dkbh/p_ikbh) * (tau_h-tau_min)/p_site;
     
+//    cout << endl << "R: " << R << endl;
+//    cout << "p_site: " << p_site << endl;
+//    cout << "total_nn: " << total_nn << endl;
+//    cout << "tau_h: " << tau_h << endl;
+//    cout << "tau_min: " << tau_min << endl;
+//    cout << "W: " << W << endl;
+//    cout << "t: " << t << endl;
+//    cout << "dV_i: " << dV_i << endl;
+//    cout << "dV_j: " << dV_j << endl;
+//    cout << "prev_j: " << prev_j << endl;
+//    cout << "next_j: " << next_j << endl;
+//    cout << "prev_j: " << prev_i << endl;
+//    cout << "next_j: " << next_i << endl;
+//    cout << "i,j: " << i << "," << j << endl;
+//    cout << "---------------------------------"<<endl;
+    
     // Metropolis Sampling
     if (rnum(rng) < R){ // Accept
         
         // Add to acceptance counter
         ikbh_accepts += 1;
-        
+                
         // Change kink that stored head information to a regular kink
         kinks_vector[head_idx].tau = tau_kink;
         kinks_vector[head_idx].n = n_i;
@@ -1630,24 +1663,26 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         kinks_vector[head_idx].prev = prev_i;
         kinks_vector[head_idx].next = next_i;
         
-        // Create the kinks on the destination site
-        kinks_vector[num_kinks]=Kink(tau_kink,n_wj,i,j,prev_j,num_kinks+1);
-        kinks_vector[num_kinks+1]=Kink(tau_h,n_j,j,j,num_kinks,next_j);
+        // Set new worm head index
+        head_idx = num_kinks+1;
         
-         // "Connect" next of lower bound kink to new kink
+        // Create the kinks on the destination site
+        kinks_vector[num_kinks]=Kink(tau_kink,n_wj,i,j,prev_j,head_idx);
+        kinks_vector[head_idx]=Kink(tau_h,n_j,j,j,num_kinks,next_j);
+                
+        // "Connect" next of lower bound kink to new kink
         kinks_vector[prev_j].next = num_kinks;
         
-        // "Connect" prev of next kink to nearest worm end
-        if(next_j!=-1){kinks_vector[next_j].prev = num_kinks+1;}
-        
+        // "Connect" prev of next kink to worm head
+        if(next_j!=-1){kinks_vector[next_j].prev = head_idx;}
+                
         // Update number of kinks tracker
         num_kinks += 2;
         
-        // Modify new worm head index
-        head_idx = num_kinks+1;
-        
         // If worm head is last kink on site j, update last kinks tracker vector
         if (next_j==-1){last_kinks[j]=head_idx;}
+        
+//        cout << "MADE IT HERE" << endl;
         
         return;
         
@@ -1727,7 +1762,7 @@ int main(){
     
     // Bose-Hubbard parameters
     int L = 4, D = 1, N = L;
-    float t = 0.0, U = 10, mu = 5;
+    float t = 1.0, U = 10, mu = 5;
     vector<int> alpha;
     int M = pow(L,D); // total sites
     string boundary_condition = "pbc";
@@ -1735,7 +1770,7 @@ int main(){
     // Simulation parameters
     float eta = 1.0, beta = 1.0;
     bool canonical = true;
-    int sweeps=100000;
+    int sweeps=10000;
     
     // Adjacency matrix
     vector<bool> adjacency_matrix_rows (M,0);
@@ -1805,6 +1840,8 @@ int main(){
         total_nn += (adjacency_matrix[0][i]==1);
 
     }
+    // Initialize vector that will store nearest neighbor indices
+    vector<int> nn_sites (total_nn,0);
 
     cout << endl;
     // Print out the data structure
@@ -1826,7 +1863,7 @@ int main(){
     for (int m=0; m < sweeps; m++){
         
         label = updates(rng);
-        
+                
         if (label==0){     // worm_insert
             insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
                         M,N,U,mu,t,beta,eta,canonical,N_tracker,
@@ -1880,19 +1917,19 @@ int main(){
                        recede_tail_attempts, recede_tail_accepts);
         }
         else if (label==7){ // insert kink before head
-//            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-//                       M,N,U,mu,t,adjacency_matrix,total_nn,
-//                       beta,eta,canonical,N_tracker,
-//                       N_zero, N_beta, last_kinks,
-//                       ikbh_attempts, ikbh_accepts);
+            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker,
+                       N_zero, N_beta, last_kinks,
+                       ikbh_attempts, ikbh_accepts);
         }
         else{
             // lol
         }
         
 //        // Print out the data structure
-//        cout << endl << label << endl;
-//        for (int i=0;i<8;i++){
+//        cout << endl << "label: " << label << endl;
+//        for (int i=0;i<10;i++){
 //            cout << kinks_vector[i] << endl;
 //        }
 //
@@ -1927,12 +1964,12 @@ int main(){
                 Z_ctr += 1;
             }
         }
-            
+        if (num_kinks>6){break;}
     }
 
     // Print out the data structure
     cout << endl;
-    for (int i=0;i<8;i++){
+    for (int i=0;i<10;i++){
         cout << kinks_vector[i] << endl;
     }
 
@@ -1949,6 +1986,13 @@ int main(){
 
     // Print out number of active kinks
     cout << "num_kinks: " << num_kinks << endl;
+    
+    // Print out the indices of each sites last kink
+    cout << "Last kink indices: ";
+    for (int i=0; i<M ; i++){
+        cout << last_kinks[i] << " ";
+    }
+    cout << endl;
     
     // Print out the indices of each sites last kink
 //    cout << "Last kink indices: ";
@@ -1997,6 +2041,11 @@ int main(){
     cout<<"Recede  Tail: "<<recede_tail_accepts<<"/"<<
                                recede_tail_attempts<<endl;
     
+    cout<< endl <<"IKBH: "<<ikbh_accepts<<"/"<<
+                               ikbh_attempts<<endl;
+//    cout<<"DKBH: "<<recede_tail_accepts<<"/"<<
+//                               recede_tail_attempts<<endl;
+    
     auto end = high_resolution_clock::now();
 
     auto elapsed_time = duration_cast<nanoseconds>(end - start);
@@ -2019,7 +2068,7 @@ int main(){
     }
     cout << endl;
     
-    cout << "Total neighbors: " << total_nn << endl;
+    cout << "Total neighbors: " << total_nn << endl << endl;
     
     return 0;
 }
