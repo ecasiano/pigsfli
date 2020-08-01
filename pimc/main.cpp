@@ -443,6 +443,21 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         head_idx = -1;
         tail_idx = -1;
         
+//        // Deactivate the deleted kinks
+//        kinks_vector[num_kinks-1].tau = -1;
+//        kinks_vector[num_kinks-1].n = -1;
+//        kinks_vector[num_kinks-1].src = -1;
+//        kinks_vector[num_kinks-1].dest = -1;
+//        kinks_vector[num_kinks-1].prev = -1;
+//        kinks_vector[num_kinks-1].next = -1;
+//
+//        kinks_vector[num_kinks-2].tau = -1;
+//        kinks_vector[num_kinks-2].n = -1;
+//        kinks_vector[num_kinks-2].src = -1;
+//        kinks_vector[num_kinks-2].dest = -1;
+//        kinks_vector[num_kinks-2].prev = -1;
+//        kinks_vector[num_kinks-2].next = -1;
+        
         // Update trackers for: num of active kinks, total particles
         num_kinks -= 2;
         N_tracker += dN;
@@ -858,6 +873,14 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             N_zero += 1;
         }
         
+//        // Deactivate the deleted kink
+//        kinks_vector[num_kinks-1].tau = -1;
+//        kinks_vector[num_kinks-1].n = -1;
+//        kinks_vector[num_kinks-1].src = -1;
+//        kinks_vector[num_kinks-1].dest = -1;
+//        kinks_vector[num_kinks-1].prev = -1;
+//        kinks_vector[num_kinks-1].next = -1;
+        
         // Update trackers for: num of active kinks, total particles
         num_kinks -= 1;
         N_tracker += dN;
@@ -1253,6 +1276,14 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             N_beta -= 1;
         }
         
+//        // Deactivate the deleted kink
+//        kinks_vector[num_kinks-1].tau = -1;
+//        kinks_vector[num_kinks-1].n = -1;
+//        kinks_vector[num_kinks-1].src = -1;
+//        kinks_vector[num_kinks-1].dest = -1;
+//        kinks_vector[num_kinks-1].prev = -1;
+//        kinks_vector[num_kinks-1].next = -1;
+        
         // Update trackers for: num of active kinks, total particles
         num_kinks -= 1;
         N_tracker += dN;
@@ -1568,13 +1599,6 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         }
     }
     
-//    cout << "Head site: " << i << endl;
-//    cout << "Nearest neighbors" << endl;
-//    for (int lol=0; lol<total_nn; lol++){
-//        cout << nn_sites[lol] << " ";
-//    }
-//    cout << endl;
-    
     // Randomly choose a nearest neighbor site
     boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
     j = nn_sites[random_nn(rng)];
@@ -1603,6 +1627,7 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         if (prev==-1){break;}
         tau = kinks_vector[prev].tau;
     }
+    next_j=prev;
     
     // Retrieve the tau_min candidates from src & dest sites (i,j)
     tau_prev_i = kinks_vector[prev_i].tau;
@@ -1622,8 +1647,8 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     if (tau_kink == tau_min){return;}
         
     // Calculate the diagonal energy difference on both sites
-    dV_i = (U/2)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
-    dV_j = (U/2)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
+    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     
     // Calculate the weight ratio W'/W
     W = t * n_wj * exp((dV_i-dV_j)*(tau_h-tau_kink));
@@ -1647,6 +1672,7 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
 //    cout << "prev_j: " << prev_i << endl;
 //    cout << "next_j: " << next_i << endl;
 //    cout << "i,j: " << i << "," << j << endl;
+//    cout << "n_wi,n_j: " << n_wi << "," << n_j << endl;
 //    cout << "---------------------------------"<<endl;
     
     // Metropolis Sampling
@@ -1667,7 +1693,7 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         head_idx = num_kinks+1;
         
         // Create the kinks on the destination site
-        kinks_vector[num_kinks]=Kink(tau_kink,n_wj,i,j,prev_j,head_idx);
+        kinks_vector[num_kinks]=Kink(tau_kink,n_wj,j,i,prev_j,head_idx);
         kinks_vector[head_idx]=Kink(tau_h,n_j,j,j,num_kinks,next_j);
                 
         // "Connect" next of lower bound kink to new kink
@@ -1770,7 +1796,7 @@ int main(){
     // Simulation parameters
     float eta = 1.0, beta = 1.0;
     bool canonical = true;
-    int sweeps=10000;
+    int sweeps=100000;
     
     // Adjacency matrix
     vector<bool> adjacency_matrix_rows (M,0);
@@ -1956,6 +1982,8 @@ int main(){
 //            break;
 //        }
         
+//        if (num_kinks>15){break;}
+        
         // Measure N
         if (m%(static_cast<int>(M*beta))==0 && m>0.2*sweeps){
             if (head_idx==-1 and tail_idx==-1){
@@ -1964,14 +1992,14 @@ int main(){
                 Z_ctr += 1;
             }
         }
-        if (num_kinks>6){break;}
     }
 
     // Print out the data structure
     cout << endl;
-    for (int i=0;i<10;i++){
-        cout << kinks_vector[i] << endl;
+    for (int i=0;i<18;i++){
+        cout << i << "  " << kinks_vector[i] << endl;
     }
+    cout << endl;
 
     // Print out the head and tail indices
     cout << "head_idx: " << head_idx << endl;
