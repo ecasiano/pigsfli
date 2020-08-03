@@ -89,6 +89,7 @@ vector<Kink> create_kinks_vector(vector<int> &fock_state, int M){
     }
     return kinks_vector;
 }
+
 /*----------------------------------------------------------------------------*/
 
 // Create function that calculates vector norm given array
@@ -181,8 +182,236 @@ void build_adjacency_matrix(int L,int D,string boundary_condition,
             adjacency_matrix[j][i] = adjacency_matrix[i][j];
         }
     }
+    
+//    // Count total nearest_neighbors of each site
+//    for (int i=0; i<M; i++){
+//        if (adjacency_matrix[0][i]==1){total_nn+=1;}
+//    }
+    
+    
     return;
  }
+
+/*----------------------------------------------------------------------------*/
+
+int count_nearest_neighbors(int L,int D,string boundary_condition){
+    
+    // Variable declarations
+    int M = pow(L,D); // Number of lattice points
+    int ctr,a1,a2,a3;
+    double r_nn;
+    vector<double> points_difference (D,0);
+    int total_nn;
+
+    // Initialize normalized basis vectors
+    vector<double> a1_vec {1,0,0};
+    vector<double> a2_vec {0,1,0};
+    vector<double> a3_vec {0,0,1};
+
+    // Initialize array that will store all the points
+    vector<double> empty_point (D,0);
+    vector<vector<double>> points (M,empty_point);
+
+    // Norm of basis vectors
+    a1 = norm(a1_vec);
+    a2 = norm(a2_vec);
+    a3 = norm(a3_vec);
+
+    // Build the lattice vectors
+    ctr = 0;
+    if (D==1){
+        for (int i1=0; i1<L; i1++){
+            points[ctr][0] = i1*a1;
+            ctr++;
+        }
+    }
+    else if (D==2){
+        for (int i1=0; i1<L; i1++){
+            for (int i2=0; i2<L; i2++){
+                points[ctr][0] = i1*a1;
+                points[ctr][1] = i2*a2;
+                ctr++;
+            }
+        }
+    }
+    else{ // D==3
+        for (int i1=0; i1<L; i1++){
+            for (int i2=0; i2<L; i2++){
+                for (int i3=0; i3<L; i3++){
+                    points[ctr][0] = i1*a1;
+                    points[ctr][1] = i2*a2;
+                    points[ctr][2] = i3*a3;
+                    ctr++;
+                }
+            }
+        }
+    }
+
+    // Set the nearest-neighbor distance
+    r_nn = a1;
+
+    // Count the number of nearest neighbors for this geometry
+    total_nn=0;
+    for (int col=1; col<M; col++){
+        for (int axis=0; axis<D; axis++){
+            points_difference[axis] = points[0][axis]-points[col][axis];
+        }
+        if (boundary_condition=="pbc"){
+            if (norm(points_difference) <= r_nn
+                || norm(points_difference) == L-1){
+                total_nn+=1;
+                cout << "COL" << col << endl;
+            }
+        }
+        else if (boundary_condition=="obc"){
+            if(norm(points_difference) <= r_nn){
+                total_nn+=1;
+            }
+        }
+        else{
+            cout << "ERROR: Boundary condition not supported" << endl;
+        }
+    }
+    
+    return total_nn;
+}
+
+/*----------------------------------------------------------------------------*/
+
+//vector<vector<int>> build_adjacency_matrix_02(int L,int D,
+//                                    string boundary_condition,int &total_nn){
+//
+//    // Variable declarations
+//    int M = pow(L,D); // Number of lattice points
+//    int ctr,a1,a2,a3;
+//    double r_NN;
+//    vector<double> points_difference (D,0);
+//
+//    // Initialize normalized basis vectors
+//    vector<double> a1_vec {1,0,0};
+//    vector<double> a2_vec {0,1,0};
+//    vector<double> a3_vec {0,0,1};
+//
+//    // Initialize array that will store all the points
+//    vector<double> empty_point (D,0);
+//    vector<vector<double>> points (M,empty_point);
+//
+//    // Norm of basis vectors
+//    a1 = norm(a1_vec);
+//    a2 = norm(a2_vec);
+//    a3 = norm(a3_vec);
+//
+//    // Build the lattice vectors
+//    ctr = 0;
+//    if (D==1){
+//        for (int i1=0; i1<L; i1++){
+//            points[ctr][0] = i1*a1;
+//            ctr++;
+//        }
+//    }
+//    else if (D==2){
+//        for (int i1=0; i1<L; i1++){
+//            for (int i2=0; i2<L; i2++){
+//                points[ctr][0] = i1*a1;
+//                points[ctr][1] = i2*a2;
+//                ctr++;
+//            }
+//        }
+//    }
+//    else{ // D==3
+//        for (int i1=0; i1<L; i1++){
+//            for (int i2=0; i2<L; i2++){
+//                for (int i3=0; i3<L; i3++){
+//                    points[ctr][0] = i1*a1;
+//                    points[ctr][1] = i2*a2;
+//                    points[ctr][2] = i3*a3;
+//                    ctr++;
+//                }
+//            }
+//        }
+//    }
+//
+//    // Set the nearest-neighbor distance
+//    r_NN = a1;
+//
+//    // Count the number of nearest neighbors for this geometry
+//    for (int i=0; i<M; i++){
+//        for (int j=i+1; j<M; j++){
+//            for (int axis=0; axis<D; axis++){
+//                points_difference[axis] = points[i][axis]-points[j][axis];
+//            }
+//            if (boundary_condition=="pbc"){
+//                if (norm(points_difference) <= r_NN
+//                    || norm(points_difference) == L-1){
+//                    total_nn+=1;
+//                }
+//            }
+//            else if (boundary_condition=="obc"){
+//                if(norm(points_difference) <= r_NN){
+//                    total_nn+=1;
+//                }
+//            }
+//            else{
+//                cout << "ERROR: Boundary condition not supported" << endl;
+//            }
+//        }
+//    }
+//
+//    // Allocate the adjacency matrix (in compact form)
+//    vector<int> adjacency_matrix_row (total_nn,0);
+//    vector<vector<int>> adjacency_matrix_02 (M,adjacency_matrix_row);
+//
+//    // Set adjacency matrix elements by comparing inter-site distances
+//    for (int i=0; i<M; i++){
+//        ctr=0;
+//        for (int j=0; j<total_nn; j++){
+//            for (int axis=0; axis<D; axis++){
+//                points_difference[axis] = points[i][axis]-points[j][axis];
+//            }
+//            if (boundary_condition=="pbc"){
+//                if (norm(points_difference) <= r_NN
+//                    || norm(points_difference) == L-1){
+//                    adjacency_matrix_02[i][ctr] = j;
+//                    ctr++;
+//                }
+//
+//            }
+//            else if (boundary_condition=="obc"){
+//                if (norm(points_difference) <= r_NN){
+//                    adjacency_matrix_02[i][ctr] = j;
+//                    ctr++;
+//                }            }
+//            else{
+//                cout << "ERROR: Boundary condition not supported" << endl;
+//            }
+//            if (ctr==total_nn){break;}
+//        }
+//    }
+//
+//    return adjacency_matrix_02;
+//}
+
+/*----------------------------------------------------------------------------*/
+
+void compress_adjacency_matrix(int L,int D,string boundary_condition,
+                               vector<vector<bool>>&adjacency_matrix,
+                               vector<vector<int>>&compact_adjacency_matrix){
+    // Variable declarations
+    int M = pow(L,D);
+    int ctr;
+    
+    for (int row=0; row<M; row++){
+        ctr=0;
+        for (int col=0; col<M; col++){
+            if (adjacency_matrix[row][col]!=0){
+                compact_adjacency_matrix[row][ctr]=col;
+                ctr++;
+            }
+        }
+    }
+    
+    return;
+}
 /*----------------------------------------------------------------------------*/
 
 void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
@@ -1575,7 +1804,7 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
     p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j;
     bool is_worm,delete_head,shift_head;
-    vector<int> nn_sites (total_nn,0);
+    vector<int> nn_sites (total_nn,0); // can we try initializing only once?
         
     // Update not possible if no worm head present
     if (head_idx==-1){return;}
@@ -1589,8 +1818,8 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     // Extract the worm head site
     i = kinks_vector[head_idx].src;
     
-    // Extract the site indices of the worm head site's nearest neighbors
-    ctr = 0;
+    // Extract the site indices of the worm head's nearest neighbors
+    ctr = 0; // counts how many nearest neighbors have been found.
     for (int site=0; site<M; site++){
         if (adjacency_matrix[site][i]==1){
             nn_sites[ctr]=site;
@@ -1717,58 +1946,221 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         return;
     }
 
+/*----------------------------------------------------------------------------*/
+
+//void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
+//                int &head_idx,int &tail_idx,
+//                int M, int N, float U, float mu, float t,
+//                vector<vector<bool>> &adjacency_matrix, int total_nn,
+//                float beta, float eta, bool canonical, double &N_tracker,
+//                int &N_zero, int &N_beta, vector<int> &last_kinks,
+//                int &dkbh_attempts, int &dkbh_accepts){
+//
+//    // Variable declarations
+//    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx,j,
+//    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,ctr;
+//    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
+//    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
+//    p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j;
+//    bool is_worm,delete_head,shift_head;
+//    vector<int> nn_sites (total_nn,0);
+//
+//    // Update not possible if no worm head present
+//    if (head_idx==-1){return;}
+//
+//    // Can only update if there's a regular kink before the worm head
+//    if (kinks_vector[kinks_vector[head_idx].prev].src ==
+//        kinks_vector[kinks_vector[head_idx].prev].dest){return;}
+//
+//    // Need at least two sites to perform a spaceshift
+//    if (M<2){return;}
+//
+//    // Add to proposal counter
+//    dkbh_attempts += 1;
+//
+//    // Extract the worm head site
+//    i = kinks_vector[head_idx].src;
+//
+//    // Extract the site indices of the worm head site's nearest neighbors
+//    ctr = 0;
+//    for (int site=0; site<M; site++){
+//        if (adjacency_matrix[site][i]==1){
+//            nn_sites[ctr]=site;
+//            ctr++;
+//            if (ctr==total_nn){break;} // All NN's have been found. Exit loop.
+//        }
+//    }
+//
+//    // Randomly choose a nearest neighbor site
+//    boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
+//    j = nn_sites[random_nn(rng)];
+//    p_site = 1.0/total_nn;
+//
+//    // Retrieve the time of the worm head (and tail if present)
+//    tau_h = kinks_vector[head_idx].tau;
+//    if (tail_idx!=-1)
+//        tau_t = kinks_vector[tail_idx].tau;
+//
+//    // Determine index of lower/upper kinks of flat where head is (site i)
+//    prev_i = kinks_vector[head_idx].prev;
+//    next_i = kinks_vector[head_idx].next;
+//
+//    // Determine index of lower/upper kinks of flat where head jumps to (site j)
+//    tau = 0;            // tau_prev_j candidate
+//    prev = j;           // prev_j candidate
+//    prev_j = j;         // this avoids "variable maybe not initialized" warning
+//    while (tau<tau_h){
+//
+//        // Set the lower bound index
+//        prev_j = prev;
+//
+//        // Update lower bound index and tau candidates for next iteration
+//        prev = kinks_vector[prev].next;
+//        if (prev==-1){break;}
+//        tau = kinks_vector[prev].tau;
+//    }
+//    next_j=prev;
+//
+//    // Retrieve the tau_min candidates from src & dest sites (i,j)
+//    tau_prev_i = kinks_vector[prev_i].tau;
+//    tau_prev_j = kinks_vector[prev_j].tau;
+//    if (tau_prev_i>tau_prev_j){tau_min=tau_prev_i;}
+//    else {tau_min=tau_prev_j;}
+//
+//    // Extract no. of particles in the flats adjacent to the new kink
+//    n_wi = kinks_vector[prev_i].n;
+//    n_i = n_wi-1;
+//    n_j = kinks_vector[prev_j].n;
+//    n_wj = n_j+1;                   // "w": segment with the extra particle
+//
+//    // Randomly choose the time of the kink
+//    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+//    tau_kink = tau_min + rnum(rng)*(tau_h-tau_min);
+//    if (tau_kink == tau_min){return;}
+//
+//    // Calculate the diagonal energy difference on both sites
+//    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+//    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
+//
+//    // Calculate the weight ratio W'/W
+//    W = t * n_wj * exp((dV_i-dV_j)*(tau_h-tau_kink));
+//
+//    // Build the Metropolis ratio (R)
+//    p_dkbh = 0.5;
+//    p_ikbh = 0.5;
+//    R = W * (p_dkbh/p_ikbh) * (tau_h-tau_min)/p_site;
+//
+////    cout << endl << "R: " << R << endl;
+////    cout << "p_site: " << p_site << endl;
+////    cout << "total_nn: " << total_nn << endl;
+////    cout << "tau_h: " << tau_h << endl;
+////    cout << "tau_min: " << tau_min << endl;
+////    cout << "W: " << W << endl;
+////    cout << "t: " << t << endl;
+////    cout << "dV_i: " << dV_i << endl;
+////    cout << "dV_j: " << dV_j << endl;
+////    cout << "prev_j: " << prev_j << endl;
+////    cout << "next_j: " << next_j << endl;
+////    cout << "prev_j: " << prev_i << endl;
+////    cout << "next_j: " << next_i << endl;
+////    cout << "i,j: " << i << "," << j << endl;
+////    cout << "n_wi,n_j: " << n_wi << "," << n_j << endl;
+////    cout << "---------------------------------"<<endl;
+//
+//    // Metropolis Sampling
+//    if (rnum(rng) < R){ // Accept
+//
+//        // Add to acceptance counter
+//        ikbh_accepts += 1;
+//
+//        // Change kink that stored head information to a regular kink
+//        kinks_vector[head_idx].tau = tau_kink;
+//        kinks_vector[head_idx].n = n_i;
+//        kinks_vector[head_idx].src = i;
+//        kinks_vector[head_idx].dest = j;
+//        kinks_vector[head_idx].prev = prev_i;
+//        kinks_vector[head_idx].next = next_i;
+//
+//        // Set new worm head index
+//        head_idx = num_kinks+1;
+//
+//        // Create the kinks on the destination site
+//        kinks_vector[num_kinks]=Kink(tau_kink,n_wj,j,i,prev_j,head_idx);
+//        kinks_vector[head_idx]=Kink(tau_h,n_j,j,j,num_kinks,next_j);
+//
+//        // "Connect" next of lower bound kink to new kink
+//        kinks_vector[prev_j].next = num_kinks;
+//
+//        // "Connect" prev of next kink to worm head
+//        if(next_j!=-1){kinks_vector[next_j].prev = head_idx;}
+//
+//        // Update number of kinks tracker
+//        num_kinks += 2;
+//
+//        // If worm head is last kink on site j, update last kinks tracker vector
+//        if (next_j==-1){last_kinks[j]=head_idx;}
+//
+////        cout << "MADE IT HERE" << endl;
+//
+//        return;
+//
+//    }
+//    else // Reject
+//        return;
+//    }
+
 /*---------------------------- Estimators ------------------------------------*/
 
-double energy(vector<Kink> &kinks_vector, int num_kinks,
-              int M, int N, float U, float mu, float t, float beta){
-    
-    float diagonal_energy=0;
-    vector<int> fock_state_half (M,0); // Store the Fock State at tau=beta/2
-    int current_kink_idx, n_at_half, next_kink_idx;
-    float tau_current, tau_next;
-    int n_i, N_half;
-    
-    for (int src=0; src<M; src++){
-        current_kink_idx = src;
-        next_kink_idx = kinks_vector[current_kink_idx].next;
-        n_at_half = kinks_vector[current_kink_idx].n;
-        while (next_kink_idx!=-1){
-            tau_current = kinks_vector[current_kink_idx].tau;
-            tau_next = kinks_vector[next_kink_idx].tau;
-            if (tau_next<beta/2){
-                n_at_half = kinks_vector[next_kink_idx].n;
-            }
-            else{
-                if (tau_next-beta/2<beta/2-tau_current){
-                    n_at_half = kinks_vector[next_kink_idx].n;
-                }
-                else{
-                    n_at_half = kinks_vector[current_kink_idx].n;
-                }
-            }
-            
-            current_kink_idx++;
-
-        }
-        
-        fock_state_half[src] = n_at_half;
-    }
-    
-    for (int src=0; src<M; src++){
-        n_i = fock_state_half[src];
-        diagonal_energy += (U/2)*n_i*(n_i-1) - mu*n_i;
-    }
-    
-    // Sum the total particles at tau=beta/2
-    N_half=0;
-    for (int i=0; i<M; i++){
-        N_half += fock_state_half[i];
-    }
-    
-    return N_half;
-    
-    // This bad boy is actually returning the total particles at tau=beta/2
-}
+//double energy(vector<Kink> &kinks_vector, int num_kinks,
+//              int M, int N, float U, float mu, float t, float beta){
+//
+//    float diagonal_energy=0;
+//    vector<int> fock_state_half (M,0); // Store the Fock State at tau=beta/2
+//    int current_kink_idx, n_at_half, next_kink_idx;
+//    float tau_current, tau_next;
+//    int n_i, N_half;
+//
+//    for (int src=0; src<M; src++){
+//        current_kink_idx = src;
+//        next_kink_idx = kinks_vector[current_kink_idx].next;
+//        n_at_half = kinks_vector[current_kink_idx].n;
+//        while (next_kink_idx!=-1){
+//            tau_current = kinks_vector[current_kink_idx].tau;
+//            tau_next = kinks_vector[next_kink_idx].tau;
+//            if (tau_next<beta/2){
+//                n_at_half = kinks_vector[next_kink_idx].n;
+//            }
+//            else{
+//                if (tau_next-beta/2<beta/2-tau_current){
+//                    n_at_half = kinks_vector[next_kink_idx].n;
+//                }
+//                else{
+//                    n_at_half = kinks_vector[current_kink_idx].n;
+//                }
+//            }
+//
+//            current_kink_idx++;
+//
+//        }
+//
+//        fock_state_half[src] = n_at_half;
+//    }
+//
+//    for (int src=0; src<M; src++){
+//        n_i = fock_state_half[src];
+//        diagonal_energy += (U/2)*n_i*(n_i-1) - mu*n_i;
+//    }
+//
+//    // Sum the total particles at tau=beta/2
+//    N_half=0;
+//    for (int i=0; i<M; i++){
+//        N_half += fock_state_half[i];
+//    }
+//
+//    return N_half;
+//
+//    // This bad boy is actually returning the total particles at tau=beta/2
+//}
 
 /*----------------------------------------------------------------------------*/
 
@@ -1787,7 +2179,7 @@ int main(){
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
     // Bose-Hubbard parameters
-    int L = 4, D = 1, N = L;
+    int L = 3, D = 2, N = L;
     float t = 1.0, U = 10, mu = 5;
     vector<int> alpha;
     int M = pow(L,D); // total sites
@@ -1796,13 +2188,13 @@ int main(){
     // Simulation parameters
     float eta = 1.0, beta = 1.0;
     bool canonical = true;
-    int sweeps=100000;
+    int sweeps=100;
     
     // Adjacency matrix
+    int total_nn = count_nearest_neighbors(L, D, boundary_condition);
     vector<bool> adjacency_matrix_rows (M,0);
     vector<vector<bool>> adjacency_matrix (M,adjacency_matrix_rows);
     build_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
-    int total_nn=0;
     
     // Trackers
     int num_kinks = M;
@@ -1861,11 +2253,8 @@ int main(){
     // Initialize array containing indices of last kinks at each site
     for (int i=0; i<M; i++){
         last_kinks[i] = i;
-        
-        // Count number of nearest neighbors of each site
-        total_nn += (adjacency_matrix[0][i]==1);
-
     }
+    
     // Initialize vector that will store nearest neighbor indices
     vector<int> nn_sites (total_nn,0);
 
@@ -1988,7 +2377,7 @@ int main(){
         if (m%(static_cast<int>(M*beta))==0 && m>0.2*sweeps){
             if (head_idx==-1 and tail_idx==-1){
                 N_sum += N_tracker;
-                diagonal_energy+=energy(kinks_vector,num_kinks,M,N,U,mu,t,beta);
+                //diagonal_energy+=energy(kinks_vector,num_kinks,M,N,U,mu,t,beta);
                 Z_ctr += 1;
             }
         }
