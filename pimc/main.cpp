@@ -104,7 +104,81 @@ double norm(vector<double> point){
     return sqrt(squared_sum);
 }
 
+
 /*----------------------------------------------------------------------------*/
+
+int count_hypercube_nearest_neighbors(int L,int D,string boundary_condition){
+    
+    // NOTE: THESE OUTPUTS ARE VALID FOR PERIODIC BOUNDARY CONDITIONS.
+    if (L>2){return D*2;}
+    else {return D;}
+}
+
+/*----------------------------------------------------------------------------*/
+
+void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
+                                      vector<vector<int>> &adjacency_matrix){
+    
+    int M = pow(L,D);
+    int site_left,site_right,site_up,site_down,site_high,site_low;
+    int top_row_ctr=L,bottom_row_ctr=0;
+    
+    for (int site=0; site<M; site++){
+        
+        // Left neighbor
+        if (site%L==0){site_left=site+(L-1);}
+        else {site_left=site-1;}
+        
+        // Right neighbor
+        if ((site+1)%L==0){site_right=site-(L-1);}
+        else {site_right=site+1;}
+        
+        // Top neighbor
+        if (site%(L*L)==0){top_row_ctr=L;}
+        if (top_row_ctr>0){
+            site_up = site+L*(L-1);
+            top_row_ctr-=1;
+        }
+        else {site_up=site-L;}
+
+        // Bottom neighbor
+        if ((site-L*(L-1))%(L*L)==0){bottom_row_ctr=L;}
+        if (bottom_row_ctr>0){
+            site_down = site-L*(L-1);
+            bottom_row_ctr-=1;
+        }
+        else {site_down=site+L;}
+        
+        // High neighbor (i.e, layer above in 3D; ran out of words, sorry)
+        if (site-L*L<0){site_high=site+L*L*(L-1);}
+        else {site_high=site-L*L;}
+        
+        // Low neighbor (i.e, layer below in 3D; ran out of words, sorry)
+        if (site+L*L>L*L*L-1){site_low=site-L*L*(L-1);}
+        else {site_low=site+L*L;}
+        
+        // Populate the adjacency matrix (in compact form)
+        if (L<2){
+            cout << "ERROR: CODE DOES NOT SUPPORT L<2 AT THE MOMENT" << endl;
+        }
+        else{
+            adjacency_matrix[site][0]=site_left;
+            adjacency_matrix[site][1]=site_right;
+            if (D>1){
+                adjacency_matrix[site][2]=site_up;
+                adjacency_matrix[site][3]=site_down;
+            }
+            if (D>2){
+                adjacency_matrix[site][4]=site_high;
+                adjacency_matrix[site][5]=site_low;
+            }
+        }
+    }
+    return;
+}
+    
+/*----------------------------------------------------------------------------*/
+
 
 void build_adjacency_matrix(int L,int D,string boundary_condition,
                             vector<vector<bool>>&adjacency_matrix){
@@ -183,235 +257,9 @@ void build_adjacency_matrix(int L,int D,string boundary_condition,
         }
     }
     
-//    // Count total nearest_neighbors of each site
-//    for (int i=0; i<M; i++){
-//        if (adjacency_matrix[0][i]==1){total_nn+=1;}
-//    }
-    
-    
     return;
  }
 
-/*----------------------------------------------------------------------------*/
-
-int count_nearest_neighbors(int L,int D,string boundary_condition){
-    
-    // Variable declarations
-    int M = pow(L,D); // Number of lattice points
-    int ctr,a1,a2,a3;
-    double r_nn;
-    vector<double> points_difference (D,0);
-    int total_nn;
-
-    // Initialize normalized basis vectors
-    vector<double> a1_vec {1,0,0};
-    vector<double> a2_vec {0,1,0};
-    vector<double> a3_vec {0,0,1};
-
-    // Initialize array that will store all the points
-    vector<double> empty_point (D,0);
-    vector<vector<double>> points (M,empty_point);
-
-    // Norm of basis vectors
-    a1 = norm(a1_vec);
-    a2 = norm(a2_vec);
-    a3 = norm(a3_vec);
-
-    // Build the lattice vectors
-    ctr = 0;
-    if (D==1){
-        for (int i1=0; i1<L; i1++){
-            points[ctr][0] = i1*a1;
-            ctr++;
-        }
-    }
-    else if (D==2){
-        for (int i1=0; i1<L; i1++){
-            for (int i2=0; i2<L; i2++){
-                points[ctr][0] = i1*a1;
-                points[ctr][1] = i2*a2;
-                ctr++;
-            }
-        }
-    }
-    else{ // D==3
-        for (int i1=0; i1<L; i1++){
-            for (int i2=0; i2<L; i2++){
-                for (int i3=0; i3<L; i3++){
-                    points[ctr][0] = i1*a1;
-                    points[ctr][1] = i2*a2;
-                    points[ctr][2] = i3*a3;
-                    ctr++;
-                }
-            }
-        }
-    }
-
-    // Set the nearest-neighbor distance
-    r_nn = a1;
-
-    // Count the number of nearest neighbors for this geometry
-    total_nn=0;
-    for (int col=1; col<M; col++){
-        for (int axis=0; axis<D; axis++){
-            points_difference[axis] = points[0][axis]-points[col][axis];
-        }
-        if (boundary_condition=="pbc"){
-            if (norm(points_difference) <= r_nn
-                || norm(points_difference) == L-1){
-                total_nn+=1;
-                cout << "COL" << col << endl;
-            }
-        }
-        else if (boundary_condition=="obc"){
-            if(norm(points_difference) <= r_nn){
-                total_nn+=1;
-            }
-        }
-        else{
-            cout << "ERROR: Boundary condition not supported" << endl;
-        }
-    }
-    
-    return total_nn;
-}
-
-/*----------------------------------------------------------------------------*/
-
-//vector<vector<int>> build_adjacency_matrix_02(int L,int D,
-//                                    string boundary_condition,int &total_nn){
-//
-//    // Variable declarations
-//    int M = pow(L,D); // Number of lattice points
-//    int ctr,a1,a2,a3;
-//    double r_NN;
-//    vector<double> points_difference (D,0);
-//
-//    // Initialize normalized basis vectors
-//    vector<double> a1_vec {1,0,0};
-//    vector<double> a2_vec {0,1,0};
-//    vector<double> a3_vec {0,0,1};
-//
-//    // Initialize array that will store all the points
-//    vector<double> empty_point (D,0);
-//    vector<vector<double>> points (M,empty_point);
-//
-//    // Norm of basis vectors
-//    a1 = norm(a1_vec);
-//    a2 = norm(a2_vec);
-//    a3 = norm(a3_vec);
-//
-//    // Build the lattice vectors
-//    ctr = 0;
-//    if (D==1){
-//        for (int i1=0; i1<L; i1++){
-//            points[ctr][0] = i1*a1;
-//            ctr++;
-//        }
-//    }
-//    else if (D==2){
-//        for (int i1=0; i1<L; i1++){
-//            for (int i2=0; i2<L; i2++){
-//                points[ctr][0] = i1*a1;
-//                points[ctr][1] = i2*a2;
-//                ctr++;
-//            }
-//        }
-//    }
-//    else{ // D==3
-//        for (int i1=0; i1<L; i1++){
-//            for (int i2=0; i2<L; i2++){
-//                for (int i3=0; i3<L; i3++){
-//                    points[ctr][0] = i1*a1;
-//                    points[ctr][1] = i2*a2;
-//                    points[ctr][2] = i3*a3;
-//                    ctr++;
-//                }
-//            }
-//        }
-//    }
-//
-//    // Set the nearest-neighbor distance
-//    r_NN = a1;
-//
-//    // Count the number of nearest neighbors for this geometry
-//    for (int i=0; i<M; i++){
-//        for (int j=i+1; j<M; j++){
-//            for (int axis=0; axis<D; axis++){
-//                points_difference[axis] = points[i][axis]-points[j][axis];
-//            }
-//            if (boundary_condition=="pbc"){
-//                if (norm(points_difference) <= r_NN
-//                    || norm(points_difference) == L-1){
-//                    total_nn+=1;
-//                }
-//            }
-//            else if (boundary_condition=="obc"){
-//                if(norm(points_difference) <= r_NN){
-//                    total_nn+=1;
-//                }
-//            }
-//            else{
-//                cout << "ERROR: Boundary condition not supported" << endl;
-//            }
-//        }
-//    }
-//
-//    // Allocate the adjacency matrix (in compact form)
-//    vector<int> adjacency_matrix_row (total_nn,0);
-//    vector<vector<int>> adjacency_matrix_02 (M,adjacency_matrix_row);
-//
-//    // Set adjacency matrix elements by comparing inter-site distances
-//    for (int i=0; i<M; i++){
-//        ctr=0;
-//        for (int j=0; j<total_nn; j++){
-//            for (int axis=0; axis<D; axis++){
-//                points_difference[axis] = points[i][axis]-points[j][axis];
-//            }
-//            if (boundary_condition=="pbc"){
-//                if (norm(points_difference) <= r_NN
-//                    || norm(points_difference) == L-1){
-//                    adjacency_matrix_02[i][ctr] = j;
-//                    ctr++;
-//                }
-//
-//            }
-//            else if (boundary_condition=="obc"){
-//                if (norm(points_difference) <= r_NN){
-//                    adjacency_matrix_02[i][ctr] = j;
-//                    ctr++;
-//                }            }
-//            else{
-//                cout << "ERROR: Boundary condition not supported" << endl;
-//            }
-//            if (ctr==total_nn){break;}
-//        }
-//    }
-//
-//    return adjacency_matrix_02;
-//}
-
-/*----------------------------------------------------------------------------*/
-
-void compress_adjacency_matrix(int L,int D,string boundary_condition,
-                               vector<vector<bool>>&adjacency_matrix,
-                               vector<vector<int>>&compact_adjacency_matrix){
-    // Variable declarations
-    int M = pow(L,D);
-    int ctr;
-    
-    for (int row=0; row<M; row++){
-        ctr=0;
-        for (int col=0; col<M; col++){
-            if (adjacency_matrix[row][col]!=0){
-                compact_adjacency_matrix[row][ctr]=col;
-                ctr++;
-            }
-        }
-    }
-    
-    return;
-}
 /*----------------------------------------------------------------------------*/
 
 void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
@@ -2179,7 +2027,7 @@ int main(){
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
     // Bose-Hubbard parameters
-    int L = 3, D = 2, N = L;
+    int L = 3, D = 3, N = L;
     float t = 1.0, U = 10, mu = 5;
     vector<int> alpha;
     int M = pow(L,D); // total sites
@@ -2188,13 +2036,13 @@ int main(){
     // Simulation parameters
     float eta = 1.0, beta = 1.0;
     bool canonical = true;
-    int sweeps=100;
+    int sweeps=10000000000;
     
     // Adjacency matrix
-    int total_nn = count_nearest_neighbors(L, D, boundary_condition);
-    vector<bool> adjacency_matrix_rows (M,0);
-    vector<vector<bool>> adjacency_matrix (M,adjacency_matrix_rows);
-    build_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
+    int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
+    vector<int> adjacency_matrix_rows (total_nn,0);
+    vector<vector<int>> adjacency_matrix (M,adjacency_matrix_rows);
+    build_hypercube_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
     
     // Trackers
     int num_kinks = M;
@@ -2239,13 +2087,6 @@ int main(){
     
     // Generate a random fock state
     alpha = random_boson_config(M,N);
-    
-//    // Print out the generated random Fock state
-//    cout << "Initial Fock State: ";
-//    for (int i=0;i<M;i++){
-//        cout << alpha[i];
-//    }
-//    cout << endl;
 
     // Generate the data structure (vector of kinks)
     vector<Kink> kinks_vector = create_kinks_vector(alpha, M);
@@ -2265,12 +2106,9 @@ int main(){
         cout << kinks_vector[i] << endl;
     }
     
-/*---------------------------- Test Updates ----------------------------------*/
-
-    
 /*---------------------------- Monte Carlo -----------------------------------*/
 
-    boost::random::uniform_int_distribution<> updates(0, 7);
+    boost::random::uniform_int_distribution<> updates(9, 70);
     int label;
     
     sweeps *= (beta*M);
@@ -2331,13 +2169,13 @@ int main(){
                        advance_tail_attempts, advance_tail_accepts,
                        recede_tail_attempts, recede_tail_accepts);
         }
-        else if (label==7){ // insert kink before head
-            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-                       M,N,U,mu,t,adjacency_matrix,total_nn,
-                       beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       ikbh_attempts, ikbh_accepts);
-        }
+//        else if (label==7){ // insert kink before head
+//            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+//                       M,N,U,mu,t,adjacency_matrix,total_nn,
+//                       beta,eta,canonical,N_tracker,
+//                       N_zero, N_beta, last_kinks,
+//                       ikbh_attempts, ikbh_accepts);
+//        }
         else{
             // lol
         }
@@ -2405,11 +2243,11 @@ int main(){
     cout << "num_kinks: " << num_kinks << endl;
     
     // Print out the indices of each sites last kink
-    cout << "Last kink indices: ";
-    for (int i=0; i<M ; i++){
-        cout << last_kinks[i] << " ";
-    }
-    cout << endl;
+//    cout << "Last kink indices: ";
+//    for (int i=0; i<M ; i++){
+//        cout << last_kinks[i] << " ";
+//    }
+//    cout << endl;
     
     // Print out the indices of each sites last kink
 //    cout << "Last kink indices: ";
@@ -2478,12 +2316,13 @@ int main(){
     // Print out adjacency matrix
     cout << endl << "Adjacency Matrix: " << endl << endl;
     for (int i=0; i<M; i++){
-        for (int j=0; j<M; j++){
+        for (int j=0; j<total_nn; j++){
             cout << adjacency_matrix[i][j] << " ";
         }
         cout << endl;
     }
     cout << endl;
+
     
     cout << "Total neighbors: " << total_nn << endl << endl;
     
