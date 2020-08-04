@@ -2027,7 +2027,7 @@ int main(){
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
     // Bose-Hubbard parameters
-    int L = 3, D = 3, N = L;
+    int L = 3, D = 2, N = L;
     float t = 1.0, U = 10, mu = 5;
     vector<int> alpha;
     int M = pow(L,D); // total sites
@@ -2036,7 +2036,7 @@ int main(){
     // Simulation parameters
     float eta = 1.0, beta = 1.0;
     bool canonical = true;
-    int sweeps=10000000000;
+    int sweeps=10000;
     
     // Adjacency matrix
     int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
