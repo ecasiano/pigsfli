@@ -34,7 +34,7 @@
 			<key>uniqueIdentifier</key>
 			<string>A2A5A2D1-5456-45E2-BE7F-871E8C1846E4</string>
 		</dict>
-		<key>B2493B53-8001-409A-9C1B-BD34B5864DFC</key>
+		<key>AF01E088-C986-4426-A45B-3A3D2F5B6127</key>
 		<dict>
 			<key>className</key>
 			<string>IDEActivityLogMajorGroupSection</string>
@@ -43,7 +43,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.target.product-type.tool</string>
 			<key>fileName</key>
-			<string>B2493B53-8001-409A-9C1B-BD34B5864DFC.xcactivitylog</string>
+			<string>AF01E088-C986-4426-A45B-3A3D2F5B6127.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -54,13 +54,13 @@
 			<key>signature</key>
 			<string>pimc-eygfwokcblatcyasxkwsfexernor</string>
 			<key>timeStartedRecording</key>
-			<real>618682747.00297201</real>
+			<real>618683674.55961895</real>
 			<key>timeStoppedRecording</key>
-			<real>618682748.23621202</real>
+			<real>618683675.87410104</real>
 			<key>title</key>
 			<string>Build target pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>B2493B53-8001-409A-9C1B-BD34B5864DFC</string>
+			<string>AF01E088-C986-4426-A45B-3A3D2F5B6127</string>
 		</dict>
 	</dict>
 	<key>preserveOldLogs</key>

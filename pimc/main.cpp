@@ -911,6 +911,8 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         
         swap(kinks_vector[worm_end_idx],kinks_vector[num_kinks-1]);
         
+        // THINK ABOUT THIS: THE OTHER WORM END COULD'VE BEEN SWAPPED. FIX THIS.
+        
         // Upper bound of flat could've been swapped. Correct if so.
         if (next==num_kinks-1){next=worm_end_idx;}
         
@@ -1913,68 +1915,29 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         // Add to acceptance counter
         dkbh_accepts += 1;
         
-        // Change regular kink on i to a worm head
-        kinks_vector[kink_idx_i].tau = tau_h;
-        kinks_vector[kink_idx_i].n = n_i;
-        kinks_vector[kink_idx_i].src = i;
-        kinks_vector[kink_idx_i].dest = i;
-        kinks_vector[kink_idx_i].prev = prev_i;
-        kinks_vector[kink_idx_i].next = next_i;
+        // Stage 1: Delete kink on i
+        kinks_vector[kinks_vector[num_kinks-1].next].prev = kink_idx_i;
+        kinks_vector[kinks_vector[num_kinks-1].prev].next = kink_idx_i;
         
-        // num_kinks-1,num_kinks-2 will be swapped. Modify links to these.
-        kinks_vector[kinks_vector[num_kinks-1].next].prev = head_idx;
-        kinks_vector[kinks_vector[num_kinks-1].prev].next = head_idx;
+        swap(kinks_vector[kink_idx_i],kinks_vector[num_kinks-1]);
         
-        // Head will be removed from j. Connect upper bound and kink.
-        kinks_vector[next_j].prev = kink_idx_j;
-        kinks_vector[kink_idx_j].next = next_j;
+        if (prev_i==num_kinks-1){prev_i=kink_idx_i;}
+        else if (next_i==num_kinks-1){next_i=kink_idx_i;}
+        else if (prev_j==num_kinks-1){prev_j=kink_idx_i;}
+        else if (next_j==num_kinks-1){next_j=kink_idx_i;}
+        else if (kink_idx_j==num_kinks-1){kink_idx_j=kink_idx_i;}
+        else if (head_idx==num_kinks-1){head_idx=kink_idx_i;}
+        else {;}
         
-        // Modify last kinks vector (if necessary)
-        if (kinks_vector[num_kinks-1].next==-1){
-            last_kinks[kinks_vector[num_kinks-1].src] = head_idx;
+        if (tail_idx==num_kinks-1){tail_idx=kink_idx_i;}
+        
+        if (kinks_vector[kink_idx_i].next==-1){
+            last_kinks[kinks_vector[kink_idx_i].src]=kink_idx_i;
         }
         
-        swap(kinks_vector[head_idx],kinks_vector[num_kinks-1]);
+        kinks_vector[next_i].prev = prev_i;
+        kinks_vector[prev_i].next = next_i;
         
-        // Some important kinks could've been swapped. Correct if so.
-        if (next_j==num_kinks-1){next_j=head_idx;}
-        else if (prev_j==num_kinks-1){prev_j=head_idx;}
-        else if (next_i==num_kinks-1){next_i=head_idx;}
-        else if (prev_i==num_kinks-1){prev_i=head_idx;}
-        else if (kink_idx_j==num_kinks-1){kink_idx_j=head_idx;}
-        else if (kink_idx_i==num_kinks-1){kink_idx_i=head_idx;}
-        else{;}
-        
-        // Tail could've been swapped. Correct if so.
-        if (tail_idx==num_kinks-1){tail_idx=head_idx;}
-        
-        // num_kinks-1,num_kinks-2 will be swapped. Modify links to these.
-        kinks_vector[kinks_vector[num_kinks-2].next].prev = kink_idx_j;
-        kinks_vector[kinks_vector[num_kinks-2].prev].next = kink_idx_j;
-        
-        // Kink will be removed from j. Reconnect upper,lower bound.
-        kinks_vector[next_j].prev = prev_j;
-        kinks_vector[prev_j].next = next_j;
-        
-        // Modify last kinks vector (if necessary)
-        if (kinks_vector[num_kinks-2].next==-1){
-            last_kinks[kinks_vector[num_kinks-2].src] = kink_idx_j;
-        }
- 
-        swap(kinks_vector[kink_idx_j],kinks_vector[num_kinks-2]);
-        
-        if (next_j==num_kinks-2){next_j=kink_idx_j;}
-        else if (prev_j==num_kinks-2){prev_j=kink_idx_j;}
-        else if (next_i==num_kinks-2){next_i=kink_idx_j;}
-        else if (prev_i==num_kinks-2){prev_i=kink_idx_j;}
-        else if (kink_idx_j==num_kinks-2){kink_idx_j=kink_idx_j;}
-        else if (kink_idx_i==num_kinks-2){kink_idx_i=kink_idx_j;}
-        else{;}
-        
-        // Tail could've been swapped
-        if (tail_idx==num_kinks-2){tail_idx=kink_idx_j;}
-        
-        // Deactivate the deleted kinks
         kinks_vector[num_kinks-1].tau = -1;
         kinks_vector[num_kinks-1].n = -1;
         kinks_vector[num_kinks-1].src = -1;
@@ -1982,12 +1945,30 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         kinks_vector[num_kinks-1].prev = -1;
         kinks_vector[num_kinks-1].next = -1;
         
-        cout << endl << "first swap" << endl;
-        for (int i=0; i<14; i++){
-            cout << i << " " << kinks_vector[i] << endl;
+        if (next_i==-1){last_kinks[i]=prev_i;}
+
+        // Stage 2: Delete worm head on j
+        kinks_vector[kinks_vector[num_kinks-2].next].prev = head_idx;
+        kinks_vector[kinks_vector[num_kinks-2].prev].next = head_idx;
+        
+        swap(kinks_vector[head_idx],kinks_vector[num_kinks-2]);
+        
+        if (prev_i==num_kinks-2){prev_i=head_idx;}
+        else if (next_i==num_kinks-2){next_i=head_idx;}
+        else if (prev_j==num_kinks-2){prev_j=head_idx;}
+        else if (next_j==num_kinks-2){next_j=head_idx;}
+        else if (kink_idx_j==num_kinks-2){kink_idx_j=head_idx;}
+        else {;}
+        
+        if (tail_idx==num_kinks-1){tail_idx=head_idx;}
+        
+        if (kinks_vector[head_idx].next==-1){
+            last_kinks[kinks_vector[head_idx].src]=head_idx;
         }
         
-        // Deactivate the deleted kinks
+        kinks_vector[next_j].prev = kink_idx_j;
+        kinks_vector[kink_idx_j].next = next_j;
+        
         kinks_vector[num_kinks-2].tau = -1;
         kinks_vector[num_kinks-2].n = -1;
         kinks_vector[num_kinks-2].src = -1;
@@ -1995,27 +1976,50 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         kinks_vector[num_kinks-2].prev = -1;
         kinks_vector[num_kinks-2].next = -1;
         
-        cout << endl << "second swap" << endl;
-        for (int i=0; i<14; i++){
-            cout << i << " " << kinks_vector[i] << endl;
+        if (next_j==-1){last_kinks[j]=kink_idx_j;}
+        
+        // Stage 3: Delete worm head on j
+        kinks_vector[kinks_vector[num_kinks-3].next].prev = kink_idx_j;
+        kinks_vector[kinks_vector[num_kinks-3].prev].next = kink_idx_j;
+        
+        swap(kinks_vector[kink_idx_j],kinks_vector[num_kinks-3]);
+        
+        if (prev_i==num_kinks-3){prev_i=kink_idx_j;}
+        else if (next_i==num_kinks-3){next_i=kink_idx_j;}
+        else if (prev_j==num_kinks-3){prev_j=kink_idx_j;}
+        else if (next_j==num_kinks-3){next_j=kink_idx_j;}
+        else {;}
+        
+        if (tail_idx==num_kinks-3){tail_idx=kink_idx_j;}
+        
+        if (kinks_vector[kink_idx_j].next==-1){
+            last_kinks[kinks_vector[kink_idx_j].src]=kink_idx_j;
         }
-            
-        // Set new worm head index
-        head_idx = kink_idx_i;
-
-        // Update number of kinks tracker
-        num_kinks -= 2;
-
-        // Modify the last kinks vector if necessary
+        
+        kinks_vector[next_j].prev = prev_j;
+        kinks_vector[prev_j].next = next_j;
+        
+        kinks_vector[num_kinks-3].tau = -1;
+        kinks_vector[num_kinks-3].n = -1;
+        kinks_vector[num_kinks-3].src = -1;
+        kinks_vector[num_kinks-3].dest = -1;
+        kinks_vector[num_kinks-3].prev = -1;
+        kinks_vector[num_kinks-3].next = -1;
+        
         if (next_j==-1){last_kinks[j]=prev_j;}
         
-//        if (next_i==-1){last_kinks[i]=head_idx;}
+        // Stage 4: Insert worm head on i
+        kinks_vector[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i);
         
-        // Print out the indices of each sites last kink
-        cout << "Last kink indices: ";
-        for (int i=0; i<M ; i++){
-            cout << last_kinks[i] << " ";
-        }
+        head_idx = num_kinks-3;
+        
+        kinks_vector[prev_i].next = head_idx;
+        if(next_i!=-1){kinks_vector[next_i].prev = head_idx;}
+        
+        if (next_i==-1){last_kinks[i]=head_idx;}
+        
+        // Update number of kinks tracker
+        num_kinks -= 2;
         
         return;
 
