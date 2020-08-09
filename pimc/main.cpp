@@ -487,25 +487,42 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     if (rnum(rng) < R){ // Accept
         
-        // num_kinks-1,num_kinks-2 will be swapped. Modify links to these.
+        // num_kinks-1 will be swapped. Modify links to these.
         kinks_vector[kinks_vector[num_kinks-1].next].prev = head_idx;
         kinks_vector[kinks_vector[num_kinks-1].prev].next = head_idx;
                 
         swap(kinks_vector[head_idx],kinks_vector[num_kinks-1]);
+        
+        // Upper,lower bounds of flat could've been swapped. Correct if so.
+        if (prev_h==num_kinks-1){prev_h=head_idx;}
+        else if (next_h==num_kinks-1){next_h=head_idx;}
+        else if (prev_t==num_kinks-1){prev_t=head_idx;}
+        else if (next_t==num_kinks-1){next_t=head_idx;}
+        else {;}
+        
+        // The other worm end could've been swapped. Correct if so.
+        if (tail_idx==num_kinks-1){tail_idx=head_idx;}
+        
+        // The swapped kink could've been the last on its site.
+        if (kinks_vector[head_idx].next==-1){
+            last_kinks[kinks_vector[head_idx].src]=head_idx;
+        }
 
+        // num_kinks-2 will be swapped. Modify links to these.
         kinks_vector[kinks_vector[num_kinks-2].next].prev = tail_idx;
         kinks_vector[kinks_vector[num_kinks-2].prev].next = tail_idx;
         
         swap(kinks_vector[tail_idx],kinks_vector[num_kinks-2]);
 
-        // Upper,lower bounds of flat could've been swapped. Correct if so.
-        if (prev_h==num_kinks-1){prev_h=head_idx;}
-        else if (next_h==num_kinks-1){next_h=head_idx;}
-        else {;}
-
-        if (prev_t==num_kinks-2){prev_t=tail_idx;}
+        if (prev_h==num_kinks-2){prev_h=tail_idx;}
+        else if (next_h==num_kinks-2){next_h=tail_idx;}
+        else if (prev_t==num_kinks-2){prev_t=tail_idx;}
         else if (next_t==num_kinks-2){next_t=tail_idx;}
         else {;}
+
+        if (kinks_vector[tail_idx].next==-1){
+            last_kinks[kinks_vector[tail_idx].src]=tail_idx;
+        }
 
         // Reconnect the lower,upper bounds of the flat interval
         if (is_worm){
@@ -911,11 +928,9 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         
         swap(kinks_vector[worm_end_idx],kinks_vector[num_kinks-1]);
         
-        // THINK ABOUT THIS: THE OTHER WORM END COULD'VE BEEN SWAPPED. FIX THIS.
-        
         // Upper bound of flat could've been swapped. Correct if so.
         if (next==num_kinks-1){next=worm_end_idx;}
-        
+                
         // The other worm end could've been swapped. Reindex it if so.
         if (delete_head){
             
@@ -934,6 +949,14 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 last_kinks[kinks_vector[head_idx].src] = head_idx;
             }
         }
+        
+        // Whatever kink was swapped could've been the last on its site.
+        if (kinks_vector[worm_end_idx].next==-1){
+            last_kinks[kinks_vector[worm_end_idx].src]=worm_end_idx;
+        }
+        
+        // If worm end was last kink on site, update last kinks tracker vec.
+        if (next==-1){last_kinks[src]=prev;}
         
         // Reconnect the lower,upper bounds of the flat interval.
         kinks_vector[prev].next = next;
@@ -970,9 +993,6 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         // Update trackers for: num of active kinks, total particles
         num_kinks -= 1;
         N_tracker += dN;
-        
-        // If worm end was last kink on site, update last kinks tracker vec.
-        if (next==-1){last_kinks[src]=prev;}
         
         return;
     }
@@ -1307,7 +1327,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     R = 1/R;
     
     // Metropolis sampling
-    if (rnum(rng) < R){ // acclast
+    if (rnum(rng) < R){ // accept
         
         // num_kinks-1 (last available kink) will be swapped. Modify links to it
         if (kinks_vector[num_kinks-1].next!=-1) // avoids access with -1 index
@@ -1338,9 +1358,17 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             }
         }
         
+        // Whatever kink was swapped could've been the last on its site.
+        if (kinks_vector[worm_end_idx].next==-1){
+            last_kinks[kinks_vector[worm_end_idx].src]=worm_end_idx;
+        }
+        
+        // Since worm end was last kink on site, update last kinks tracker vec.
+        last_kinks[src]=prev;
+        
         // Reconnect the lower,upper bounds of the flat interval.
         kinks_vector[prev].next = next;
-        kinks_vector[next].prev = prev;
+//        kinks_vector[next].prev = prev;
 
         // Deactivate the worm end
         if (delete_head){
@@ -1373,9 +1401,6 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         // Update trackers for: num of active kinks, total particles
         num_kinks -= 1;
         N_tracker += dN;
-        
-        // Since worm end was last kink on site, update last kinks tracker vec.
-        last_kinks[src]=prev;
         
         return;
     }
@@ -2099,7 +2124,7 @@ int main(){
     
     // Bose-Hubbard parameters
     int L = 4, D = 1, N = L;
-    float t = 1.0, U = 10, mu = -3.5;
+    float t = 1.0, U = 9.29, mu = 5;
     vector<int> alpha;
     int M = pow(L,D); // total sites
     string boundary_condition = "pbc";
@@ -2192,20 +2217,20 @@ int main(){
         
         label = updates(rng);
         
-        if (m > 1){
-            cout << endl << "label: " << label << " m: " << m <<
-            " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-            " tail_idx: " << tail_idx << endl;
-            for (int i=0; i<20; i++){
-                cout << i << " " << kinks_vector[i] << endl;
-            }
-            // Print out the indices of each sites last kink
-            cout << "Last kiNk indices before update: ";
-            for (int i=0; i<M ; i++){
-                cout << last_kinks[i] << " ";
-            }
-            cout << endl;
-        }
+//        if (m > 0){
+//            cout << endl << "label: " << label << " m: " << m <<
+//            " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+//            " tail_idx: " << tail_idx << endl;
+//            for (int i=0; i<20; i++){
+//                cout << i << " " << kinks_vector[i] << endl;
+//            }
+//            // Print out the indices of each sites last kink
+//            cout << "Last kiNk indices before update: ";
+//            for (int i=0; i<M ; i++){
+//                cout << last_kinks[i] << " ";
+//            }
+//            cout << endl;
+//        }
                 
         if (label==0){     // worm_insert
             insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -2329,7 +2354,7 @@ int main(){
 
     // Print out the data structure
     cout << endl << "Final structure: " << endl;
-    for (int i=0;i<18;i++){
+    for (int i=0;i<30;i++){
         cout << i << "  " << kinks_vector[i] << endl;
     }
     cout << endl;
