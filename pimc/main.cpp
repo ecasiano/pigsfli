@@ -1806,7 +1806,7 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         num_kinks += 2;
         
         // If worm head is last kink on site j, update last kinks tracker vector
-        if (next_j==-1){last_kinks[j]=num_kinks+1;}
+        if (next_j==-1){last_kinks[j]=head_idx;}
         
         return;
         
@@ -2198,12 +2198,12 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         
         // "Connect" prev of next kink to new kink
         if(next_j!=-1){kinks_vector[next_j].prev = num_kinks+1;}
-                
-        // Update number of kinks tracker
-        num_kinks += 2;
         
         // If new kink is last kink on site j, update last kinks tracker vector
         if (next_j==-1){last_kinks[j]=num_kinks+1;}
+        
+        // Update number of kinks tracker
+        num_kinks += 2;
         
         return;
             
@@ -2513,7 +2513,7 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     prev_i = kinks_vector[tail_idx].prev;
     next_i = kinks_vector[tail_idx].next;
     
-    // Determine index of lower/upper kinks of flat where head jumps to (site j)
+    // Determine index of lower/upper kinks of flat where tail jumps to (site j)
     tau = 0;            // tau_prev_j candidate
     prev = j;           // prev_j candidate
     prev_j = j;         // this avoids "variable maybe not initialized" warning
@@ -2568,7 +2568,7 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     // Build the Metropolis ratio (R)
     p_dkbt = 0.5;
     p_ikbt = 0.5;
-    R = W * (p_dkah/p_ikah) * (tau_max-tau_h)/p_site;
+    R = W * (p_dkbt/p_ikbt) * (tau_t-tau_min)/p_site;
     
     // Metropolis Sampling
     if (rnum(rng) < R){ // Accept
@@ -2601,7 +2601,7 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         num_kinks += 2;
         
         // If worm tail is last kink on site j, update last kinks tracker vector
-        if (next_j==-1){last_kinks[j]=num_kinks+1;}
+        if (next_j==-1){last_kinks[j]=tail_idx;}
         
         return;
             
@@ -2703,7 +2703,7 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     // Build the Metropolis ratio (R)
     p_dkbt = 0.5;
     p_ikbt = 0.5;
-    R = W * (p_dkah/p_ikah) * (tau_t-tau_min)/p_site;
+    R = W * (p_dkbt/p_ikbt) * (tau_t-tau_min)/p_site;
     R = 1/R;
     
 //    cout << endl << "R: " << R << endl;
@@ -2841,7 +2841,7 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
 //            cout << i << " " << kinks_vector[i] << endl;
 //        }
 
-        // Stage 4: Insert worm head on i
+        // Stage 4: Insert worm tail on i
         kinks_vector[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i);
 
         tail_idx = num_kinks-3;
@@ -2953,8 +2953,8 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
      n_wj = n_j+1;                   // "w": segment with the extra particle
     
     // Calculate the diagonal energy difference on both sites
-    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i)
-    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j)
+    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     
     // Calculate the weight ratio W'/W
     W = t * n_wj * exp((dV_i-dV_j)*(tau_kink-tau_t));
@@ -2990,12 +2990,12 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         
         // "Connect" prev of next kink to new kink
         if(next_j!=-1){kinks_vector[next_j].prev = num_kinks+1;}
-                
-        // Update number of kinks tracker
-        num_kinks += 2;
         
         // If new kink is last kink on site j, update last kinks tracker vector
         if (next_j==-1){last_kinks[j]=num_kinks+1;}
+        
+        // Update number of kinks tracker
+        num_kinks += 2;
         
         return;
             
@@ -3023,28 +3023,28 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     tau_next_i,tau_next_j,tau_max,p_dkah,p_ikah,p_dkat,p_ikat;
     bool is_worm,delete_head,shift_head;
     
-    // Update only possible if worm head present
+    // Update only possible if worm tail present
     if (head_idx==-1){return;}
     
-    // There has to be a regular kink after the worm head
-    if (kinks_vector[head_idx].next==tail_idx ||
-        kinks_vector[head_idx].next==-1){return;}
+    // There has to be a regular kink after the worm tail
+    if (kinks_vector[tail_idx].next==head_idx ||
+        kinks_vector[tail_idx].next==-1){return;}
 
     // Need at least two sites to perform a spaceshift
     if (M<2){return;}
 
-    // Indices of: upper bound kink, kink before head, lower bound kink ; site j
-    kink_idx_j = kinks_vector[head_idx].next;
+    // Indices of: upper bound kink, kink before tail, lower bound kink ; site j
+    kink_idx_j = kinks_vector[tail_idx].next;
     next_j = kinks_vector[kink_idx_j].next;
-    prev_j = kinks_vector[head_idx].prev;
+    prev_j = kinks_vector[tail_idx].prev;
 
-    // Times of: worm head, kink before head, lower bound kink; site j
+    // Times of: worm tail, kink before tail, lower bound kink; site j
     tau_next_j = kinks_vector[next_j].tau;
     tau_kink = kinks_vector[kink_idx_j].tau;
-    tau_h = kinks_vector[head_idx].tau;
+    tau_t = kinks_vector[tail_idx].tau;
     tau_prev_j = kinks_vector[prev_j].tau;
     
-    // Retrieve worm head site (j) and connecting site (i)
+    // Retrieve worm tail site (j) and connecting site (i)
     j = kinks_vector[kink_idx_j].src;
     i = kinks_vector[kink_idx_j].dest;
 
@@ -3070,10 +3070,10 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     else {tau_next_i = kinks_vector[next_i].tau;};
     
     // Deletion cannot interfere w/ kinks on other site
-    if (tau_h <= tau_prev_i){return;}
+    if (tau_t <= tau_prev_i){return;}
 
     // Add to proposal counter
-    dkah_attempts += 1;
+    dkat_attempts += 1;
 
     // Determine highest time at which kink could've been inserted
     if (tau_next_i<tau_next_j){tau_max=tau_next_i;}
@@ -3083,22 +3083,22 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     p_site = 1.0/total_nn;
 
     // Extract no. of particles in the flats adjacent to the new kink
-    n_wi = kinks_vector[prev_i].n;
-    n_i = n_wi-1;
-    n_wj = kinks_vector[prev_j].n;
-    n_j = n_wj-1;                   // "w": segment with the extra particle
+    n_i = kinks_vector[prev_i].n;
+    n_i = n_i+1;
+    n_j = kinks_vector[prev_j].n;
+    n_j = n_j+1;                   // "w": segment with the extra particle
 
     // Calculate the diagonal energy difference on both sites
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
 
     // Calculate the weight ratio W'/W
-    W = t * n_wj * exp((-dV_i+dV_j)*(tau_kink-tau_h));
+    W = t * n_wj * exp((dV_i-dV_j)*(tau_kink-tau_t));
 
     // Build the Metropolis ratio (R)
-    p_dkah = 0.5;
-    p_ikah = 0.5;
-    R = W * (p_dkah/p_ikah) * (tau_max-tau_h)/p_site;
+    p_dkat = 0.5;
+    p_ikat = 0.5;
+    R = W * (p_dkat/p_ikat) * (tau_max-tau_t)/p_site;
     R = 1/R;
     
 //    cout << endl << "R: " << R << endl;
@@ -3123,7 +3123,7 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     if (rnum(rng) < R){ // Accept
 
         // Add to acceptance counter
-        dkah_accepts += 1;
+        dkat_accepts += 1;
         
         // Stage 1: Delete kink on i
         kinks_vector[kinks_vector[num_kinks-1].next].prev = kink_idx_i;
@@ -3136,10 +3136,10 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         else if (prev_j==num_kinks-1){prev_j=kink_idx_i;}
         else if (next_j==num_kinks-1){next_j=kink_idx_i;}
         else if (kink_idx_j==num_kinks-1){kink_idx_j=kink_idx_i;}
-        else if (head_idx==num_kinks-1){head_idx=kink_idx_i;}
+        else if (tail_idx==num_kinks-1){tail_idx=kink_idx_i;}
         else {;}
         
-        if (tail_idx==num_kinks-1){tail_idx=kink_idx_i;}
+        if (head_idx==num_kinks-1){head_idx=kink_idx_i;}
         
         if (kinks_vector[kink_idx_i].next==-1){
             last_kinks[kinks_vector[kink_idx_i].src]=kink_idx_i;
@@ -3173,17 +3173,17 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         else if (next_i==num_kinks-2){next_i=kink_idx_j;}
         else if (prev_j==num_kinks-2){prev_j=kink_idx_j;}
         else if (next_j==num_kinks-2){next_j=kink_idx_j;}
-        else if (head_idx==num_kinks-2){head_idx=kink_idx_j;}
+        else if (tail_idx==num_kinks-2){tail_idx=kink_idx_j;}
         else {;}
         
-        if (tail_idx==num_kinks-2){tail_idx=kink_idx_j;}
+        if (head_idx==num_kinks-2){head_idx=kink_idx_j;}
         
         if (kinks_vector[kink_idx_j].next==-1){
             last_kinks[kinks_vector[kink_idx_j].src]=kink_idx_j;
         }
         
-        kinks_vector[next_j].prev = head_idx;
-        kinks_vector[head_idx].next = next_j;
+        kinks_vector[next_j].prev = tail_idx;
+        kinks_vector[tail_idx].next = next_j;
         
         kinks_vector[num_kinks-2].tau = -1;
         kinks_vector[num_kinks-2].n = -1;
@@ -3192,7 +3192,7 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         kinks_vector[num_kinks-2].prev = -1;
         kinks_vector[num_kinks-2].next = -1;
         
-        if (next_j==-1){last_kinks[j]=head_idx;}
+        if (next_j==-1){last_kinks[j]=tail_idx;}
         
 //        // Print out the indices of each sites last kink
 //        cout << "Structure after stage 2: " << endl;
@@ -3201,21 +3201,21 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
 //        }
         
         // Stage 3: Delete worm head on j
-        kinks_vector[kinks_vector[num_kinks-3].next].prev = head_idx;
-        kinks_vector[kinks_vector[num_kinks-3].prev].next = head_idx;
+        kinks_vector[kinks_vector[num_kinks-3].next].prev = tail_idx;
+        kinks_vector[kinks_vector[num_kinks-3].prev].next = tail_idx;
         
-        swap(kinks_vector[head_idx],kinks_vector[num_kinks-3]);
+        swap(kinks_vector[tail_idx],kinks_vector[num_kinks-3]);
         
-        if (prev_i==num_kinks-3){prev_i=head_idx;}
-        else if (next_i==num_kinks-3){next_i=head_idx;}
-        else if (prev_j==num_kinks-3){prev_j=head_idx;}
-        else if (next_j==num_kinks-3){next_j=head_idx;}
+        if (prev_i==num_kinks-3){prev_i=tail_idx;}
+        else if (next_i==num_kinks-3){next_i=tail_idx;}
+        else if (prev_j==num_kinks-3){prev_j=tail_idx;}
+        else if (next_j==num_kinks-3){next_j=tail_idx;}
         else {;}
         
-        if (tail_idx==num_kinks-3){tail_idx=head_idx;}
+        if (head_idx==num_kinks-3){head_idx=tail_idx;}
         
-        if (kinks_vector[head_idx].next==-1){
-            last_kinks[kinks_vector[head_idx].src]=head_idx;
+        if (kinks_vector[tail_idx].next==-1){
+            last_kinks[kinks_vector[tail_idx].src]=tail_idx;
         }
         
         kinks_vector[next_j].prev = prev_j;
@@ -3236,15 +3236,15 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
 //            cout << i << " " << kinks_vector[i] << endl;
 //        }
         
-        // Stage 4: Insert worm head on i
-        kinks_vector[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i);
+        // Stage 4: Insert worm tail on i
+        kinks_vector[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i);
         
-        head_idx = num_kinks-3;
+        tail_idx = num_kinks-3;
         
-        kinks_vector[prev_i].next = head_idx;
-        if(next_i!=-1){kinks_vector[next_i].prev = head_idx;}
+        kinks_vector[prev_i].next = tail_idx;
+        if(next_i!=-1){kinks_vector[next_i].prev = tail_idx;}
         
-        if (next_i==-1){last_kinks[i]=head_idx;}
+        if (next_i==-1){last_kinks[i]=tail_idx;}
         
         // Update number of kinks tracker
         num_kinks -= 2;
@@ -3391,6 +3391,9 @@ int main(){
     int ikbt_attempts=0, ikbt_accepts=0;
     int dkbt_attempts=0, dkbt_accepts=0;
     
+    int ikat_attempts=0, ikat_accepts=0;
+    int dkat_attempts=0, dkat_accepts=0;
+    
     // Observables
     double N_sum=0;
     double diagonal_energy=0;
@@ -3513,33 +3516,47 @@ int main(){
                        dkbh_attempts, dkbh_accepts);
         }
         else if (label==9){ // insert kink after head
-            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-                       M,N,U,mu,t,adjacency_matrix,total_nn,
-                       beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       ikah_attempts, ikah_accepts);
+//            insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
+//                       M,N,U,mu,t,adjacency_matrix,total_nn,
+//                       beta,eta,canonical,N_tracker,
+//                       N_zero, N_beta, last_kinks,
+//                       ikah_attempts, ikah_accepts);
         }
         else if (label==10){ // delete kink after head
-            delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-                       M,N,U,mu,t,adjacency_matrix,total_nn,
-                       beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       dkah_attempts, dkah_accepts);
+//            delete_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
+//                       M,N,U,mu,t,adjacency_matrix,total_nn,
+//                       beta,eta,canonical,N_tracker,
+//                       N_zero, N_beta, last_kinks,
+//                       dkah_attempts, dkah_accepts);
         }
         else if (label==11){ // insert kink before tail
-            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+            insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker,
                        N_zero, N_beta, last_kinks,
                        ikbt_attempts, ikbt_accepts);
         }
         else if (label==12){ // delete kink before tail
-            delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+            delete_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker,
                        N_zero, N_beta, last_kinks,
                        dkbt_attempts, dkbt_accepts);
         }
+        else if (label==13){ // insert kink after tail
+//             insert_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
+//                        M,N,U,mu,t,adjacency_matrix,total_nn,
+//                        beta,eta,canonical,N_tracker,
+//                        N_zero, N_beta, last_kinks,
+//                        ikat_attempts, ikat_accepts);
+         }
+         else if (label==14){ // delete kink after tail
+//             delete_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
+//                        M,N,U,mu,t,adjacency_matrix,total_nn,
+//                        beta,eta,canonical,N_tracker,
+//                        N_zero, N_beta, last_kinks,
+//                        dkat_attempts, dkat_accepts);
+         }
         else{
             // lol
         }
@@ -3700,7 +3717,10 @@ int main(){
     cout <<"DKBT: "<<dkbt_accepts<<"/"<<
                                dkbt_attempts<<endl;
     
-    
+    cout<< endl <<"IKAT: "<<ikat_accepts<<"/"<<
+                               ikat_attempts<<endl;
+    cout <<"DKAT: "<<dkat_accepts<<"/"<<
+                               dkat_attempts<<endl;
     
     auto end = high_resolution_clock::now();
 
