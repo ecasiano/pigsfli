@@ -3405,7 +3405,7 @@ int main(){
     
 /*---------------------------- Monte Carlo -----------------------------------*/
 
-    boost::random::uniform_int_distribution<> updates(0, 5);
+    boost::random::uniform_int_distribution<> updates(0, 14);
     int label;
     
     sweeps *= (beta*M);
@@ -3485,32 +3485,32 @@ int main(){
                        recede_tail_attempts, recede_tail_accepts);
         }
         else if (label==7){ // insert kink before head
-//            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-//                       M,N,U,mu,t,adjacency_matrix,total_nn,
-//                       beta,eta,canonical,N_tracker,
-//                       N_zero, N_beta, last_kinks,
-//                       ikbh_attempts, ikbh_accepts);
+            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker,
+                       N_zero, N_beta, last_kinks,
+                       ikbh_attempts, ikbh_accepts);
         }
         else if (label==8){ // delete kink before head
-//            delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-//                       M,N,U,mu,t,adjacency_matrix,total_nn,
-//                       beta,eta,canonical,N_tracker,
-//                       N_zero, N_beta, last_kinks,
-//                       dkbh_attempts, dkbh_accepts);
+            delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker,
+                       N_zero, N_beta, last_kinks,
+                       dkbh_attempts, dkbh_accepts);
         }
         else if (label==9){ // insert kink before tail
-//            insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
-//                       M,N,U,mu,t,adjacency_matrix,total_nn,
-//                       beta,eta,canonical,N_tracker,
-//                       N_zero, N_beta, last_kinks,
-//                       ikbt_attempts, ikbt_accepts);
+            insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker,
+                       N_zero, N_beta, last_kinks,
+                       ikbt_attempts, ikbt_accepts);
         }
         else if (label==10){ // delete kink before tail
-//            delete_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
-//                       M,N,U,mu,t,adjacency_matrix,total_nn,
-//                       beta,eta,canonical,N_tracker,
-//                       N_zero, N_beta, last_kinks,
-//                       dkbt_attempts, dkbt_accepts);
+            delete_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker,
+                       N_zero, N_beta, last_kinks,
+                       dkbt_attempts, dkbt_accepts);
         }
         else if (label==11){ // insert kink after head
 //            insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -3547,92 +3547,92 @@ int main(){
         
 /*------------------------- Unit Tests (kind of) -----------------------------*/
 
-//        // Unit test #1: No last kink indices should be repeated
-//        if (last_kinks[0]==last_kinks[1]
-//           || last_kinks[0]==last_kinks[2]
-//           || last_kinks[0]==last_kinks[3]
-//           || last_kinks[1]==last_kinks[2]
-//           || last_kinks[1]==last_kinks[3]
-//           || last_kinks[2]==last_kinks[3]){
-//            cout << "ERROR: Every site should have different last indices";
-//            cout << "label " << label << " m " << m << endl;
-//            // Print out the indices of each sites last kink
-//            cout << "Last kiNk indices before update: ";
-//            for (int i=0; i<M ; i++){
-//                cout << last_kinks[i] << " ";
-//            }
-//            cout << endl;
-//            break;
-//        }
-//
-//
-//        // Unit test #2: src and dest of worm tail kink should be the same
-//        if (tail_idx!=-1){
-//            if (kinks_vector[tail_idx].src!=kinks_vector[tail_idx].dest){
-//                cout << "ERROR: src,dest of worm tail not the same ";
-//                cout << "label: " << label << " m " << m <<
-//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//                 " tail_idx: " << tail_idx << endl;
-//                // Print out the indices of each sites last kink
-//                cout << "Structure after worm end idx error: " << endl;
-//                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << kinks_vector[i] << endl;
-//                }
-//                cout << endl;
-//                break;
-//            }
-//        }
-//
-//        // Unit test 3: src and dest of worm head kink should be the same
-//        if (head_idx!=-1){
-//            if (kinks_vector[head_idx].src!=kinks_vector[head_idx].dest){
-//                cout << "ERROR: src,dest of worm head not the same ";
-//                cout << "label: " << label << " m " << m <<
-//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//                 " tail_idx: " << tail_idx << endl;
-//                // Print out the indices of each sites last kink
-//                cout << "Structure after worm end idx error: " << endl;
-//                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << kinks_vector[i] << endl;
-//                }
-//                cout << endl;
-//                break;
-//            }
-//        }
-//
-//        // Unit test 4: Last indices should have .next equal to -1
-//        if (kinks_vector[last_kinks[0]].next!=-1
-//            || kinks_vector[last_kinks[1]].next!=-1
-//            || kinks_vector[last_kinks[2]].next!=-1
-//            || kinks_vector[last_kinks[3]].next!=-1){
-//            cout << "ERROR: Last indices should have .next equal to -1 ";
-//            cout << "label: " << label << " m " << m <<
-//             " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//             " tail_idx: " << tail_idx << endl;
-//            // Print out the indices of each sites last kink
-//            cout << "Structure after worm end idx error: " << endl;
-//            for (int i=0; i<num_kinks+5 ; i++){
-//                cout << i << " " << kinks_vector[i] << endl;
-//            }
-//            cout << endl;
-//            break;
-//        }
-//
-//        // Unit test 5: Conservation of N_zero
-//        if (head_idx==-1 && tail_idx==-1 && canonical){
-//            if (N_tracker < N-1 || N_tracker > N+1){
-//                cout << "ERROR: Total particle number N not conserved" << endl;
-//                cout << "label: " << label << " m " << m <<
-//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//                 " tail_idx: " << tail_idx << endl;
-//                // Print out the indices of each sites last kink
-//                cout << "Structure after worm end idx error: " << endl;
-//                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << kinks_vector[i] << endl;
-//                }
-//                break;
-//            }
-//        }
+        // Unit test #1: No last kink indices should be repeated
+        if (last_kinks[0]==last_kinks[1]
+           || last_kinks[0]==last_kinks[2]
+           || last_kinks[0]==last_kinks[3]
+           || last_kinks[1]==last_kinks[2]
+           || last_kinks[1]==last_kinks[3]
+           || last_kinks[2]==last_kinks[3]){
+            cout << "ERROR: Every site should have different last indices";
+            cout << "label " << label << " m " << m << endl;
+            // Print out the indices of each sites last kink
+            cout << "Last kiNk indices before update: ";
+            for (int i=0; i<M ; i++){
+                cout << last_kinks[i] << " ";
+            }
+            cout << endl;
+            break;
+        }
+
+
+        // Unit test #2: src and dest of worm tail kink should be the same
+        if (tail_idx!=-1){
+            if (kinks_vector[tail_idx].src!=kinks_vector[tail_idx].dest){
+                cout << "ERROR: src,dest of worm tail not the same ";
+                cout << "label: " << label << " m " << m <<
+                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+                 " tail_idx: " << tail_idx << endl;
+                // Print out the indices of each sites last kink
+                cout << "Structure after worm end idx error: " << endl;
+                for (int i=0; i<num_kinks+5 ; i++){
+                    cout << i << " " << kinks_vector[i] << endl;
+                }
+                cout << endl;
+                break;
+            }
+        }
+
+        // Unit test 3: src and dest of worm head kink should be the same
+        if (head_idx!=-1){
+            if (kinks_vector[head_idx].src!=kinks_vector[head_idx].dest){
+                cout << "ERROR: src,dest of worm head not the same ";
+                cout << "label: " << label << " m " << m <<
+                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+                 " tail_idx: " << tail_idx << endl;
+                // Print out the indices of each sites last kink
+                cout << "Structure after worm end idx error: " << endl;
+                for (int i=0; i<num_kinks+5 ; i++){
+                    cout << i << " " << kinks_vector[i] << endl;
+                }
+                cout << endl;
+                break;
+            }
+        }
+
+        // Unit test 4: Last indices should have .next equal to -1
+        if (kinks_vector[last_kinks[0]].next!=-1
+            || kinks_vector[last_kinks[1]].next!=-1
+            || kinks_vector[last_kinks[2]].next!=-1
+            || kinks_vector[last_kinks[3]].next!=-1){
+            cout << "ERROR: Last indices should have .next equal to -1 ";
+            cout << "label: " << label << " m " << m <<
+             " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+             " tail_idx: " << tail_idx << endl;
+            // Print out the indices of each sites last kink
+            cout << "Structure after worm end idx error: " << endl;
+            for (int i=0; i<num_kinks+5 ; i++){
+                cout << i << " " << kinks_vector[i] << endl;
+            }
+            cout << endl;
+            break;
+        }
+
+        // Unit test 5: Conservation of N_zero
+        if (head_idx==-1 && tail_idx==-1 && canonical){
+            if (N_tracker < N-1 || N_tracker > N+1){
+                cout << "ERROR: Total particle number N not conserved" << endl;
+                cout << "label: " << label << " m " << m <<
+                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+                 " tail_idx: " << tail_idx << endl;
+                // Print out the indices of each sites last kink
+                cout << "Structure after worm end idx error: " << endl;
+                for (int i=0; i<num_kinks+5 ; i++){
+                    cout << i << " " << kinks_vector[i] << endl;
+                }
+                break;
+            }
+        }
         
 /*----------------------------- Measurements ---------------------------------*/
 
