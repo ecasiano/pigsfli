@@ -19,7 +19,7 @@ using namespace std;
 using namespace std::chrono;
 
 // Set the random number generator
-boost::random::mt19937 rng;
+boost::random::mt19937 rng(326);
 
 // Time code execution
 //auto start = high_resolution_clock::now();
@@ -180,7 +180,6 @@ void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
 }
     
 /*----------------------------------------------------------------------------*/
-
 
 void build_adjacency_matrix(int L,int D,string boundary_condition,
                             vector<vector<bool>>&adjacency_matrix){
@@ -1830,6 +1829,17 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     }
     kink_idx_i = prev;
     next_i=kinks_vector[kink_idx_i].next;
+    
+//    // Depending on the particle number before/after kink, determine src & dest
+//    if (kinks_vector[kink_idx_i].n-kinks_vector[prev_i].n
+//        < kinks_vector[kink_idx_j].n-kinks_vector[prev_j].n){
+//        src = i;
+//        dest = j;
+//    }
+//    else{
+//        src = j;
+//        dest = i;
+//    }
 
     // Retrieve time of lower,upper bounds on connecting site (i)
     tau_prev_i = kinks_vector[prev_i].tau;
@@ -3258,20 +3268,20 @@ int main(){
                 
         label = updates(rng);
         
-        if (m >= 135045){
-            cout << endl << "label: " << label << " m: " << m <<
-            " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-            " tail_idx: " << tail_idx << " N_tracker: " << N_tracker << endl;
-            cout << "Last kiNk indices before update: ";
-            for (int i=0; i<M ; i++){
-                cout << last_kinks[i] << " ";
-            }
-            cout << endl << "Structure before update: " << endl;
-            for (int i=0; i<20; i++){
-                cout << i << " " << kinks_vector[i] << endl;
-            }
-            cout << endl;
-        }
+//        if (m >= 135045){
+//            cout << endl << "label: " << label << " m: " << m <<
+//            " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+//            " tail_idx: " << tail_idx << " N_tracker: " << N_tracker << endl;
+//            cout << "Last kiNk indices before update: ";
+//            for (int i=0; i<M ; i++){
+//                cout << last_kinks[i] << " ";
+//            }
+//            cout << endl << "Structure before update: " << endl;
+//            for (int i=0; i<20; i++){
+//                cout << i << " " << kinks_vector[i] << endl;
+//            }
+//            cout << endl;
+//        }
         
 //        if (head_idx==-1 && tail_idx==-1)
 //            cout << "N_tracker: " << N_tracker << endl;
@@ -3336,11 +3346,11 @@ int main(){
                        ikbh_attempts, ikbh_accepts);
         }
         else if (label==8){ // delete kink before head
-            delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-                       M,N,U,mu,t,adjacency_matrix,total_nn,
-                       beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       dkbh_attempts, dkbh_accepts);
+//            delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+//                       M,N,U,mu,t,adjacency_matrix,total_nn,
+//                       beta,eta,canonical,N_tracker,
+//                       N_zero, N_beta, last_kinks,
+//                       dkbh_attempts, dkbh_accepts);
         }
         else if (label==9){ // insert kink before tail
 //            insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -3630,7 +3640,7 @@ int main(){
     auto elapsed_time = duration_cast<nanoseconds>(end - start);
     double duration = elapsed_time.count() * 1e-9;
     
-    cout << endl << "<n>: " << (N_sum/M)/Z_ctr << endl;
+    cout << endl << "<n>: " << (N_sum)/Z_ctr << endl;
 //    cout << endl << "<V/t>: " << (diagonal_energy/M)/Z_ctr << endl;
 //    cout << endl << "<V/t>: " << (diagonal_energy)/Z_ctr + mu*N << endl;
     cout << endl << "Z_ctr: " << Z_ctr << endl;
@@ -3649,13 +3659,6 @@ int main(){
 
     cout << endl;
     cout << "Total neighbors: " << total_nn << endl << endl;
-    
-    int N_total_sum = 0;
-    for (int i=0; i<kinks_vector.size(); i++){
-        if (kinks_vector[i].n!=-1)
-            N_total_sum += kinks_vector[i].n;
-    }
-    cout << "N_total_sum: " << N_total_sum << endl;
     
     return 0;
 }
