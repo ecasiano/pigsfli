@@ -19,7 +19,7 @@ using namespace std;
 using namespace std::chrono;
 
 // Set the random number generator
-boost::random::mt19937 rng(326);
+boost::random::mt19937 rng;
 
 // Time code execution
 //auto start = high_resolution_clock::now();
@@ -2015,8 +2015,6 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-/*----------------------------------------------------------------------------*/
-
 void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
@@ -2058,11 +2056,23 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
     prev_i = kinks_vector[head_idx].prev;
     next_i = kinks_vector[head_idx].next;
     
+//    cout << "Head idx before entering while loop: " << head_idx << endl;
+//    cout << "Structure before entering the while loop: " << endl;
+//    for (int i=0; i<num_kinks+4; i++){
+//        cout << i << " " << kinks_vector[i] << endl;
+//        if (i==kinks_vector[i].next){cout << "WAIT A MINUTE!!!!!!!!!!!!!!!!!!!!!" << endl;}
+//    }
     // Determine index of lower/upper kinks of flat where head jumps to (site j)
     tau = 0;            // tau_prev_j candidate
     prev = j;           // prev_j candidate
     prev_j = j;         // this avoids "variable maybe not initialized" warning
     while (tau<tau_h){
+        cout << tau << " ";
+        if (kinks_vector[prev].next!=-1)
+            cout << kinks_vector[kinks_vector[prev].next].tau;
+        else
+            cout << beta;
+        cout << endl;
         // Set the lower bound index
         prev_j = prev;
         
@@ -2071,7 +2081,9 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         if (prev==-1){break;}
         tau = kinks_vector[prev].tau;
     }
+    cout << endl << endl << endl;
     next_j=prev;
+//    cout << next_i << " " << next_j << endl;
     
     // Determine upper,lower bound times on both sites
     tau_prev_i = kinks_vector[prev_i].tau;
@@ -2151,8 +2163,22 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
 //        cout << "IKAH: ";
 //        cout << kinks_vector[kinks_vector[head_idx].next].n-kinks_vector[head_idx].n << endl;
         
+//        cout << "Head idx after IKAH: " << head_idx << endl;
+//        cout << "Structure after IKAH: " << endl;
+//        for (int i=0; i<num_kinks+4; i++){
+//            cout << i << " " << kinks_vector[i] << endl;
+//            if (i==kinks_vector[i].next){cout << "WAIT A MINUTE!!!!!!!!!!!!!!!!!!!!!" << endl;}
+//        }
+        
+        
+//        for (int i=0; i<num_kinks+4; i++){
+//            cout << i << " " << kinks_vector[i] << endl;
+//        }
+//        cout << endl << endl;
+//            cout << "Head index after IKAH acceped: " << head_idx << endl;
+//        cout << endl;
+
         return;
-            
         }
         else // Reject
             return;
@@ -3294,23 +3320,36 @@ int main(){
                 
         label = updates(rng);
         
-//        if (m >= 135045){
-//            cout << endl << "label: " << label << " m: " << m <<
-//            " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//            " tail_idx: " << tail_idx << " N_tracker: " << N_tracker << endl;
-//            cout << "Last kiNk indices before update: ";
-//            for (int i=0; i<M ; i++){
-//                cout << last_kinks[i] << " ";
-//            }
-//            cout << endl << "Structure before update: " << endl;
-//            for (int i=0; i<20; i++){
-//                cout << i << " " << kinks_vector[i] << endl;
-//            }
-//            cout << endl;
-//        }
+        if (m >= 0){
+            cout << endl << "label: " << label << " m: " << m <<
+            " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+            " tail_idx: " << tail_idx << " N_tracker: " << N_tracker << endl;
+            cout << "Last kiNk indices before update: ";
+            for (int i=0; i<M ; i++){
+                cout << last_kinks[i] << " ";
+            }
+            cout << endl << "Structure before update: " << endl;
+            for (int i=0; i<num_kinks+5; i++){
+                cout << i << " " << kinks_vector[i] << endl;
+            }
+            cout << endl;
+        }
         
-//        if (head_idx==-1 && tail_idx==-1)
-//            cout << "N_tracker: " << N_tracker << endl;
+        bool breakIT = false;
+        for (int i=0; i<20; i++){
+//            cout << i << " " << kinks_vector[i] << endl;
+            if (i==kinks_vector[i].next || i==kinks_vector[i].prev){
+                breakIT = true;
+                cout << "WAIT A MINUTE!!!!!!!!!!!!!!!!!!!!! " << i << endl;
+                break;
+            }
+        }
+        
+        if (breakIT){break;}
+
+        
+        if (head_idx==-1 && tail_idx==-1)
+            cout << "N_tracker: " << N_tracker << endl;
         
         if (label==0){     // worm_insert
             insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -3365,25 +3404,25 @@ int main(){
                        recede_tail_attempts, recede_tail_accepts);
         }
         else if (label==7){ // insert kink before head
-            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-                       M,N,U,mu,t,adjacency_matrix,total_nn,
-                       beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       ikbh_attempts, ikbh_accepts);
-        }
-        else if (label==8){ // delete kink before head
-            delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-                       M,N,U,mu,t,adjacency_matrix,total_nn,
-                       beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       dkbh_attempts, dkbh_accepts);
-        }
-        else if (label==9){ // insert kink after head
-//            insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
+//            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
 //                       M,N,U,mu,t,adjacency_matrix,total_nn,
 //                       beta,eta,canonical,N_tracker,
 //                       N_zero, N_beta, last_kinks,
-//                       ikah_attempts, ikah_accepts);
+//                       ikbh_attempts, ikbh_accepts);
+        }
+        else if (label==8){ // delete kink before head
+//            delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+//                       M,N,U,mu,t,adjacency_matrix,total_nn,
+//                       beta,eta,canonical,N_tracker,
+//                       N_zero, N_beta, last_kinks,
+//                       dkbh_attempts, dkbh_accepts);
+        }
+        else if (label==9){ // insert kink after head
+            insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker,
+                       N_zero, N_beta, last_kinks,
+                       ikah_attempts, ikah_accepts);
         }
         else if (label==10){ // delete kink after head
 //            delete_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -3492,6 +3531,16 @@ int main(){
              " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
              " tail_idx: " << tail_idx << endl;
             // Print out the indices of each sites last kink
+            cout << "Last indices: " << endl;
+            for (int i=0; i<M; i++){
+                cout << last_kinks[i] << " ";
+            }
+            cout << endl;
+            cout << ".next of each of the last kinks:"<<endl;
+            for (int i=0; i<M; i++){
+                cout << kinks_vector[last_kinks[i]].next << " ";
+            }
+            cout << endl;
             cout << "Structure after worm end idx error: " << endl;
             for (int i=0; i<num_kinks+5 ; i++){
                 cout << i << " " << kinks_vector[i] << endl;
