@@ -1846,21 +1846,10 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     kink_idx_i = prev;
     next_i=kinks_vector[kink_idx_i].next;
 
-//    // Depending on the particle number before/after kink, determine src & dest
-//    if (kinks_vector[kink_idx_i].n-kinks_vector[prev_i].n
-//        < kinks_vector[kink_idx_j].n-kinks_vector[prev_j].n){
-//        src = i;
-//        dest = j;
-//    }
-//    else{
-//        src = j;
-//        dest = i;
-//    }
-
     // Retrieve time of lower,upper bounds on connecting site (i)
     tau_prev_i = kinks_vector[prev_i].tau;
-    if (next_i==-1){tau_next_i=beta;}
-    else {tau_next_i=kinks_vector[next_i].tau;};
+    if (next_i!=-1){tau_next_i = kinks_vector[next_i].tau;}
+    else{tau_next_i=beta;}
 
     // Deletion cannot interfere w/ kinks on other site
     if (tau_h >= tau_next_i){return;}
@@ -2221,8 +2210,11 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
     tau_h = kinks_vector[head_idx].tau;
     tau_prev_j = kinks_vector[prev_j].tau;
     
+    // Only kinks in which the particle hops from i TO j can be deleted
+    if (kinks_vector[kink_idx_j].n-kinks_vector[head_idx].n<0){return;}
+    
     // Retrieve worm head site (j) and connecting site (i)
-    j = kinks_vector[kink_idx_j].src;
+    j = kinks_vector[head_idx].src;
     i = kinks_vector[kink_idx_j].dest;
 
     // Determine index of lower/upper bounds of flat where kink connects to (i)
@@ -2243,8 +2235,8 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
 
     // Retrieve time of lower,upper bounds on connecting site (i)
     tau_prev_i = kinks_vector[prev_i].tau;
-    if (next_i==-1){tau_next_i=beta;}
-    else {tau_next_i = kinks_vector[next_i].tau;};
+    if (next_i!=-1){tau_next_i = kinks_vector[next_i].tau;}
+    else{tau_next_i=beta;}
     
     // Deletion cannot interfere w/ kinks on other site
     if (tau_h <= tau_prev_i){return;}
@@ -2397,8 +2389,8 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         // Update number of kinks tracker
         num_kinks -= 2;
         
-        cout << "DKAH: ";
-        cout << kinks_vector[kinks_vector[head_idx].next].n-kinks_vector[head_idx].n << endl;
+//        cout << "DKAH: ";
+//        cout << kinks_vector[head_idx].n-kinks_vector[kinks_vector[head_idx].prev].n << endl;
         
         return;
 
@@ -3385,18 +3377,18 @@ int main(){
                        recede_tail_attempts, recede_tail_accepts);
         }
         else if (label==7){ // insert kink before head
-//            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-//                       M,N,U,mu,t,adjacency_matrix,total_nn,
-//                       beta,eta,canonical,N_tracker,
-//                       N_zero, N_beta, last_kinks,
-//                       ikbh_attempts, ikbh_accepts);
+            insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker,
+                       N_zero, N_beta, last_kinks,
+                       ikbh_attempts, ikbh_accepts);
         }
         else if (label==8){ // delete kink before head
-//            delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-//                       M,N,U,mu,t,adjacency_matrix,total_nn,
-//                       beta,eta,canonical,N_tracker,
-//                       N_zero, N_beta, last_kinks,
-//                       dkbh_attempts, dkbh_accepts);
+            delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker,
+                       N_zero, N_beta, last_kinks,
+                       dkbh_attempts, dkbh_accepts);
         }
         else if (label==9){ // insert kink after head
             insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -3406,11 +3398,11 @@ int main(){
                        ikah_attempts, ikah_accepts);
         }
         else if (label==10){ // delete kink after head
-//            delete_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
-//                       M,N,U,mu,t,adjacency_matrix,total_nn,
-//                       beta,eta,canonical,N_tracker,
-//                       N_zero, N_beta, last_kinks,
-//                       dkah_attempts, dkah_accepts);
+            delete_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker,
+                       N_zero, N_beta, last_kinks,
+                       dkah_attempts, dkah_accepts);
                 }
         else if (label==11){ // insert kink before tail
             insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -3588,14 +3580,14 @@ int main(){
             }
         }
 
-        // Unit test 8: Check that the prev,next attributes are different to kink index
-        for (int i=0; i<num_kinks; i++){
-            if (i==kinks_vector[i].prev
-                || i==kinks_vector[i].next){
-                cout << "ERROR: the kink with index " <<
-                i << " has the same prev or next" << endl;
-                break;}
-        }
+//        // Unit test 8: Check that the prev,next attributes are different to kink index
+//        for (int i=0; i<num_kinks; i++){
+//            if (i==kinks_vector[i].prev
+//                || i==kinks_vector[i].next){
+//                cout << "ERROR: the kink with index " <<
+//                i << " has the same prev or next" << endl;
+//                break;}
+//        }
         
 /*----------------------------- Measurements ---------------------------------*/
 
