@@ -3210,7 +3210,7 @@ int main(){
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
     // Bose-Hubbard parameters
-    int L = 4, D = 1, N = L;
+    int L = 32, D = 2, N = pow(L,D);
     double t = 1.0, U = 1.0, mu = -2.6019;
     vector<int> alpha;
     int M = pow(L,D); // total sites
@@ -3219,7 +3219,7 @@ int main(){
     // Simulation parameters
     double eta = 0.3865, beta = 1.0;
     bool canonical = true;
-    int sweeps=10000000;
+    unsigned long long int sweeps=1000000;
     
     // Adjacency matrix
     int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
@@ -3276,7 +3276,7 @@ int main(){
     double diagonal_energy=0;
     
     // Non-observables
-    int Z_ctr=0;
+    unsigned long long int Z_ctr=0;
     
     // Generate a random fock state
     alpha = random_boson_config(M,N);
@@ -3292,23 +3292,24 @@ int main(){
     // Initialize vector that will store nearest neighbor indices
     vector<int> nn_sites (total_nn,0);
 
-    cout << endl;
-    // Print out the data structure
-    cout << "Initial structure: " << endl;
-    for (int i=0;i<num_kinks+5;i++){
-        cout << kinks_vector[i] << endl;
-    }
-    cout << endl;
+//    cout << endl;
+//    // Print out the data structure
+//    cout << "Initial structure: " << endl;
+//    for (int i=0;i<num_kinks+5;i++){
+//        cout << kinks_vector[i] << endl;
+//    }
+//    cout << endl;
+    
+    cout << "Lattice PIGS started: " << endl << endl;
     
 /*---------------------------- Monte Carlo -----------------------------------*/
 
     boost::random::uniform_int_distribution<> updates(0, 14);
     int label;
-    
+    unsigned long long -int lol_ctr=0;
     sweeps *= (beta*M);
-    sweeps = static_cast<int>(sweeps);
-    for (int m=0; m < sweeps; m++){
-                
+    for (unsigned long long int m=0; m < sweeps; m++){
+        lol_ctr+=1;
         label = updates(rng);
         
 //        if (m >= 0){
@@ -3611,12 +3612,12 @@ int main(){
 /*--------------------------------- FIN --------------------------------------*/
 
 
-    // Print out the data structure
-    cout << endl << "Final structure: " << endl;
-    for (int i=0;i<30;i++){
-        cout << i << "  " << kinks_vector[i] << endl;
-    }
-    cout << endl;
+//    // Print out the data structure
+//    cout << endl << "Final structure: " << endl;
+//    for (int i=0;i<30;i++){
+//        cout << i << "  " << kinks_vector[i] << endl;
+//    }
+//    cout << endl;
 
     // Print out the head and tail indices
     cout << "head_idx: " << head_idx << endl;
@@ -3632,12 +3633,12 @@ int main(){
     // Print out number of active kinks
     cout << "num_kinks: " << num_kinks << endl;
     
-    // Print out the indices of each sites last kink
-    cout << "Last kink indices: ";
-    for (int i=0; i<M ; i++){
-        cout << last_kinks[i] << " ";
-    }
-    cout << endl;
+//    // Print out the indices of each sites last kink
+//    cout << "Last kink indices: ";
+//    for (int i=0; i<M ; i++){
+//        cout << last_kinks[i] << " ";
+//    }
+//    cout << endl;
 
     cout<< endl << "Insert Worm: "<<insert_worm_accepts<<"/"<<
                                     insert_worm_attempts<<endl;
@@ -3724,5 +3725,6 @@ int main(){
     cout << endl;
     cout << "Total neighbors: " << total_nn << endl << endl;
     
+    cout << "Last iteration was m = " << lol_ctr << endl;
     return 0;
 }
