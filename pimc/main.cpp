@@ -12,47 +12,13 @@
 #include<cmath>
 #include<chrono>
 #include<iomanip> // for std::setprecision
+#include"Kink.hpp"
 
 using namespace std;
 using namespace std::chrono;
 
 // Set the random number generator
 boost::random::mt19937 rng(32);
-
-class Kink
-{
-    public:
-    // Attribute declarations
-    double tau;
-    int n,src,dest,prev,next;
-    
-    // Member function declarations (prototypes)
-    Kink (double,int,int,int,int,int); // Kink constructor
-    
-    // Make "<<" a friend of the Kink class
-    friend ostream& operator<<(ostream& os, const Kink& dt);
-};
-
-// Member function definitions
-Kink::Kink (double time,int particles,int source_site,int destination_site,
-            int prev_kink_idx,int next_kink_idx){
-    tau = time;
-    n = particles;
-    src = source_site;
-    dest = destination_site;
-    prev = prev_kink_idx;
-    next = next_kink_idx;
-//    pair = kink_pair_idx;
-}
-
-// Overload "<<" operator
-ostream& operator<<(ostream& os, const Kink& dt)
-{
-    os << '<' << dt.tau << ',' << dt.n << ',' << dt.src << ','
-    << dt.dest << ',' << dt.prev << ',' << dt.next << '>';
-    
-    return os;
-}
 
 /*-------------------------- Function Definitions ----------------------------*/
 
