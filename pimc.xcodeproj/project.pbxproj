@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		FE03BEA5249D0EC50027941E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FE03BEA4249D0EC50027941E /* main.cpp */; };
+		FEFDD5B324F0675F00CA423E /* Kink.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FEFDD5B124F0675F00CA423E /* Kink.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,8 @@
 /* Begin PBXFileReference section */
 		FE03BEA1249D0EC50027941E /* pimc */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = pimc; sourceTree = BUILT_PRODUCTS_DIR; };
 		FE03BEA4249D0EC50027941E /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		FEFDD5B124F0675F00CA423E /* Kink.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Kink.cpp; sourceTree = "<group>"; };
+		FEFDD5B224F0675F00CA423E /* Kink.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Kink.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +61,8 @@
 			isa = PBXGroup;
 			children = (
 				FE03BEA4249D0EC50027941E /* main.cpp */,
+				FEFDD5B124F0675F00CA423E /* Kink.cpp */,
+				FEFDD5B224F0675F00CA423E /* Kink.hpp */,
 			);
 			path = pimc;
 			sourceTree = "<group>";
@@ -88,7 +93,7 @@
 		FE03BE99249D0EC50027941E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1150;
+				LastUpgradeCheck = 1160;
 				ORGANIZATIONNAME = "Emanuel Casiano-Díaz";
 				TargetAttributes = {
 					FE03BEA0249D0EC50027941E = {
@@ -119,6 +124,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FEFDD5B324F0675F00CA423E /* Kink.cpp in Sources */,
 				FE03BEA5249D0EC50027941E /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -239,6 +245,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/Cellar/boost/1.73.0/include/;
 				NEW_SETTING = "";
@@ -250,6 +257,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/Cellar/boost/1.73.0/include/;
 				NEW_SETTING = "";
