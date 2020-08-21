@@ -6,8 +6,6 @@
 //  Copyright © 2020 Emanuel Casiano-Díaz. All rights reserved.
 //
 
-// A complete working C++ program to
-// demonstrate all insertion methods
 #include<iostream>
 #include<vector>
 #include<boost/random.hpp>
@@ -20,9 +18,6 @@ using namespace std::chrono;
 
 // Set the random number generator
 boost::random::mt19937 rng(32);
-
-// Time code execution
-//auto start = high_resolution_clock::now();
 
 class Kink
 {
@@ -408,9 +403,9 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  int &delete_anti_attempts, int &delete_anti_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail;
+    int n,src,dest,prev,next,n_head,n_tail;
     int prev_h,next_h,prev_t,next_t,high_end,low_end;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R;
+    double tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R;
     bool is_worm;
     
     // Can only propose worm deletion if both worm ends are present
@@ -597,9 +592,9 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &insertZero_anti_attempts, int &insertZero_anti_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,tau_new,p_wormend,C,W,p_dz,p_iz;
+    int n,src,dest,prev,next,n_head,n_tail,i,N_b;
+    double tau_prev,tau_flat,l_path,dN,dV,R,p_type,tau_new,p_wormend,C,W,
+    p_dz,p_iz;
     bool is_worm;
 
     // Cannot insert if there's two worm ends present
@@ -792,10 +787,9 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &deleteZero_anti_attempts, int &deleteZero_anti_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,tau_new,p_wormend,C,W,p_dz,p_iz;
-    bool is_worm,delete_head;
+    int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
+    double tau,tau_next,tau_flat,l_path,dN,dV,R,p_type,p_wormend,C,W,p_dz,p_iz;
+    bool delete_head;
 
     // Cannot delete if there are no worm ends present
     if (head_idx==-1 && tail_idx==-1){return;}
@@ -1007,10 +1001,9 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &insertBeta_anti_attempts, int &insertBeta_anti_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,tau_new,p_wormend,C,W,p_dz,p_iz,
-    p_db,p_ib;
+    int n,src,dest,prev,next,n_head,n_tail,i,N_b;
+    double tau_prev,tau_flat,
+    l_path,dN,dV,R,p_type,tau_new,p_wormend,C,W,p_db,p_ib;
     bool is_worm;
 
     // Cannot insert if there's two worm ends present
@@ -1193,11 +1186,9 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &deleteBeta_anti_attempts, int &deleteBeta_anti_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,tau_new,p_wormend,C,W,p_dz,p_iz,
-    p_db,p_ib;
-    bool is_worm,delete_head;
+    int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
+    double tau,tau_prev,tau_flat,l_path,dN,dV,R,p_type,p_wormend,C,W,p_db,p_ib;
+    bool delete_head;
 
     // Cannot delete if there are no worm ends present
     if (head_idx==-1 && tail_idx==-1){return;}
@@ -1406,11 +1397,9 @@ void timeshift_uniform(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx
                 int &recede_tail_attempts, int &recede_tail_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,tau_new,p_wormend,C,W,p_dz,p_iz,
-    p_db,p_ib;
-    bool is_worm,delete_head,shift_head;
+    int n,src,dest,prev,next,worm_end_idx;
+    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,R,tau_new,W;
+    bool shift_head;
     
     // Reject update if there are is no worm end present
     if (head_idx==-1 && tail_idx==-1){return;}
@@ -1536,11 +1525,9 @@ void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &recede_tail_attempts, int &recede_tail_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,C,W,p_dz,p_iz,
-    p_db,p_ib;
-    bool is_worm,delete_head,shift_head;
+    int n,src,dest,prev,next,worm_end_idx;
+    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,R,tau_new,Z;
+    bool shift_head;
     
     // Reject update if there is no worm end present
     if (head_idx==-1 && tail_idx==-1){return;}
@@ -1661,12 +1648,9 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
                 int &ikbh_attempts, int &ikbh_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx,j,
-    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,ctr;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
-    p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j;
-    bool is_worm,delete_head,shift_head;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
+    double tau,tau_h,p_site,W,R,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,
+    tau_kink,tau_min,dV_i,dV_j;
         
     // Update only possible if worm head present
     if (head_idx==-1){return;}
@@ -1792,13 +1776,10 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
                 int &dkbh_attempts, int &dkbh_accepts){
 
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx,j,
-    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,ctr,kink_idx_i,kink_idx_j;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
-    p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j,
-    tau_next_i;
-    bool is_worm,delete_head,shift_head;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    kink_idx_i,kink_idx_j;
+    double tau,tau_h,p_site,W,R,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,
+    tau_kink,tau_min,dV_i,dV_j,tau_next_i;
 
     // Update only possible if worm head present
     if (head_idx==-1){return;}
@@ -1826,9 +1807,6 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     // Retrieve worm head site (j) and connecting site (i)
     j = kinks_vector[kink_idx_j].src;
     i = kinks_vector[kink_idx_j].dest;
-
-//    cout << "DKBH: ";
-//    cout << kinks_vector[kink_idx_j].n - kinks_vector[kinks_vector[kink_idx_j].prev].n<< endl;
     
     // Determine index of lower/upper bounds of flat where kink connects to (i)
     tau = 0;            // tau_prev_i candidate
@@ -2020,13 +1998,9 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
                 int &ikah_attempts, int &ikah_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx,j,
-    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,ctr,kink_idx_i,kink_idx_j;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
-    p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j,
-    tau_next_i,tau_next_j,tau_max,p_dkah,p_ikah;
-    bool is_worm,delete_head,shift_head;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
+    double tau,tau_h,p_site,W,R,p_dkah,p_ikah,tau_prev_i,tau_prev_j,
+    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j;
     
     // Update only possible if worm head present
     if (head_idx==-1){return;}
@@ -2142,24 +2116,6 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         
         // Update number of kinks tracker
         num_kinks += 2;
-        
-//        cout << "IKAH: ";
-//        cout << kinks_vector[kinks_vector[head_idx].next].n-kinks_vector[head_idx].n << endl;
-        
-//        cout << "Head idx after IKAH: " << head_idx << endl;
-//        cout << "Structure after IKAH: " << endl;
-//        for (int i=0; i<num_kinks+4; i++){
-//            cout << i << " " << kinks_vector[i] << endl;
-//            if (i==kinks_vector[i].next){cout << "WAIT A MINUTE!!!!!!!!!!!!!!!!!!!!!" << endl;}
-//        }
-        
-        
-//        for (int i=0; i<num_kinks+4; i++){
-//            cout << i << " " << kinks_vector[i] << endl;
-//        }
-//        cout << endl << endl;
-//            cout << "Head index after IKAH acceped: " << head_idx << endl;
-//        cout << endl;
 
         return;
         }
@@ -2178,13 +2134,10 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
                 int &dkah_attempts, int &dkah_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx,j,
-    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,ctr,kink_idx_i,kink_idx_j;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
-    p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j,
-    tau_next_i,tau_next_j,tau_max,p_dkah,p_ikah;
-    bool is_worm,delete_head,shift_head;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    kink_idx_i,kink_idx_j;
+    double tau,tau_h,p_site,W,R,p_dkah,p_ikah,tau_prev_i,tau_prev_j,
+    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j;
     
     // Update only possible if worm head present
     if (head_idx==-1){return;}
@@ -2409,13 +2362,9 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 int &ikbt_attempts, int &ikbt_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx,j,
-    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,ctr,kink_idx_i,kink_idx_j;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
-    p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j,
-    tau_next_i,tau_next_j,tau_max,p_dkah,p_ikah,p_dkbt,p_ikbt;
-    bool is_worm,delete_head,shift_head;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
+    double tau,tau_t,p_site,W,R,p_dkbt,p_ikbt,tau_prev_i,tau_prev_j,
+    tau_kink,tau_min,dV_i,dV_j,tau_next_i,tau_next_j;
     
     // Update only possible if worm tail present
     if (tail_idx==-1){return;}
@@ -2531,9 +2480,6 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         // If worm tail is last kink on site j, update last kinks tracker vector
         if (next_j==-1){last_kinks[j]=tail_idx;}
         
-//        cout << "IKBT: ";
-//        cout << kinks_vector[kinks_vector[prev_j].next].n-kinks_vector[prev_j].n << endl;
-        
         return;
             
         }
@@ -2552,13 +2498,10 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 int &dkbt_attempts, int &dkbt_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx,j,
-    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,ctr,kink_idx_i,kink_idx_j;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
-    p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j,
-    tau_next_i,tau_next_j,tau_max,p_dkah,p_ikah,p_dkbt,p_ikbt;
-    bool is_worm,delete_head,shift_head;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    kink_idx_i,kink_idx_j;
+    double tau,tau_t,p_site,W,R,p_dkbt,p_ikbt,tau_prev_i,tau_prev_j,
+    tau_kink,tau_min,dV_i,dV_j,tau_next_i;
     
     // Update only possible if worm tail present
     if (tail_idx==-1){return;}
@@ -2582,9 +2525,6 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     
     // Only kinks in which the particle hops from j TO i can be deleted
     if (kinks_vector[kink_idx_j].n-kinks_vector[prev_j].n>0){return;}
-    
-//    cout << "DKBT: ";
-//    cout << kinks_vector[kinks_vector[prev_j].next].n-kinks_vector[prev_j].n << endl;
     
     // Retrieve worm tail site (j) and connecting site (i)
     j = kinks_vector[kink_idx_j].src;
@@ -2780,13 +2720,9 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 int &ikat_attempts, int &ikat_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx,j,
-    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,ctr,kink_idx_i,kink_idx_j;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
-    p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j,
-    tau_next_i,tau_next_j,tau_max,p_dkah,p_ikah,p_dkat,p_ikat;
-    bool is_worm,delete_head,shift_head;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
+    double tau,tau_t,p_site,W,R,p_dkat,p_ikat,tau_prev_i,tau_prev_j,
+    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j;
     
     // Update only possible if worm tail present
     if (tail_idx==-1){return;}
@@ -2917,13 +2853,10 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 int &dkat_attempts, int &dkat_accepts){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail,i,N_b,worm_end_idx,j,
-    n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,ctr,kink_idx_i,kink_idx_j;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,tau_new,Z,
-    l_path,dN,dV,p_iw,p_dw,R,p_type,p_wormend,p_site,C,W,p_dz,p_iz,
-    p_db,p_ib,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,tau_kink,tau_min,dV_i,dV_j,
-    tau_next_i,tau_next_j,tau_max,p_dkah,p_ikah,p_dkat,p_ikat;
-    bool is_worm,delete_head,shift_head;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    kink_idx_i,kink_idx_j;
+    double tau,tau_t,p_site,W,R,p_dkat,p_ikat,tau_prev_i,tau_prev_j,
+    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j;
     
     // Update only possible if worm tail present
     if (head_idx==-1){return;}
@@ -3128,9 +3061,6 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         // Update number of kinks tracker
         num_kinks -= 2;
         
-//        cout << "DKAT: ";
-//        cout << kinks_vector[tail_idx].n-kinks_vector[kinks_vector[tail_idx].prev].n << endl;
-        
         return;
 
     }
@@ -3140,62 +3070,6 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
 
 
 /*---------------------------- Estimators ------------------------------------*/
-
-//double energy(vector<Kink> &kinks_vector, int num_kinks,
-//              int M, int N, double U, double mu, double t, double beta){
-//
-//    double diagonal_energy=0;
-//    vector<int> fock_state_half (M,0); // Store the Fock State at tau=beta/2
-//    int current_kink_idx, n_at_half, next_kink_idx;
-//    double tau_current, tau_next;
-//    int n_i, N_half;
-//
-//    for (int src=0; src<M; src++){
-//        current_kink_idx = src;
-//        next_kink_idx = kinks_vector[current_kink_idx].next;
-//        n_at_half = kinks_vector[current_kink_idx].n;
-//        while (next_kink_idx!=-1){
-//            tau_current = kinks_vector[current_kink_idx].tau;
-//            tau_next = kinks_vector[next_kink_idx].tau;
-//            if (tau_next<beta/2){
-//                n_at_half = kinks_vector[next_kink_idx].n;
-//            }
-//            else{
-//                if (tau_next-beta/2<beta/2-tau_current){
-//                    n_at_half = kinks_vector[next_kink_idx].n;
-//                }
-//                else{
-//                    n_at_half = kinks_vector[current_kink_idx].n;
-//                }
-//            }
-//
-//            current_kink_idx++;
-//
-//        }
-//
-//        fock_state_half[src] = n_at_half;
-//    }
-//
-//    for (int src=0; src<M; src++){
-//        n_i = fock_state_half[src];
-//        diagonal_energy += (U/2)*n_i*(n_i-1) - mu*n_i;
-//    }
-//
-//    // Sum the total particles at tau=beta/2
-//    N_half=0;
-//    for (int i=0; i<M; i++){
-//        N_half += fock_state_half[i];
-//    }
-//
-//    return N_half;
-//
-//    // This bad boy is actually returning the total particles at tau=beta/2
-//}
-
-/*----------------------------------------------------------------------------*/
-
-
-
 
 /*----------------------------------------------------------------------------*/
 
@@ -3210,7 +3084,7 @@ int main(){
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
     // Bose-Hubbard parameters
-    int L = 32, D = 2, N = pow(L,D);
+    int L = 4, D = 1, N = pow(L,D);
     double t = 1.0, U = 1.0, mu = -2.6019;
     vector<int> alpha;
     int M = pow(L,D); // total sites
@@ -3273,7 +3147,6 @@ int main(){
     
     // Observables
     double N_sum=0;
-    double diagonal_energy=0;
     
     // Non-observables
     unsigned long long int Z_ctr=0;
@@ -3291,14 +3164,6 @@ int main(){
     
     // Initialize vector that will store nearest neighbor indices
     vector<int> nn_sites (total_nn,0);
-
-//    cout << endl;
-//    // Print out the data structure
-//    cout << "Initial structure: " << endl;
-//    for (int i=0;i<num_kinks+5;i++){
-//        cout << kinks_vector[i] << endl;
-//    }
-//    cout << endl;
     
     cout << "Lattice PIGS started: " << endl << endl;
     
@@ -3306,29 +3171,9 @@ int main(){
 
     boost::random::uniform_int_distribution<> updates(0, 14);
     int label;
-    unsigned long long -int lol_ctr=0;
     sweeps *= (beta*M);
     for (unsigned long long int m=0; m < sweeps; m++){
-        lol_ctr+=1;
         label = updates(rng);
-        
-//        if (m >= 0){
-//            cout << endl << "label: " << label << " m: " << m <<
-//            " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//            " tail_idx: " << tail_idx << " N_tracker: " << N_tracker << endl;
-//            cout << "Last kiNk indices before update: ";
-//            for (int i=0; i<M ; i++){
-//                cout << last_kinks[i] << " ";
-//            }
-//            cout << endl << "Structure before update: " << endl;
-//            for (int i=0; i<num_kinks+5; i++){
-//                cout << i << " " << kinks_vector[i] << endl;
-//            }
-//            cout << endl;
-//        }
-        
-//        if (head_idx==-1 && tail_idx==-1)
-//            cout << "N_tracker: " << N_tracker << endl;
         
         if (label==0){     // worm_insert
             insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -3446,145 +3291,145 @@ int main(){
         
         
 /*------------------------- Unit Tests (kind of) -----------------------------*/
-
-        // Unit test #1: No last kink indices should be repeated
-        if (last_kinks[0]==last_kinks[1]
-           || last_kinks[0]==last_kinks[2]
-           || last_kinks[0]==last_kinks[3]
-           || last_kinks[1]==last_kinks[2]
-           || last_kinks[1]==last_kinks[3]
-           || last_kinks[2]==last_kinks[3]){
-            cout << "ERROR: Every site should have different last indices";
-            cout << "label " << label << " m " << m << endl;
-            // Print out the indices of each sites last kink
-            cout << "Last kiNk indices before update: ";
-            for (int i=0; i<M ; i++){
-                cout << last_kinks[i] << " ";
-            }
-            cout << endl;
-            break;
-        }
-
-
-        // Unit test #2: src and dest of worm tail kink should be the same
-        if (tail_idx!=-1){
-            if (kinks_vector[tail_idx].src!=kinks_vector[tail_idx].dest){
-                cout << "ERROR: src,dest of worm tail not the same ";
-                cout << "label: " << label << " m " << m <<
-                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-                 " tail_idx: " << tail_idx << endl;
-                // Print out the indices of each sites last kink
-                cout << "Structure after worm end idx error: " << endl;
-                for (int i=0; i<num_kinks+5 ; i++){
-                    cout << i << " " << kinks_vector[i] << endl;
-                }
-                cout << endl;
-                break;
-            }
-        }
-
-        // Unit test 3: src and dest of worm head kink should be the same
-        if (head_idx!=-1){
-            if (kinks_vector[head_idx].src!=kinks_vector[head_idx].dest){
-                cout << "ERROR: src,dest of worm head not the same ";
-                cout << "label: " << label << " m " << m <<
-                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-                 " tail_idx: " << tail_idx << endl;
-                // Print out the indices of each sites last kink
-                cout << "Structure after worm end idx error: " << endl;
-                for (int i=0; i<num_kinks+5 ; i++){
-                    cout << i << " " << kinks_vector[i] << endl;
-                }
-                cout << endl;
-                break;
-            }
-        }
-
-        // Unit test 4: Last indices should have .next equal to -1
-        if (kinks_vector[last_kinks[0]].next!=-1
-            || kinks_vector[last_kinks[1]].next!=-1
-            || kinks_vector[last_kinks[2]].next!=-1
-            || kinks_vector[last_kinks[3]].next!=-1){
-            cout << "ERROR: Last indices should have .next equal to -1 ";
-            cout << "label: " << label << " m " << m <<
-             " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-             " tail_idx: " << tail_idx << endl;
-            // Print out the indices of each sites last kink
-            cout << "Last indices: " << endl;
-            for (int i=0; i<M; i++){
-                cout << last_kinks[i] << " ";
-            }
-            cout << endl;
-            cout << ".next of each of the last kinks:"<<endl;
-            for (int i=0; i<M; i++){
-                cout << kinks_vector[last_kinks[i]].next << " ";
-            }
-            cout << endl;
-            cout << "Structure after worm end idx error: " << endl;
-            for (int i=0; i<num_kinks+5 ; i++){
-                cout << i << " " << kinks_vector[i] << endl;
-            }
-            cout << endl;
-            break;
-        }
-
-        // Unit test 5: Conservation of N_zero
-        if (head_idx==-1 && tail_idx==-1 && canonical){
-            if (N_tracker < N-1 || N_tracker > N+1){
-                cout << "ERROR: Total particle number N not conserved" << endl;
-                cout << "label: " << label << " m " << m <<
-                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-                 " tail_idx: " << tail_idx << endl;
-                // Print out the indices of each sites last kink
-                cout << "Structure after worm end idx error: " << endl;
-                for (int i=0; i<num_kinks+5 ; i++){
-                    cout << i << " " << kinks_vector[i] << endl;
-                }
-                break;
-            }
-        }
-
-        // Unit Test 6: Sum the particles at the beggining when no worm ends
-        if (head_idx==-1 && tail_idx==-1 && canonical){
-            int N_total_sum_zero=0;
-            for (int i=0; i<M; i++){
-                N_total_sum_zero+=kinks_vector[i].n;
-            }
-            if (N_total_sum_zero < N-1 || N_total_sum_zero > N+1){
-                cout << "ERROR: Total particle number N at zero not conserved" << endl;
-                cout << "label: " << label << " m " << m <<
-                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-                 " tail_idx: " << tail_idx << endl;
-                cout << "N_zero (unit test 6): " << N_total_sum_zero << endl;
-                // Print out the indices of each sites last kink
-                cout << "Structure after worm end idx error: " << endl;
-                for (int i=0; i<num_kinks+5 ; i++){
-                    cout << i << " " << kinks_vector[i] << endl;
-                }
-                break;
-            }
-        }
-
-        // Unit Test 7: Sum the particles at the end when no worm ends
-        if (head_idx==-1 && tail_idx==-1 && canonical){
-            int N_total_sum_beta=0;
-            for (int i=0; i<M; i++){
-                N_total_sum_beta+=kinks_vector[last_kinks[i]].n;
-            }
-            if (N_total_sum_beta < N-1 || N_total_sum_beta > N+1){
-                cout << "ERROR: Total particle number at beta not conserved" << endl;
-                cout << "label: " << label << " m " << m <<
-                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-                 " tail_idx: " << tail_idx << " N_tracker: " << N_tracker <<endl;
-                cout << "N_beta (unit test 7): " << N_total_sum_beta << endl;
-                // Print out the indices of each sites last kink
-                cout << "Structure after worm end idx error: " << endl;
-                for (int i=0; i<num_kinks+5 ; i++){
-                    cout << i << " " << kinks_vector[i] << endl;
-                }
-                break;
-            }
-        }
+//
+//        // Unit test #1: No last kink indices should be repeated
+//        if (last_kinks[0]==last_kinks[1]
+//           || last_kinks[0]==last_kinks[2]
+//           || last_kinks[0]==last_kinks[3]
+//           || last_kinks[1]==last_kinks[2]
+//           || last_kinks[1]==last_kinks[3]
+//           || last_kinks[2]==last_kinks[3]){
+//            cout << "ERROR: Every site should have different last indices";
+//            cout << "label " << label << " m " << m << endl;
+//            // Print out the indices of each sites last kink
+//            cout << "Last kiNk indices before update: ";
+//            for (int i=0; i<M ; i++){
+//                cout << last_kinks[i] << " ";
+//            }
+//            cout << endl;
+//            break;
+//        }
+//
+//
+//        // Unit test #2: src and dest of worm tail kink should be the same
+//        if (tail_idx!=-1){
+//            if (kinks_vector[tail_idx].src!=kinks_vector[tail_idx].dest){
+//                cout << "ERROR: src,dest of worm tail not the same ";
+//                cout << "label: " << label << " m " << m <<
+//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+//                 " tail_idx: " << tail_idx << endl;
+//                // Print out the indices of each sites last kink
+//                cout << "Structure after worm end idx error: " << endl;
+//                for (int i=0; i<num_kinks+5 ; i++){
+//                    cout << i << " " << kinks_vector[i] << endl;
+//                }
+//                cout << endl;
+//                break;
+//            }
+//        }
+//
+//        // Unit test 3: src and dest of worm head kink should be the same
+//        if (head_idx!=-1){
+//            if (kinks_vector[head_idx].src!=kinks_vector[head_idx].dest){
+//                cout << "ERROR: src,dest of worm head not the same ";
+//                cout << "label: " << label << " m " << m <<
+//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+//                 " tail_idx: " << tail_idx << endl;
+//                // Print out the indices of each sites last kink
+//                cout << "Structure after worm end idx error: " << endl;
+//                for (int i=0; i<num_kinks+5 ; i++){
+//                    cout << i << " " << kinks_vector[i] << endl;
+//                }
+//                cout << endl;
+//                break;
+//            }
+//        }
+//
+//        // Unit test 4: Last indices should have .next equal to -1
+//        if (kinks_vector[last_kinks[0]].next!=-1
+//            || kinks_vector[last_kinks[1]].next!=-1
+//            || kinks_vector[last_kinks[2]].next!=-1
+//            || kinks_vector[last_kinks[3]].next!=-1){
+//            cout << "ERROR: Last indices should have .next equal to -1 ";
+//            cout << "label: " << label << " m " << m <<
+//             " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+//             " tail_idx: " << tail_idx << endl;
+//            // Print out the indices of each sites last kink
+//            cout << "Last indices: " << endl;
+//            for (int i=0; i<M; i++){
+//                cout << last_kinks[i] << " ";
+//            }
+//            cout << endl;
+//            cout << ".next of each of the last kinks:"<<endl;
+//            for (int i=0; i<M; i++){
+//                cout << kinks_vector[last_kinks[i]].next << " ";
+//            }
+//            cout << endl;
+//            cout << "Structure after worm end idx error: " << endl;
+//            for (int i=0; i<num_kinks+5 ; i++){
+//                cout << i << " " << kinks_vector[i] << endl;
+//            }
+//            cout << endl;
+//            break;
+//        }
+//
+//        // Unit test 5: Conservation of N_zero
+//        if (head_idx==-1 && tail_idx==-1 && canonical){
+//            if (N_tracker < N-1 || N_tracker > N+1){
+//                cout << "ERROR: Total particle number N not conserved" << endl;
+//                cout << "label: " << label << " m " << m <<
+//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+//                 " tail_idx: " << tail_idx << endl;
+//                // Print out the indices of each sites last kink
+//                cout << "Structure after worm end idx error: " << endl;
+//                for (int i=0; i<num_kinks+5 ; i++){
+//                    cout << i << " " << kinks_vector[i] << endl;
+//                }
+//                break;
+//            }
+//        }
+//
+//        // Unit Test 6: Sum the particles at the beggining when no worm ends
+//        if (head_idx==-1 && tail_idx==-1 && canonical){
+//            int N_total_sum_zero=0;
+//            for (int i=0; i<M; i++){
+//                N_total_sum_zero+=kinks_vector[i].n;
+//            }
+//            if (N_total_sum_zero < N-1 || N_total_sum_zero > N+1){
+//                cout << "ERROR: Total particle number N at zero not conserved" << endl;
+//                cout << "label: " << label << " m " << m <<
+//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+//                 " tail_idx: " << tail_idx << endl;
+//                cout << "N_zero (unit test 6): " << N_total_sum_zero << endl;
+//                // Print out the indices of each sites last kink
+//                cout << "Structure after worm end idx error: " << endl;
+//                for (int i=0; i<num_kinks+5 ; i++){
+//                    cout << i << " " << kinks_vector[i] << endl;
+//                }
+//                break;
+//            }
+//        }
+//
+//        // Unit Test 7: Sum the particles at the end when no worm ends
+//        if (head_idx==-1 && tail_idx==-1 && canonical){
+//            int N_total_sum_beta=0;
+//            for (int i=0; i<M; i++){
+//                N_total_sum_beta+=kinks_vector[last_kinks[i]].n;
+//            }
+//            if (N_total_sum_beta < N-1 || N_total_sum_beta > N+1){
+//                cout << "ERROR: Total particle number at beta not conserved" << endl;
+//                cout << "label: " << label << " m " << m <<
+//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
+//                 " tail_idx: " << tail_idx << " N_tracker: " << N_tracker <<endl;
+//                cout << "N_beta (unit test 7): " << N_total_sum_beta << endl;
+//                // Print out the indices of each sites last kink
+//                cout << "Structure after worm end idx error: " << endl;
+//                for (int i=0; i<num_kinks+5 ; i++){
+//                    cout << i << " " << kinks_vector[i] << endl;
+//                }
+//                break;
+//            }
+//        }
 
 //        // Unit test 8: Check that the prev,next attributes are different to kink index
 //        for (int i=0; i<num_kinks; i++){
@@ -3611,14 +3456,6 @@ int main(){
         
 /*--------------------------------- FIN --------------------------------------*/
 
-
-//    // Print out the data structure
-//    cout << endl << "Final structure: " << endl;
-//    for (int i=0;i<30;i++){
-//        cout << i << "  " << kinks_vector[i] << endl;
-//    }
-//    cout << endl;
-
     // Print out the head and tail indices
     cout << "head_idx: " << head_idx << endl;
     cout << "tail_idx: " << tail_idx << endl;
@@ -3632,13 +3469,6 @@ int main(){
 
     // Print out number of active kinks
     cout << "num_kinks: " << num_kinks << endl;
-    
-//    // Print out the indices of each sites last kink
-//    cout << "Last kink indices: ";
-//    for (int i=0; i<M ; i++){
-//        cout << last_kinks[i] << " ";
-//    }
-//    cout << endl;
 
     cout<< endl << "Insert Worm: "<<insert_worm_accepts<<"/"<<
                                     insert_worm_attempts<<endl;
@@ -3705,26 +3535,13 @@ int main(){
     auto elapsed_time = duration_cast<nanoseconds>(end - start);
     double duration = elapsed_time.count() * 1e-9;
     
-    cout << endl << "<n>: " << (N_sum)/Z_ctr << endl;
-//    cout << endl << "<V/t>: " << (diagonal_energy/M)/Z_ctr << endl;
-//    cout << endl << "<V/t>: " << (diagonal_energy)/Z_ctr + mu*N << endl;
+    cout << endl << "<N>: " << (N_sum)/Z_ctr << endl;
     cout << endl << "Z_ctr: " << Z_ctr << endl;
     
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
-    
-//    // Print out adjacency matrix
-//    cout << endl << "Adjacency Matrix: " << endl << endl;
-//    for (int i=0; i<M; i++){
-//        for (int j=0; j<total_nn; j++){
-//            cout << adjacency_matrix[i][j] << " ";
-//        }
-//        cout << endl;
-//    }
-//    cout << endl;
 
     cout << endl;
     cout << "Total neighbors: " << total_nn << endl << endl;
     
-    cout << "Last iteration was m = " << lol_ctr << endl;
     return 0;
 }
