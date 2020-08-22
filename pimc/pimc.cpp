@@ -7,6 +7,7 @@
 //
 
 #include "pimc.hpp"
+#include <fstream>
 
 // Main
 int main(){
@@ -19,15 +20,15 @@ int main(){
     
     // Bose-Hubbard parameters
     int L = 4, D = 1, N = pow(L,D);
-    double t = 1.0, U = 1.0, mu = -2.6019;
+    double t = 1.0, U = 0.0, mu = -2.6019;
     vector<int> alpha;
     int M = pow(L,D); // total sites
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.3865, beta = 1.0;
+    double eta = 0.3865, beta = 4.0;
     bool canonical = true;
-    unsigned long long int sweeps=1000000;
+    unsigned long long int sweeps=100000000;
     
     // Adjacency matrix
     int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
@@ -100,6 +101,15 @@ int main(){
     vector<int> nn_sites (total_nn,0);
     
     cout << "Lattice PIGS started: " << endl << endl;
+    
+/*---------------------------- Open files ------------------------------------*/
+    
+/*---------------------------- dirty measure ---------------------------------*/
+    
+    double diagonal_energy=0,kinetic_energy=0,V;
+    int K=0;
+
+
     
 /*---------------------------- Monte Carlo -----------------------------------*/
 
@@ -377,16 +387,30 @@ int main(){
 /*----------------------------- Measurements ---------------------------------*/
 
         
-        // Measure N
         if (m%(static_cast<int>(M*beta))==0 && m>0.2*sweeps){
-            if (head_idx==-1 and tail_idx==-1){
+            if (head_idx==-1 and tail_idx==-1 && N_beta==N){
+                
+                // Measure N
                 N_sum += N_tracker;
-                //diagonal_energy+=energy(kinks_vector,num_kinks,M,N,U,mu,t,beta);
                 Z_ctr += 1;
+                
+                // Measure <K>
+                //K=0;
+                for (int k=0; k<num_kinks; k++){
+                    if (kinks_vector[k].tau>=0.4
+                        && kinks_vector[k].tau<=0.6){K+=1;}
+                }
+                
+//                // Measure <V>
+//                V=0;
+//                int ctr=0;
+//                for (int site=0;site<M;site++){
+//                    while kinks_vector
+//                }
+                
             }
         }
-        
-        }
+    }
         
 /*--------------------------------- FIN --------------------------------------*/
 
@@ -476,6 +500,8 @@ int main(){
 
     cout << endl;
     cout << "Total neighbors: " << total_nn << endl << endl;
+    
+    cout << "<K>: " << -(K*1.0/Z_ctr)/(2*0.2) << endl;
     
     return 0;
 }
