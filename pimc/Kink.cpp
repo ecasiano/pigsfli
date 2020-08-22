@@ -7,8 +7,6 @@
 //
 
 #include "Kink.hpp"
-#include <iostream>
-using namespace std;
 
 // Member function definitions
 Kink::Kink (double time,int particles,int source_site,int destination_site,
