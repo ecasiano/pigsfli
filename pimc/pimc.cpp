@@ -7,7 +7,6 @@
 //
 
 #include "pimc.hpp"
-#include <fstream>
 
 // Main
 int main(){
@@ -26,9 +25,9 @@ int main(){
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.3865, beta = 4.0;
+    double eta = 0.3865, beta = 1.0;
     bool canonical = true;
-    unsigned long long int sweeps=100000000;
+    unsigned long long int sweeps=1000000,sweep=M*beta;
     
     // Adjacency matrix
     int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
@@ -44,47 +43,48 @@ int main(){
     vector<int> last_kinks (M,-1);
     
     // Attempt/Acceptance counters
-    int insert_worm_attempts=0, insert_worm_accepts=0;
-    int delete_worm_attempts=0, delete_worm_accepts=0;
+    unsigned long long int  insert_worm_attempts=0, insert_worm_accepts=0;
+    unsigned long long int  delete_worm_attempts=0, delete_worm_accepts=0;
 
-    int insert_anti_attempts=0, insert_anti_accepts=0;
-    int delete_anti_attempts=0, delete_anti_accepts=0;
+    unsigned long long int  insert_anti_attempts=0, insert_anti_accepts=0;
+    unsigned long long int  delete_anti_attempts=0, delete_anti_accepts=0;
     
-    int insertZero_worm_attempts=0, insertZero_worm_accepts=0;
-    int deleteZero_worm_attempts=0, deleteZero_worm_accepts=0;
+    unsigned long long int  insertZero_worm_attempts=0, insertZero_worm_accepts=0;
+    unsigned long long int  deleteZero_worm_attempts=0, deleteZero_worm_accepts=0;
 
-    int insertZero_anti_attempts=0, insertZero_anti_accepts=0;
-    int deleteZero_anti_attempts=0, deleteZero_anti_accepts=0;
+    unsigned long long int  insertZero_anti_attempts=0, insertZero_anti_accepts=0;
+    unsigned long long int  deleteZero_anti_attempts=0, deleteZero_anti_accepts=0;
     
-    int insertBeta_worm_attempts=0, insertBeta_worm_accepts=0;
-    int deleteBeta_worm_attempts=0, deleteBeta_worm_accepts=0;
+    unsigned long long int  insertBeta_worm_attempts=0, insertBeta_worm_accepts=0;
+    unsigned long long int  deleteBeta_worm_attempts=0, deleteBeta_worm_accepts=0;
 
-    int insertBeta_anti_attempts=0, insertBeta_anti_accepts=0;
-    int deleteBeta_anti_attempts=0, deleteBeta_anti_accepts=0;
+    unsigned long long int  insertBeta_anti_attempts=0, insertBeta_anti_accepts=0;
+    unsigned long long int  deleteBeta_anti_attempts=0, deleteBeta_anti_accepts=0;
     
-    int advance_head_attempts=0, advance_head_accepts=0;
-    int recede_head_attempts=0, recede_head_accepts=0;
+    unsigned long long int  advance_head_attempts=0, advance_head_accepts=0;
+    unsigned long long int  recede_head_attempts=0, recede_head_accepts=0;
     
-    int advance_tail_attempts=0, advance_tail_accepts=0;
-    int recede_tail_attempts=0, recede_tail_accepts=0;
+    unsigned long long int  advance_tail_attempts=0, advance_tail_accepts=0;
+    unsigned long long int  recede_tail_attempts=0, recede_tail_accepts=0;
     
-    int ikbh_attempts=0, ikbh_accepts=0;
-    int dkbh_attempts=0, dkbh_accepts=0;
+    unsigned long long int  ikbh_attempts=0, ikbh_accepts=0;
+    unsigned long long int  dkbh_attempts=0, dkbh_accepts=0;
     
-    int ikah_attempts=0, ikah_accepts=0;
-    int dkah_attempts=0, dkah_accepts=0;
+    unsigned long long int  ikah_attempts=0, ikah_accepts=0;
+    unsigned long long int  dkah_attempts=0, dkah_accepts=0;
     
-    int ikbt_attempts=0, ikbt_accepts=0;
-    int dkbt_attempts=0, dkbt_accepts=0;
+    unsigned long long int  ikbt_attempts=0, ikbt_accepts=0;
+    unsigned long long int  dkbt_attempts=0, dkbt_accepts=0;
     
-    int ikat_attempts=0, ikat_accepts=0;
-    int dkat_attempts=0, dkat_accepts=0;
+    unsigned long long int  ikat_attempts=0, ikat_accepts=0;
+    unsigned long long int  dkat_attempts=0, dkat_accepts=0;
     
     // Observables
-    double N_sum=0;
+    double N_sum=0,kinetic_energy=0;
+    double measurement_center=beta/2,measurement_plus_minus=0.1;
     
     // Non-observables
-    unsigned long long int Z_ctr=0;
+    unsigned long long int Z_ctr=0,measurement_attempts=0;
     
     // Generate a random fock state
     alpha = random_boson_config(M,N);
@@ -103,12 +103,6 @@ int main(){
     cout << "Lattice PIGS started: " << endl << endl;
     
 /*---------------------------- Open files ------------------------------------*/
-    
-/*---------------------------- dirty measure ---------------------------------*/
-    
-    double diagonal_energy=0,kinetic_energy=0,V;
-    int K=0;
-
 
     
 /*---------------------------- Monte Carlo -----------------------------------*/
@@ -387,19 +381,18 @@ int main(){
 /*----------------------------- Measurements ---------------------------------*/
 
         
-        if (m%(static_cast<int>(M*beta))==0 && m>0.2*sweeps){
+        if (m%sweep==0 && m>0.2*sweeps){
+            measurement_attempts+=1;
             if (head_idx==-1 and tail_idx==-1 && N_beta==N){
-                
+                                
                 // Measure N
                 N_sum += N_tracker;
                 Z_ctr += 1;
                 
                 // Measure <K>
-                //K=0;
-                for (int k=0; k<num_kinks; k++){
-                    if (kinks_vector[k].tau>=0.4
-                        && kinks_vector[k].tau<=0.6){K+=1;}
-                }
+                kinetic_energy += pimc_kinetic_energy(kinks_vector,num_kinks,
+                                    measurement_center,measurement_plus_minus,
+                                    M,t,beta);
                 
 //                // Measure <V>
 //                V=0;
@@ -493,15 +486,23 @@ int main(){
     auto elapsed_time = duration_cast<nanoseconds>(end - start);
     double duration = elapsed_time.count() * 1e-9;
     
+    cout << endl << "sweeps: " << sweeps/(M*beta) << endl;
+    cout << "Z_ctr: " << Z_ctr << endl;
+    cout << "Z_frac: " << 100*Z_ctr*1.0/measurement_attempts << "% (" << Z_ctr
+    << "/" << measurement_attempts << ")" << endl;
+    
     cout << endl << "<N>: " << (N_sum)/Z_ctr << endl;
-    cout << endl << "Z_ctr: " << Z_ctr << endl;
+//    cout << "<K>: " << -(kinetic_energy/Z_ctr)/(2*0.2) << endl;
+    cout << "<K_old>=-9.13561" << endl;
+    cout << "<K>: " << kinetic_energy/Z_ctr << endl;
+
+
     
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
 
     cout << endl;
     cout << "Total neighbors: " << total_nn << endl << endl;
     
-    cout << "<K>: " << -(K*1.0/Z_ctr)/(2*0.2) << endl;
     
     return 0;
 }
