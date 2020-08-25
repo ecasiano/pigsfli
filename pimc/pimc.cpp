@@ -25,9 +25,9 @@ int main(){
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.3865, beta = 1.0;
+    double eta = 0.3865, beta = 4.0;
     bool canonical = true;
-    unsigned long long int sweeps=1000000,sweep=M*beta;
+    unsigned long long int sweeps=30000000,sweep=M*beta;
     
     // Adjacency matrix
     int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
@@ -81,7 +81,7 @@ int main(){
     
     // Observables
     double N_sum=0,kinetic_energy=0;
-    double measurement_center=beta/2,measurement_plus_minus=0.1;
+    double measurement_center=beta/2,measurement_plus_minus=0.05*beta;
     
     // Non-observables
     unsigned long long int Z_ctr=0,measurement_attempts=0;
@@ -492,8 +492,6 @@ int main(){
     << "/" << measurement_attempts << ")" << endl;
     
     cout << endl << "<N>: " << (N_sum)/Z_ctr << endl;
-//    cout << "<K>: " << -(kinetic_energy/Z_ctr)/(2*0.2) << endl;
-    cout << "<K_old>=-9.13561" << endl;
     cout << "<K>: " << kinetic_energy/Z_ctr << endl;
 
 
