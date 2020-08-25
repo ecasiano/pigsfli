@@ -16,6 +16,7 @@
 #include<cmath>
 #include<chrono>
 #include<iomanip> // for std::setprecision
+#include <fstream>
 
 using namespace std;
 using namespace std::chrono;
@@ -268,8 +269,8 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, double U, double mu, double t,
                  double beta, double eta, bool canonical, double &N_tracker,
                  int &N_zero, int &N_beta, vector<int> &last_kinks,
-                 int &insert_worm_attempts, int &insert_worm_accepts,
-                 int &insert_anti_attempts, int &insert_anti_accepts){
+                 unsigned long long int &insert_worm_attempts, unsigned long long int &insert_worm_accepts,
+                 unsigned long long int &insert_anti_attempts, unsigned long long int &insert_anti_accepts){
     
     // Variable declarations
     int k,n,src,dest,prev,next,n_head,n_tail;
@@ -405,8 +406,8 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, double U, double mu, double t,
                  double beta, double eta, bool canonical, double &N_tracker,
                  int &N_zero, int &N_beta, vector<int> &last_kinks,
-                 int &delete_worm_attempts, int &delete_worm_accepts,
-                 int &delete_anti_attempts, int &delete_anti_accepts){
+                 unsigned long long int &delete_worm_attempts, unsigned long long int &delete_worm_accepts,
+                 unsigned long long int &delete_anti_attempts, unsigned long long int &delete_anti_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail;
@@ -594,8 +595,8 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &insertZero_worm_attempts, int &insertZero_worm_accepts,
-                int &insertZero_anti_attempts, int &insertZero_anti_accepts){
+                unsigned long long int &insertZero_worm_attempts, unsigned long long int &insertZero_worm_accepts,
+                unsigned long long int &insertZero_anti_attempts, unsigned long long int &insertZero_anti_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,i,N_b;
@@ -789,8 +790,8 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &deleteZero_worm_attempts, int &deleteZero_worm_accepts,
-                int &deleteZero_anti_attempts, int &deleteZero_anti_accepts){
+                unsigned long long int &deleteZero_worm_attempts, unsigned long long int &deleteZero_worm_accepts,
+                unsigned long long int &deleteZero_anti_attempts, unsigned long long int &deleteZero_anti_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
@@ -1003,8 +1004,8 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &insertBeta_worm_attempts, int &insertBeta_worm_accepts,
-                int &insertBeta_anti_attempts, int &insertBeta_anti_accepts){
+                unsigned long long int &insertBeta_worm_attempts, unsigned long long int &insertBeta_worm_accepts,
+                unsigned long long int &insertBeta_anti_attempts, unsigned long long int &insertBeta_anti_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,i,N_b;
@@ -1188,8 +1189,8 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &deleteBeta_worm_attempts, int &deleteBeta_worm_accepts,
-                int &deleteBeta_anti_attempts, int &deleteBeta_anti_accepts){
+                unsigned long long int &deleteBeta_worm_attempts, unsigned long long int &deleteBeta_worm_accepts,
+                unsigned long long int &deleteBeta_anti_attempts, unsigned long long int &deleteBeta_anti_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
@@ -1397,10 +1398,10 @@ void timeshift_uniform(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &advance_head_attempts, int &advance_head_accepts,
-                int &recede_head_attempts, int &recede_head_accepts,
-                int &advance_tail_attempts, int &advance_tail_accepts,
-                int &recede_tail_attempts, int &recede_tail_accepts){
+                unsigned long long int &advance_head_attempts, unsigned long long int &advance_head_accepts,
+                unsigned long long int &recede_head_attempts, unsigned long long int &recede_head_accepts,
+                unsigned long long int &advance_tail_attempts, unsigned long long int &advance_tail_accepts,
+                unsigned long long int &recede_tail_attempts, unsigned long long int &recede_tail_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,worm_end_idx;
@@ -1525,10 +1526,10 @@ void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &advance_head_attempts, int &advance_head_accepts,
-                int &recede_head_attempts, int &recede_head_accepts,
-                int &advance_tail_attempts, int &advance_tail_accepts,
-                int &recede_tail_attempts, int &recede_tail_accepts){
+                unsigned long long int &advance_head_attempts, unsigned long long int &advance_head_accepts,
+                unsigned long long int &recede_head_attempts, unsigned long long int &recede_head_accepts,
+                unsigned long long int &advance_tail_attempts, unsigned long long int &advance_tail_accepts,
+                unsigned long long int &recede_tail_attempts, unsigned long long int &recede_tail_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,worm_end_idx;
@@ -1651,7 +1652,7 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &ikbh_attempts, int &ikbh_accepts){
+                unsigned long long int &ikbh_attempts, unsigned long long int &ikbh_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -1779,7 +1780,7 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &dkbh_attempts, int &dkbh_accepts){
+                unsigned long long int &dkbh_attempts, unsigned long long int &dkbh_accepts){
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2001,7 +2002,7 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &ikah_attempts, int &ikah_accepts){
+                unsigned long long int &ikah_attempts, unsigned long long int &ikah_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -2137,7 +2138,7 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &dkah_attempts, int &dkah_accepts){
+                unsigned long long int &dkah_attempts, unsigned long long int &dkah_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2365,7 +2366,7 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &ikbt_attempts, int &ikbt_accepts){
+                unsigned long long int &ikbt_attempts, unsigned long long int &ikbt_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -2501,7 +2502,7 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &dkbt_attempts, int &dkbt_accepts){
+                unsigned long long int &dkbt_attempts, unsigned long long int &dkbt_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2723,7 +2724,7 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &ikat_attempts, int &ikat_accepts){
+                unsigned long long int &ikat_attempts, unsigned long long int &ikat_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -2856,7 +2857,7 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                int &dkat_attempts, int &dkat_accepts){
+                unsigned long long int &dkat_attempts, unsigned long long int &dkat_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -3075,6 +3076,30 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     }
 
 /*-------------------------- Estimators --------------------------------------*/
+
+// Diagonal estimators
+double diagonal_energy(vector<Kink> &kinks_vector, int &num_kinks, double tau,
+                       int M, double U, double mu, double beta){
+    return 1;
+}
+
+
+// Off-Diagonal estimators
+double pimc_kinetic_energy(vector<Kink> &kinks_vector, int &num_kinks,
+                      double measurement_center,double measurement_plus_minus,
+                      int M, double t, double beta){
+    
+    int kinks_in_window=0;
+    
+    for (int k=0; k<num_kinks; k++){
+        if (kinks_vector[k].tau>=measurement_center-measurement_plus_minus
+            && kinks_vector[k].tau<=measurement_center+measurement_plus_minus){
+            kinks_in_window+=1;
+        }
+    }
+    
+    return (-t*kinks_in_window/2)/(2*measurement_plus_minus);
+}
 
 /*----------------------------------------------------------------------------*/
 
