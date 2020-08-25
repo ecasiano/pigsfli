@@ -3077,6 +3077,28 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
 
 /*-------------------------- Estimators --------------------------------------*/
 
+// For diagonal estimators around a time slice, Fock State will be needed
+void get_fock_state(double measurement_center, int M,
+                    vector<int> &fock_state_at_slice,
+                    vector<Kink> &kinks_vector){
+    
+    double tau;
+    int current,n_i;
+    
+    for (int i=0; i<M; i++){
+        current=i;
+        tau = kinks_vector[current].tau;
+        while (tau<=measurement_center && current!=-1){
+            n_i=kinks_vector[current].n;
+            fock_state_at_slice[i]=n_i;
+            
+            current=kinks_vector[current].next;
+            tau=kinks_vector[current].tau;
+        }
+    }
+    return;
+}
+
 // Diagonal estimators
 double diagonal_energy(vector<Kink> &kinks_vector, int &num_kinks, double tau,
                        int M, double U, double mu, double beta){
