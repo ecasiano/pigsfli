@@ -25,9 +25,9 @@ int main(){
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.3865, beta = 4.0;
+    double eta = 0.3865, beta = 1.0;
     bool canonical = true;
-    unsigned long long int sweeps=30000000,sweep=M*beta;
+    unsigned long long int sweeps=1000000,sweep=M*beta;
     
     // Adjacency matrix
     int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
@@ -82,6 +82,7 @@ int main(){
     // Observables
     double N_sum=0,kinetic_energy=0;
     double measurement_center=beta/2,measurement_plus_minus=0.05*beta;
+    vector<int> fock_state_at_slice (M,0);
     
     // Non-observables
     unsigned long long int Z_ctr=0,measurement_attempts=0;
@@ -385,6 +386,10 @@ int main(){
             measurement_attempts+=1;
             if (head_idx==-1 and tail_idx==-1 && N_beta==N){
                                 
+                // Get fock state at desired measurement center
+                get_fock_state(measurement_center,M,fock_state_at_slice,
+                               kinks_vector);
+                
                 // Measure N
                 N_sum += N_tracker;
                 Z_ctr += 1;
@@ -488,7 +493,7 @@ int main(){
     
     cout << endl << "sweeps: " << sweeps/(M*beta) << endl;
     cout << "Z_ctr: " << Z_ctr << endl;
-    cout << "Z_frac: " << 100*Z_ctr*1.0/measurement_attempts << "% (" << Z_ctr
+    cout << "Z_frac: " << Z_ctr*100.0/measurement_attempts << "% (" << Z_ctr
     << "/" << measurement_attempts << ")" << endl;
     
     cout << endl << "<N>: " << (N_sum)/Z_ctr << endl;
@@ -500,6 +505,11 @@ int main(){
 
     cout << endl;
     cout << "Total neighbors: " << total_nn << endl << endl;
+    
+    for (int i=0; i<M; i++){
+        cout << fock_state_at_slice[i] << " ";
+    }
+    cout << endl;
     
     
     return 0;
