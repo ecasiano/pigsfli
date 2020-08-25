@@ -3098,7 +3098,7 @@ double pimc_kinetic_energy(vector<Kink> &kinks_vector, int &num_kinks,
         }
     }
     
-    return (-t*kinks_in_window/2)/(2*measurement_plus_minus);
+    return (-t*kinks_in_window/2.0)/(2.0*measurement_plus_minus);
 }
 
 /*----------------------------------------------------------------------------*/
