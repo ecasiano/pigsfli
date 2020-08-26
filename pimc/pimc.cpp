@@ -18,14 +18,14 @@ int main(){
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
     // Bose-Hubbard parameters
-    int L = 4, D = 1, N = pow(L,D);
-    double t = 1.0, U = 0.0, mu = -2.6019;
+    int L = 3, D = 2, N = pow(L,D);
+    double t = 1.0, U = 5.0, mu = -2.6019;
     vector<int> alpha;
     int M = pow(L,D); // total sites
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.3865, beta = 1.0;
+    double eta = 0.03865, beta = 3.0;
     bool canonical = true;
     unsigned long long int sweeps=1000000,sweep=M*beta;
     
@@ -80,8 +80,8 @@ int main(){
     unsigned long long int  dkat_attempts=0, dkat_accepts=0;
     
     // Observables
-    double N_sum=0,kinetic_energy=0;
-    double measurement_center=beta/2,measurement_plus_minus=0.05*beta;
+    double N_sum=0,kinetic_energy=0,diagonal_energy=0;
+    double measurement_center=beta/2,measurement_plus_minus=0.1;
     vector<int> fock_state_at_slice (M,0);
     
     // Non-observables
@@ -400,6 +400,8 @@ int main(){
                                     M,t,beta);
                 
 //                // Measure <V>
+                diagonal_energy += pimc_diagonal_energy(fock_state_at_slice,
+                                                        M,U,mu);
 //                V=0;
 //                int ctr=0;
 //                for (int site=0;site<M;site++){
@@ -497,20 +499,14 @@ int main(){
     << "/" << measurement_attempts << ")" << endl;
     
     cout << endl << "<N>: " << (N_sum)/Z_ctr << endl;
+    cout << "<E>: " << (kinetic_energy+diagonal_energy)/Z_ctr+mu*N << endl;
     cout << "<K>: " << kinetic_energy/Z_ctr << endl;
+    cout << "<V>: " << diagonal_energy/Z_ctr + mu*N << endl;
 
-
-    
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
 
     cout << endl;
     cout << "Total neighbors: " << total_nn << endl << endl;
-    
-    for (int i=0; i<M; i++){
-        cout << fock_state_at_slice[i] << " ";
-    }
-    cout << endl;
-    
     
     return 0;
 }

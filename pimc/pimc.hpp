@@ -3100,9 +3100,17 @@ void get_fock_state(double measurement_center, int M,
 }
 
 // Diagonal estimators
-double diagonal_energy(vector<Kink> &kinks_vector, int &num_kinks, double tau,
-                       int M, double U, double mu, double beta){
-    return 1;
+double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
+                            double U, double mu){
+    
+    double diagonal_energy=0;
+    int n_i;
+    
+    for (int i=0; i<M; i++){
+        n_i = fock_state_at_slice[i];
+        diagonal_energy += (U/2*n_i*(n_i-1)-mu*n_i);
+    }
+    return diagonal_energy;
 }
 
 
