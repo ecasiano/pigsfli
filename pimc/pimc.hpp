@@ -15,8 +15,9 @@
 #include<boost/random.hpp>
 #include<cmath>
 #include<chrono>
-#include<iomanip> // for std::setprecision
+#include<iomanip>  // for std::setprecision
 #include <fstream>
+#include <cstdlib> // for exit function
 
 using namespace std;
 using namespace std::chrono;
@@ -190,12 +191,12 @@ void build_adjacency_matrix(int L,int D,string boundary_condition,
     int M = pow(L,D); // Number of lattice points
     int ctr,a1,a2,a3;
     double r_NN;
-    vector<double> points_difference (D,0);
+    vector<double> points_difference (D,0.0);
 
     // Initialize normalized basis vectors
-    vector<double> a1_vec {1,0,0};
-    vector<double> a2_vec {0,1,0};
-    vector<double> a3_vec {0,0,1};
+    vector<double> a1_vec {1.0,0.0,0.0};
+    vector<double> a2_vec {0.0,1.0,0.0};
+    vector<double> a3_vec {0.0,0.0,1.0};
     
     // Initialize array that will store all the points
     vector<double> empty_point (D,0);
@@ -269,8 +270,10 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, double U, double mu, double t,
                  double beta, double eta, bool canonical, double &N_tracker,
                  int &N_zero, int &N_beta, vector<int> &last_kinks,
-                 unsigned long long int &insert_worm_attempts, unsigned long long int &insert_worm_accepts,
-                 unsigned long long int &insert_anti_attempts, unsigned long long int &insert_anti_accepts){
+                 unsigned long long int &insert_worm_attempts,
+                 unsigned long long int &insert_worm_accepts,
+                 unsigned long long int &insert_anti_attempts,
+                 unsigned long long int &insert_anti_accepts){
     
     // Variable declarations
     int k,n,src,dest,prev,next,n_head,n_tail;
@@ -406,8 +409,10 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, double U, double mu, double t,
                  double beta, double eta, bool canonical, double &N_tracker,
                  int &N_zero, int &N_beta, vector<int> &last_kinks,
-                 unsigned long long int &delete_worm_attempts, unsigned long long int &delete_worm_accepts,
-                 unsigned long long int &delete_anti_attempts, unsigned long long int &delete_anti_accepts){
+                 unsigned long long int &delete_worm_attempts,
+                 unsigned long long int &delete_worm_accepts,
+                 unsigned long long int &delete_anti_attempts,
+                 unsigned long long int &delete_anti_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail;
@@ -482,7 +487,7 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     }
     
     // Determine length of modified path and particle change
-    l_path = tau_h - tau_t;
+    l_path = tau_h-tau_t;
     dN = -l_path/beta;
     
     // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
@@ -493,10 +498,10 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     dV = (U/2)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
     // Build the Metropolis ratio (R)
-    p_dw = 0.5;
-    p_iw = 0.5;
-    R = eta * eta * n_tail * exp(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
-    (num_kinks-2) * tau_flat * tau_flat;
+    p_dw = 1.0;
+    p_iw = 1.0;
+    R = (eta*eta) * n_tail * exp(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
+    (num_kinks-2) * (tau_flat*tau_flat);
     R = 1.0/R;
     
     // Metropolis sampling
@@ -595,8 +600,10 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &insertZero_worm_attempts, unsigned long long int &insertZero_worm_accepts,
-                unsigned long long int &insertZero_anti_attempts, unsigned long long int &insertZero_anti_accepts){
+                unsigned long long int &insertZero_worm_attempts,
+                unsigned long long int &insertZero_worm_accepts,
+                unsigned long long int &insertZero_anti_attempts,
+                unsigned long long int &insertZero_anti_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,i,N_b;
@@ -681,7 +688,7 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     else{                              // two worm ends after insertZero
         if (is_worm){
             if (kinks_vector[kinks_vector[tail_idx].prev].tau != 0)
-                p_wormend = 1.0; // cannot choose tail. was not coming from tau=0.
+                p_wormend = 1.0; //cannot choose tail.was not coming from tau=0.
             else
                 p_wormend = 0.5; // deleteZero could choose either head or tail
         }
@@ -790,8 +797,10 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &deleteZero_worm_attempts, unsigned long long int &deleteZero_worm_accepts,
-                unsigned long long int &deleteZero_anti_attempts, unsigned long long int &deleteZero_anti_accepts){
+                unsigned long long int &deleteZero_worm_attempts,
+                unsigned long long int &deleteZero_worm_accepts,
+                unsigned long long int &deleteZero_anti_attempts,
+                unsigned long long int &deleteZero_anti_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
@@ -1004,8 +1013,10 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &insertBeta_worm_attempts, unsigned long long int &insertBeta_worm_accepts,
-                unsigned long long int &insertBeta_anti_attempts, unsigned long long int &insertBeta_anti_accepts){
+                unsigned long long int &insertBeta_worm_attempts,
+                unsigned long long int &insertBeta_worm_accepts,
+                unsigned long long int &insertBeta_anti_attempts,
+                unsigned long long int &insertBeta_anti_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,i,N_b;
@@ -1087,7 +1098,7 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     else{                              // two worm ends after insertZero
         if (is_worm){
             if (kinks_vector[head_idx].next != -1)
-                p_wormend = 1.0; // cannot choose head. was not coming from beta.
+                p_wormend = 1.0; // cannot choose head.was not coming from beta.
             else
                 p_wormend = 0.5; // deleteBeta could choose either head or tail
         }
@@ -1189,8 +1200,10 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &deleteBeta_worm_attempts, unsigned long long int &deleteBeta_worm_accepts,
-                unsigned long long int &deleteBeta_anti_attempts, unsigned long long int &deleteBeta_anti_accepts){
+                unsigned long long int &deleteBeta_worm_attempts,
+                unsigned long long int &deleteBeta_worm_accepts,
+                unsigned long long int &deleteBeta_anti_attempts,
+                unsigned long long int &deleteBeta_anti_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
@@ -1306,7 +1319,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     
     // Build the weigh ratio W'/W
     // C = 1.0;
-    if (delete_head==false){ // delete worm
+    if (!delete_head){ // delete worm
         C = sqrt(N_b+1)/sqrt(n);
         W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau));
     }
@@ -1394,14 +1407,18 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
 }
 /*----------------------------------------------------------------------------*/
 
-void timeshift_uniform(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
+void timeshift_uniform(vector<Kink> &kinks_vector, int &num_kinks,int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &advance_head_attempts, unsigned long long int &advance_head_accepts,
-                unsigned long long int &recede_head_attempts, unsigned long long int &recede_head_accepts,
-                unsigned long long int &advance_tail_attempts, unsigned long long int &advance_tail_accepts,
-                unsigned long long int &recede_tail_attempts, unsigned long long int &recede_tail_accepts){
+                unsigned long long int &advance_head_attempts,
+                unsigned long long int &advance_head_accepts,
+                unsigned long long int &recede_head_attempts,
+                unsigned long long int &recede_head_accepts,
+                unsigned long long int &advance_tail_attempts,
+                unsigned long long int &advance_tail_accepts,
+                unsigned long long int &recede_tail_attempts,
+                unsigned long long int &recede_tail_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,worm_end_idx;
@@ -1526,10 +1543,14 @@ void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &advance_head_attempts, unsigned long long int &advance_head_accepts,
-                unsigned long long int &recede_head_attempts, unsigned long long int &recede_head_accepts,
-                unsigned long long int &advance_tail_attempts, unsigned long long int &advance_tail_accepts,
-                unsigned long long int &recede_tail_attempts, unsigned long long int &recede_tail_accepts){
+                unsigned long long int &advance_head_attempts,
+                unsigned long long int &advance_head_accepts,
+                unsigned long long int &recede_head_attempts,
+                unsigned long long int &recede_head_accepts,
+                unsigned long long int &advance_tail_attempts,
+                unsigned long long int &advance_tail_accepts,
+                unsigned long long int &recede_tail_attempts,
+                unsigned long long int &recede_tail_accepts){
     
     // Variable declarations
     int n,src,dest,prev,next,worm_end_idx;
@@ -1652,7 +1673,8 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &ikbh_attempts, unsigned long long int &ikbh_accepts){
+                unsigned long long int &ikbh_attempts,
+                unsigned long long int &ikbh_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -1684,7 +1706,7 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     next_i = kinks_vector[head_idx].next;
     
     // Determine index of lower/upper kinks of flat where head jumps to (site j)
-    tau = 0;            // tau_prev_j candidate
+    tau = 0.0;            // tau_prev_j candidate
     prev = j;           // prev_j candidate
     prev_j = j;         // this avoids "variable maybe not initialized" warning
     while (tau<tau_h){
@@ -1761,9 +1783,6 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         
         // If worm head is last kink on site j, update last kinks tracker vector
         if (next_j==-1){last_kinks[j]=head_idx;}
-
-//        cout << "IKBH: ";
-//        cout << kinks_vector[kinks_vector[prev_j].next].n-kinks_vector[prev_j].n << endl;
         
         return;
         
@@ -1780,7 +1799,8 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &dkbh_attempts, unsigned long long int &dkbh_accepts){
+                unsigned long long int &dkbh_attempts,
+                unsigned long long int &dkbh_accepts){
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -1816,7 +1836,7 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     i = kinks_vector[kink_idx_j].dest;
     
     // Determine index of lower/upper bounds of flat where kink connects to (i)
-    tau = 0;            // tau_prev_i candidate
+    tau = 0.0;            // tau_prev_i candidate
     prev = i;           // prev_i candidate
     prev_i = i;         // this avoids "variable maybe not initialized" warning
     while (tau<tau_kink){
@@ -2002,7 +2022,8 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &ikah_attempts, unsigned long long int &ikah_accepts){
+                unsigned long long int &ikah_attempts,
+                unsigned long long int &ikah_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -2034,7 +2055,7 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
     next_i = kinks_vector[head_idx].next;
     
     // Determine index of lower/upper kinks of flat where head jumps to (site j)
-    tau = 0;            // tau_prev_j candidate
+    tau = 0.0;            // tau_prev_j candidate
     prev = j;           // prev_j candidate
     prev_j = j;         // this avoids "variable maybe not initialized" warning
     while (tau<tau_h){
@@ -2077,7 +2098,7 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
      n_j = n_wj-1;                   // "w": segment with the extra particle
     
     // Update not possible if no particles on destinaton site (j)
-    if (n_wj == 0){return;}
+    if (n_wj==0){return;}
 
     // Calculate the diagonal energy difference on both sites
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
@@ -2138,7 +2159,8 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &dkah_attempts, unsigned long long int &dkah_accepts){
+                unsigned long long int &dkah_attempts,
+                unsigned long long int &dkah_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2178,7 +2200,7 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
     i = kinks_vector[kink_idx_j].dest;
 
     // Determine index of lower/upper bounds of flat where kink connects to (i)
-    tau = 0;            // tau_prev_i candidate
+    tau = 0.0;            // tau_prev_i candidate
     prev = i;           // prev_i candidate
     prev_i = i;         // this avoids "variable maybe not initialized" warning
     while (tau<tau_kink){
@@ -2366,7 +2388,8 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &ikbt_attempts, unsigned long long int &ikbt_accepts){
+                unsigned long long int &ikbt_attempts,
+                unsigned long long int &ikbt_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -2395,7 +2418,7 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     next_i = kinks_vector[tail_idx].next;
     
     // Determine index of lower/upper kinks of flat where tail jumps to (site j)
-    tau = 0;            // tau_prev_j candidate
+    tau = 0.0;            // tau_prev_j candidate
     prev = j;           // prev_j candidate
     prev_j = j;         // this avoids "variable maybe not initialized" warning
     while (tau<tau_t){
@@ -2502,7 +2525,8 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &dkbt_attempts, unsigned long long int &dkbt_accepts){
+                unsigned long long int &dkbt_attempts,
+                unsigned long long int &dkbt_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2538,7 +2562,7 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     i = kinks_vector[kink_idx_j].dest;
 
     // Determine index of lower/upper bounds of flat where kink connects to (i)
-    tau = 0;            // tau_prev_i candidate
+    tau = 0.0;            // tau_prev_i candidate
     prev = i;           // prev_i candidate
     prev_i = i;         // this avoids "variable maybe not initialized" warning
     while (tau<tau_kink){
@@ -2559,7 +2583,7 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     else {tau_next_i=kinks_vector[next_i].tau;};
     
     // Deletion cannot interfere w/ kinks on other site
-    if (tau_t >= tau_next_i){return;}
+    if (tau_t>=tau_next_i){return;}
 
     // Add to proposal counter
     dkbt_attempts += 1;
@@ -2724,7 +2748,8 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &ikat_attempts, unsigned long long int &ikat_accepts){
+                unsigned long long int &ikat_attempts,
+                unsigned long long int &ikat_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -2756,7 +2781,7 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     next_i = kinks_vector[tail_idx].next;
     
     // Determine index of lower/upper kinks of flat where tail jumps to (site j)
-    tau = 0;            // tau_prev_j candidate
+    tau = 0.0;            // tau_prev_j candidate
     prev = j;           // prev_j candidate
     prev_j = j;         // this avoids "variable maybe not initialized" warning
     while (tau<tau_t){
@@ -2789,7 +2814,7 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     // Randomly choose the time of the kink
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     tau_kink = tau_t + rnum(rng)*(tau_max-tau_t);
-    if (tau_kink == tau_t){return;}
+    if (tau_kink==tau_t){return;}
     
      // Extract no. of particles in the flats adjacent to the new kink
      n_i = kinks_vector[prev_i].n;
@@ -2857,7 +2882,8 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &dkat_attempts, unsigned long long int &dkat_accepts){
+                unsigned long long int &dkat_attempts,
+                unsigned long long int &dkat_accepts){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2866,7 +2892,7 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j;
     
     // Update only possible if worm tail present
-    if (head_idx==-1){return;}
+    if (tail_idx==-1){return;}
     
     // There has to be a regular kink after the worm tail
     if (kinks_vector[tail_idx].next==head_idx ||
@@ -2890,14 +2916,14 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     tau_prev_j = kinks_vector[prev_j].tau;
     
     // Only kinks in which the particle hops from j TO i can be deleted
-    if (kinks_vector[kink_idx_j].n-kinks_vector[tail_idx].n>0){return;}
+    if ((kinks_vector[kink_idx_j].n-kinks_vector[tail_idx].n)>0){return;}
     
     // Retrieve worm tail site (j) and connecting site (i)
     j = kinks_vector[kink_idx_j].src;
     i = kinks_vector[kink_idx_j].dest;
 
     // Determine index of lower/upper bounds of flat where kink connects to (i)
-    tau = 0;            // tau_prev_i candidate
+    tau = 0.0;            // tau_prev_i candidate
     prev = i;           // prev_i candidate
     prev_i = i;         // this avoids "variable maybe not initialized" warning
     while (tau<tau_kink){
@@ -3132,8 +3158,5 @@ double pimc_kinetic_energy(vector<Kink> &kinks_vector, int &num_kinks,
 }
 
 /*----------------------------------------------------------------------------*/
-
-
-
 
 #endif /* pimc_hpp */
