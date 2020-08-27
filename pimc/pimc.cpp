@@ -18,15 +18,15 @@ int main(){
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
     // Bose-Hubbard parameters
-    int L = 4, D = 1, M = pow(L,D), N=M;
+    int L = 3, D = 2, M = pow(L,D), N=M;
     double t = 1.0, U = 1.0, mu = -2.6019;
     vector<int> alpha;
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.3865, beta = 4.0;
+    double eta = 0.3865, beta = 1.0;
     bool canonical = true;
-    unsigned long long int sweeps=1000000000,sweep=M*beta;
+    unsigned long long int sweeps=100000000,sweep=M*beta;
     
     // Adjacency matrix
     int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
