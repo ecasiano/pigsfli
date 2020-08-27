@@ -24,9 +24,9 @@ int main(){
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.3865, beta = 1.0;
+    double eta = 0.3865, beta = 4.0;
     bool canonical = true;
-    unsigned long long int sweeps=10000000,sweep=M*beta;
+    unsigned long long int sweeps=1000000000,sweep=M*beta;
     
     // Adjacency matrix
     int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
@@ -80,7 +80,7 @@ int main(){
     
     // Observables
     double N_sum=0;
-    double measurement_center=beta/2,measurement_plus_minus=0.1;
+    double measurement_center=beta/2,measurement_plus_minus=0.1*beta;
     vector<int> fock_state_at_slice (M,0);
     
     // Non-observables
@@ -419,8 +419,7 @@ int main(){
         
 /*----------------------------- Measurements ---------------------------------*/
 
-        
-        if (m%(sweep*20)==0 && m>0.2*sweeps){
+        if (m%(sweep*5)==0 && m>0.20*sweeps){
             measurement_attempts+=1;
             if (head_idx==-1 and tail_idx==-1 && N_beta==N){
                                 

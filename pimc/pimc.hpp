@@ -722,10 +722,12 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     // C = 1.0;
     if (is_worm){
         C = sqrt(N_b+1)/sqrt(n+1);
+//        C=1.0;
         W = eta * sqrt(n_tail) * C * exp(-dV*tau_new);
     }
     else{
         C = sqrt(n)/sqrt(N_b);
+//        C=1.0;
         W = eta * sqrt(n_tail) * C * exp(dV*tau_new);
     }
     
@@ -921,10 +923,12 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     // C = 1.0;
     if (delete_head){ // delete worm
         C = sqrt(N_b+1)/sqrt(n+1);
+//        C=1.0;
         W = eta * sqrt(n_tail) * C * exp(-dV*tau);
     }
     else{ // delete antiworm
         C = sqrt(n)/sqrt(N_b);
+//        C=1.0;
         W = eta * sqrt(n_tail) * C * exp(dV*tau);
     }
     
@@ -1132,10 +1136,12 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     // C = 1.0; // C_pre/C_post
     if (is_worm){
         C = sqrt(N_b+1)/sqrt(n+1);
+//        C=1.0;
         W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau_new));
     }
     else{
         C = sqrt(n)/sqrt(N_b);
+//        C=1.0;
         W = eta * sqrt(n_tail) * C * exp(-dV*(tau_new-beta));
     }
     
@@ -1321,10 +1327,12 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     // C = 1.0;
     if (!delete_head){ // delete worm
         C = sqrt(N_b+1)/sqrt(n);
+//        C=1.0;
         W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau));
     }
     else{ // delete antiworm
         C = sqrt(n+1)/sqrt(N_b);
+//        C=1.0;
         W = eta * sqrt(n_tail) * C * exp(-dV*(tau-beta));
     }
     
@@ -3101,7 +3109,7 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         return;
     }
 
-/*-------------------------- Estimators --------------------------------------*/
+/*------------------------------- Estimators ---------------------------------*/
 
 // For diagonal estimators around a time slice, Fock State will be needed
 void get_fock_state(double measurement_center, int M,
@@ -3125,7 +3133,8 @@ void get_fock_state(double measurement_center, int M,
     return;
 }
 
-// Diagonal estimators
+/*-------------------------------- Diagonal ----------------------------------*/
+
 double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
                             double U, double mu){
     
@@ -3139,8 +3148,9 @@ double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
     return diagonal_energy;
 }
 
+/*------------------------------ Off-Diagonal --------------------------------*/
 
-// Off-Diagonal estimators
+
 double pimc_kinetic_energy(vector<Kink> &kinks_vector, int &num_kinks,
                       double measurement_center,double measurement_plus_minus,
                       int M, double t, double beta){
