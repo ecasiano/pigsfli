@@ -2,6 +2,12 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:pimc.xcodeproj">
+      location = "group:/Users/ecasiano/XCode/pimc/pimc/4_4_1.000000_-2.601900_1.000000_3.000000_1000000_seed_1D_can_K.dat">
+   </FileRef>
+   <FileRef
+      location = "group:/Users/ecasiano/XCode/pimc/pimc/4_4_1.000000_-2.601900_1.000000_3.000000_1000000_seed_1D_can_V.dat">
+   </FileRef>
+   <FileRef
+      location = "self:">
    </FileRef>
 </Workspace>

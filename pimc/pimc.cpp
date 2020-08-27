@@ -18,16 +18,15 @@ int main(){
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
     // Bose-Hubbard parameters
-    int L = 3, D = 2, N = pow(L,D);
-    double t = 1.0, U = 5.0, mu = -2.6019;
+    int L = 4, D = 1, M = pow(L,D), N=M;
+    double t = 1.0, U = 1.0, mu = -2.6019;
     vector<int> alpha;
-    int M = pow(L,D); // total sites
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.03865, beta = 3.0;
+    double eta = 0.3865, beta = 1.0;
     bool canonical = true;
-    unsigned long long int sweeps=1000000,sweep=M*beta;
+    unsigned long long int sweeps=10000000,sweep=M*beta;
     
     // Adjacency matrix
     int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
@@ -43,49 +42,54 @@ int main(){
     vector<int> last_kinks (M,-1);
     
     // Attempt/Acceptance counters
-    unsigned long long int  insert_worm_attempts=0, insert_worm_accepts=0;
-    unsigned long long int  delete_worm_attempts=0, delete_worm_accepts=0;
+    unsigned long long int  insert_worm_attempts=0,insert_worm_accepts=0;
+    unsigned long long int  delete_worm_attempts=0,delete_worm_accepts=0;
 
-    unsigned long long int  insert_anti_attempts=0, insert_anti_accepts=0;
-    unsigned long long int  delete_anti_attempts=0, delete_anti_accepts=0;
+    unsigned long long int  insert_anti_attempts=0,insert_anti_accepts=0;
+    unsigned long long int  delete_anti_attempts=0,delete_anti_accepts=0;
     
-    unsigned long long int  insertZero_worm_attempts=0, insertZero_worm_accepts=0;
-    unsigned long long int  deleteZero_worm_attempts=0, deleteZero_worm_accepts=0;
+    unsigned long long int  insertZero_worm_attempts=0,insertZero_worm_accepts=0;
+    unsigned long long int  deleteZero_worm_attempts=0,deleteZero_worm_accepts=0;
 
-    unsigned long long int  insertZero_anti_attempts=0, insertZero_anti_accepts=0;
-    unsigned long long int  deleteZero_anti_attempts=0, deleteZero_anti_accepts=0;
+    unsigned long long int  insertZero_anti_attempts=0,insertZero_anti_accepts=0;
+    unsigned long long int  deleteZero_anti_attempts=0,deleteZero_anti_accepts=0;
     
-    unsigned long long int  insertBeta_worm_attempts=0, insertBeta_worm_accepts=0;
-    unsigned long long int  deleteBeta_worm_attempts=0, deleteBeta_worm_accepts=0;
+    unsigned long long int  insertBeta_worm_attempts=0,insertBeta_worm_accepts=0;
+    unsigned long long int  deleteBeta_worm_attempts=0,deleteBeta_worm_accepts=0;
 
-    unsigned long long int  insertBeta_anti_attempts=0, insertBeta_anti_accepts=0;
-    unsigned long long int  deleteBeta_anti_attempts=0, deleteBeta_anti_accepts=0;
+    unsigned long long int  insertBeta_anti_attempts=0,insertBeta_anti_accepts=0;
+    unsigned long long int  deleteBeta_anti_attempts=0,deleteBeta_anti_accepts=0;
     
-    unsigned long long int  advance_head_attempts=0, advance_head_accepts=0;
-    unsigned long long int  recede_head_attempts=0, recede_head_accepts=0;
+    unsigned long long int  advance_head_attempts=0,advance_head_accepts=0;
+    unsigned long long int  recede_head_attempts=0,recede_head_accepts=0;
     
-    unsigned long long int  advance_tail_attempts=0, advance_tail_accepts=0;
-    unsigned long long int  recede_tail_attempts=0, recede_tail_accepts=0;
+    unsigned long long int  advance_tail_attempts=0,advance_tail_accepts=0;
+    unsigned long long int  recede_tail_attempts=0,recede_tail_accepts=0;
     
-    unsigned long long int  ikbh_attempts=0, ikbh_accepts=0;
-    unsigned long long int  dkbh_attempts=0, dkbh_accepts=0;
+    unsigned long long int  ikbh_attempts=0,ikbh_accepts=0;
+    unsigned long long int  dkbh_attempts=0,dkbh_accepts=0;
     
-    unsigned long long int  ikah_attempts=0, ikah_accepts=0;
-    unsigned long long int  dkah_attempts=0, dkah_accepts=0;
+    unsigned long long int  ikah_attempts=0,ikah_accepts=0;
+    unsigned long long int  dkah_attempts=0,dkah_accepts=0;
     
-    unsigned long long int  ikbt_attempts=0, ikbt_accepts=0;
-    unsigned long long int  dkbt_attempts=0, dkbt_accepts=0;
+    unsigned long long int  ikbt_attempts=0,ikbt_accepts=0;
+    unsigned long long int  dkbt_attempts=0,dkbt_accepts=0;
     
-    unsigned long long int  ikat_attempts=0, ikat_accepts=0;
-    unsigned long long int  dkat_attempts=0, dkat_accepts=0;
+    unsigned long long int  ikat_attempts=0,ikat_accepts=0;
+    unsigned long long int  dkat_attempts=0,dkat_accepts=0;
     
     // Observables
-    double N_sum=0,kinetic_energy=0,diagonal_energy=0;
+    double N_sum=0;
     double measurement_center=beta/2,measurement_plus_minus=0.1;
     vector<int> fock_state_at_slice (M,0);
     
     // Non-observables
     unsigned long long int Z_ctr=0,measurement_attempts=0;
+    
+    // Declare data files
+    ofstream kinetic_energy_file,diagonal_energy_file,total_energy_file;
+    
+    // 4_4_1.0000_-3.0511_1.0000_1.0000_1000000_17_1D_can_K.dat
     
     // Generate a random fock state
     alpha = random_boson_config(M,N);
@@ -98,12 +102,46 @@ int main(){
         last_kinks[i] = i;
     }
     
-    // Initialize vector that will store nearest neighbor indices
-    vector<int> nn_sites (total_nn,0);
+//    // Print out adjacency matrix kind of
+//    for (int i=0; i<M; i++){
+//        for (int j=0; j<total_nn; j++){
+//            cout << adjacency_matrix[i][j] << " ";
+//        }
+//        cout << endl;
+//    }
+//    cout << endl;
     
     cout << "Lattice PIGS started: " << endl << endl;
     
 /*---------------------------- Open files ------------------------------------*/
+    
+    kinetic_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
+                             to_string(U)+"_"+to_string(mu)+"_"+
+                             to_string(t)+"_"+to_string(beta)+"_"+
+                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+                             "can"+"_K.dat",fstream::out);
+    if( !kinetic_energy_file ) { // file couldn't be opened
+       cerr << "Error: kinetic energy file could not be opened" << endl;
+       exit(1);
+    }
+    
+    diagonal_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
+                             to_string(U)+"_"+to_string(mu)+"_"+
+                             to_string(t)+"_"+to_string(beta)+"_"+
+                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+                             "can"+"_V.dat",fstream::out);
+    if( !diagonal_energy_file ) { // file couldn't be opened
+       cerr << "Error: diagonal energy file could not be opened" << endl;
+       exit(1);
+    }
+    
+//    total_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
+//                             to_string(U)+"_"+to_string(mu)+"_"+
+//                             to_string(t)+"_"+to_string(beta)+"_"+
+//                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+//                             "can"+"_E.dat");
+    
+    // 4_4_1.0000_-3.0511_1.0000_1.0000_1000000_17_1D_can_K.dat
 
     
 /*---------------------------- Monte Carlo -----------------------------------*/
@@ -161,10 +199,10 @@ int main(){
             timeshift(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,beta,eta,canonical,N_tracker,
                        N_zero, N_beta, last_kinks,
-                       advance_head_attempts, advance_head_accepts,
-                       recede_head_attempts, recede_head_accepts,
-                       advance_tail_attempts, advance_tail_accepts,
-                       recede_tail_attempts, recede_tail_accepts);
+                       advance_head_attempts,advance_head_accepts,
+                       recede_head_attempts,recede_head_accepts,
+                       advance_tail_attempts,advance_tail_accepts,
+                       recede_tail_attempts,recede_tail_accepts);
         }
         else if (label==7){ // insert kink before head
             insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -382,7 +420,7 @@ int main(){
 /*----------------------------- Measurements ---------------------------------*/
 
         
-        if (m%sweep==0 && m>0.2*sweeps){
+        if (m%(sweep*20)==0 && m>0.2*sweeps){
             measurement_attempts+=1;
             if (head_idx==-1 and tail_idx==-1 && N_beta==N){
                                 
@@ -395,13 +433,20 @@ int main(){
                 Z_ctr += 1;
                 
                 // Measure <K>
-                kinetic_energy += pimc_kinetic_energy(kinks_vector,num_kinks,
-                                    measurement_center,measurement_plus_minus,
-                                    M,t,beta);
+//                kinetic_energy += pimc_kinetic_energy(kinks_vector,num_kinks,
+//                                    measurement_center,measurement_plus_minus,
+//                                    M,t,beta);
+                kinetic_energy_file<<pimc_kinetic_energy(kinks_vector,num_kinks,
+                measurement_center,measurement_plus_minus,M,t,beta)<<endl;
                 
-//                // Measure <V>
-                diagonal_energy += pimc_diagonal_energy(fock_state_at_slice,
-                                                        M,U,mu);
+                
+                
+                
+                // Measure <V>
+//                diagonal_energy += pimc_diagonal_energy(fock_state_at_slice,
+//                                                        M,U,mu);
+                diagonal_energy_file<<pimc_diagonal_energy(fock_state_at_slice,
+                                                            M,U,mu)<<endl;
 //                V=0;
 //                int ctr=0;
 //                for (int site=0;site<M;site++){
@@ -411,7 +456,11 @@ int main(){
             }
         }
     }
-        
+    
+    // Close data files
+    kinetic_energy_file.close();
+    diagonal_energy_file.close();
+
 /*--------------------------------- FIN --------------------------------------*/
 
     // Print out the head and tail indices
@@ -499,9 +548,9 @@ int main(){
     << "/" << measurement_attempts << ")" << endl;
     
     cout << endl << "<N>: " << (N_sum)/Z_ctr << endl;
-    cout << "<E>: " << (kinetic_energy+diagonal_energy)/Z_ctr+mu*N << endl;
-    cout << "<K>: " << kinetic_energy/Z_ctr << endl;
-    cout << "<V>: " << diagonal_energy/Z_ctr + mu*N << endl;
+//````    cout << "<E>: " << (kinetic_energy+diagonal_energy)/Z_ctr+mu*N << endl;
+//    cout << "<K>: " << kinetic_energy/Z_ctr << endl;
+//    cout << "<V>: " << diagonal_energy/Z_ctr + mu*N << endl;````
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
 
