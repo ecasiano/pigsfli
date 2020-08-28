@@ -24,9 +24,9 @@ int main(){
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.3865, beta = 1.0;
+    double eta = 0.03865, beta = 3.0;
     bool canonical = true;
-    unsigned long long int sweeps=100000000,sweep=M*beta;
+    unsigned long long int sweeps=1000000000,sweep=M*beta;
     
     // Adjacency matrix
     int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
@@ -81,6 +81,7 @@ int main(){
     // Observables
     double N_sum=0;
     double measurement_center=beta/2,measurement_plus_minus=0.1*beta;
+    int measurement_frequency=25;
     vector<int> fock_state_at_slice (M,0);
     
     // Non-observables
@@ -419,39 +420,27 @@ int main(){
         
 /*----------------------------- Measurements ---------------------------------*/
 
-        if (m%(sweep*5)==0 && m>0.20*sweeps){
+        if (m%(sweep*measurement_frequency)==0 && m>0.20*sweeps){
             measurement_attempts+=1;
-            if (head_idx==-1 and tail_idx==-1 && N_beta==N){
-                                
+            if (head_idx==-1 and tail_idx==-1){
+                
+                N_sum += N_tracker;
+                Z_ctr += 1;
+                           
+                if (N_beta==N){ // canonical measurement
+                    
                 // Get fock state at desired measurement center
                 get_fock_state(measurement_center,M,fock_state_at_slice,
                                kinks_vector);
                 
-                // Measure N
-                N_sum += N_tracker;
-                Z_ctr += 1;
-                
                 // Measure <K>
-//                kinetic_energy += pimc_kinetic_energy(kinks_vector,num_kinks,
-//                                    measurement_center,measurement_plus_minus,
-//                                    M,t,beta);
                 kinetic_energy_file<<pimc_kinetic_energy(kinks_vector,num_kinks,
                 measurement_center,measurement_plus_minus,M,t,beta)<<endl;
-                
-                
-                
-                
+
                 // Measure <V>
-//                diagonal_energy += pimc_diagonal_energy(fock_state_at_slice,
-//                                                        M,U,mu);
                 diagonal_energy_file<<pimc_diagonal_energy(fock_state_at_slice,
                                                             M,U,mu)<<endl;
-//                V=0;
-//                int ctr=0;
-//                for (int site=0;site<M;site++){
-//                    while kinks_vector
-//                }
-                
+                }
             }
         }
     }
