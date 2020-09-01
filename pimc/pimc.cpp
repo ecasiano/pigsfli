@@ -103,14 +103,13 @@ int main(){
     for (int i=0; i<M; i++){last_kinks[i] = i;}
     
 /*------------------- Pre-equilibration 1: mu calibration --------------------*/
-    
     boost::random::uniform_int_distribution<> updates(0, 14);
 
-    double mu_initial,N_hist_sum,P_N_peak;
+    double mu_initial,N_hist_sum,P_N_peak,mu_right,mu_left;
     unsigned long long int sweeps_pre;
-    bool canonical_flag,N_target_in_bins;
+    bool N_target_in_bins;
     vector<int> N_data,N_hist,P_N,N_bins;
-    int N_min,N_max,N_target_idx,N_peak,peak_idx;
+    int N_min,N_max,peak_idx,N_idx;
     
     mu_initial=mu;
     sweeps_pre=1000000;
@@ -120,18 +119,18 @@ int main(){
     cout << "mu | P(N-1) | P(N) | P(N+1)" << endl;
     
     // Iterate until particle distribution P(N) is peaked at target N
-    for (int i=0;i<2;i++){
+    while (true){
+
         if (!canonical){break;}
-        
-        if (i==0){canonical_flag=false;}
-        else {canonical_flag=true;}
-        
+                
         // Restart the data structure and all trackers
         num_kinks=M;
         head_idx=-1;
         tail_idx=-1;
         N_zero=N;
         N_beta=N;
+        kinks_vector.clear();
+//        last_kinks.clear();
         kinks_vector=create_kinks_vector(alpha,M);
         for (int i=0; i<M; i++){last_kinks[i] = i;}
         N_data.clear();
@@ -142,7 +141,9 @@ int main(){
         N_min=-1;
         N_max=-1;
         
-        for (unsigned long long int m=0; m < sweeps; m++){
+        cout << "Made it" << endl;
+
+        for (unsigned long long int m=0; m < sweeps_pre; m++){
               label = updates(rng);
               
               if (label==0){     // worm_insert
@@ -269,8 +270,6 @@ int main(){
         N_min=*min_element(N_data.begin(), N_data.end());
         N_max=*max_element(N_data.begin(), N_data.end());
         
-        if (canonical_flag){break;}
-        
         // Generate the support of the distribution & initialize the histogram
         N_target_in_bins=false;
         for (int i=N_min;i<=N_max;i++){
@@ -280,6 +279,9 @@ int main(){
             if (i==N){N_target_in_bins=true;}
         }
         
+        // Get the index of the target N in the support of the distribution
+        N_idx = N-N_min;
+        
         // Fill out the histogram
         for (int i=0;i<N_data.size();i++){
             N_hist[N_data[i]-N_min]+=1;
@@ -287,36 +289,51 @@ int main(){
         }
         
         // Build the normalized probability distribution P(N) & find its peak
-        P_N_peak=0.0;
+        peak_idx=0;
+        P_N_peak=P_N[peak_idx];
         for (int i=0;i<P_N.size();i++){
             P_N[i]=N_hist[i]/N_hist_sum;
             if (P_N[i]>P_N_peak){
-                P_N_peak=P_N[i];
                 peak_idx=i;
+                P_N_peak=P_N[peak_idx];
             }
         }
         
-        // Check if the peak of the distribution occurs at N
-        
-        
-//        cout << mu << "|";
-//        for (int i=0;i<3;i++){
-//            cout << "(" << N-1+i << "," << P_N[i] << ") | ";
-//        }
-//        cout << endl;
-        
-        
-        
-        
+        if (N_target_in_bins){
+            // Stop the loop if the peak is at P(N)
+            if (peak_idx==N_idx){break;}
+            
+            else{
+                // Estimate mu via Eq. 15 in:https://arxiv.org/pdf/1312.6177.pdf
+                if (std::count(N_bins.begin(), N_bins.end(), N-1) &&
+                    std::count(N_bins.begin(), N_bins.end(), N+1)){
+                    mu_right=mu-(1/beta)*log(P_N[N_idx+1]/P_N[N_idx]);
+                    mu_left=mu-(1/beta)*log(P_N[N_idx]/P_N[N_idx-1]);
+                    mu=0.5*(mu_left+mu_right);
+                }
+                else if (std::count(N_bins.begin(), N_bins.end(), N+1)){
+                    mu_right=mu-(1/beta)*log(P_N[N_idx+1]/P_N[N_idx]);
+                    mu=mu_right;
+                }
+                else{
+                    mu_left=mu-(1/beta)*log(P_N[N_idx]/P_N[N_idx-1]);
+                    mu=mu_left;
+                }
+            }
+        }
+        else{ // Target N not in P_N
+            if (N_bins[peak_idx]>N){mu-=1;}
+            else{mu+=1;}
+        }
+                
+        // Print out current mu and probability distribution
+        cout << mu << "|";
+        for (int i=0;i<P_N.size();i++){
+            cout << "(" << N-1+i << "," << P_N[i] << ") | ";
+        }
+        cout << endl;
         
     }
-    
-    
-
-
-
-
-
     
 /*---------------------------- Open files ------------------------------------*/
     
