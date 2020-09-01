@@ -18,8 +18,8 @@ int main(){
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
     // Bose-Hubbard parameters
-    int L = 3, D = 2, M = pow(L,D), N=M;
-    double t = 1.0, U = 1.0, mu = -4.6019;
+    int L = 4, D = 2, M = pow(L,D), N=M;
+    double t = 1.0, U = 1.0, mu = -2.6019;
     vector<int> alpha;
     string boundary_condition = "pbc";
     
@@ -28,6 +28,7 @@ int main(){
     bool canonical = true;
     unsigned long long int sweeps=1000000,sweep=M*beta;
     int label; // random update label;
+    boost::random::uniform_int_distribution<> updates(0, 14);
     
     // Adjacency matrix
     int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
@@ -82,7 +83,7 @@ int main(){
     // Observables
     double N_sum=0;
     double measurement_center=beta/2,measurement_plus_minus=0.1*beta;
-    int measurement_frequency=4;
+    int measurement_frequency=1;
     vector<int> fock_state_at_slice (M,0);
     
     // Non-observables
@@ -103,12 +104,12 @@ int main(){
     for (int i=0; i<M; i++){last_kinks[i] = i;}
     
 /*------------------- Pre-equilibration 1: mu calibration --------------------*/
-    boost::random::uniform_int_distribution<> updates(0, 14);
-
+    
     double mu_initial,N_hist_sum,P_N_peak,mu_right,mu_left;
     unsigned long long int sweeps_pre;
     bool N_target_in_bins;
-    vector<int> N_data,N_hist,P_N,N_bins;
+    vector<int> N_data,N_hist,N_bins;
+    vector<double> P_N;
     int N_min,N_max,peak_idx,N_idx;
     
     mu_initial=mu;
@@ -123,16 +124,17 @@ int main(){
 
         if (!canonical){break;}
                 
-        // Restart the data structure and all trackers
-        num_kinks=M;
-        head_idx=-1;
-        tail_idx=-1;
-        N_zero=N;
-        N_beta=N;
-        kinks_vector.clear();
-//        last_kinks.clear();
-        kinks_vector=create_kinks_vector(alpha,M);
-        for (int i=0; i<M; i++){last_kinks[i] = i;}
+//        // Restart the data structure and all trackers
+//        kinks_vector=create_kinks_vector(alpha,M);
+//        std::fill(last_kinks.begin(), last_kinks.end(), -1);
+//        for (int i=0; i<M; i++){last_kinks[i] = i;}
+//        num_kinks=M;
+//        N_tracker=N;
+//        head_idx=-1;
+//        tail_idx=-1;
+//        N_zero=N;
+//        N_beta=N;
+
         N_data.clear();
         N_hist.clear();
         P_N.clear();
@@ -141,28 +143,26 @@ int main(){
         N_min=-1;
         N_max=-1;
         
-        cout << "Made it" << endl;
-
         for (unsigned long long int m=0; m < sweeps_pre; m++){
               label = updates(rng);
               
               if (label==0){     // worm_insert
                   insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
-                              M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                              M,N,U,mu,t,beta,eta,false,N_tracker,
                               N_zero, N_beta, last_kinks,
                               insert_worm_attempts,insert_worm_accepts,
                               insert_anti_attempts,insert_anti_accepts);
               }
               else if (label==1){ // worm_delete
                   delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
-                              M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                              M,N,U,mu,t,beta,eta,false,N_tracker,
                               N_zero, N_beta, last_kinks,
                               delete_worm_attempts,delete_worm_accepts,
                               delete_anti_attempts,delete_anti_accepts);
               }
               else if (label==2){ // insertZero
                   insertZero(kinks_vector,num_kinks,head_idx,tail_idx,
-                             M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                             M,N,U,mu,t,beta,eta,false,N_tracker,
                              N_zero, N_beta, last_kinks,
                              insertZero_worm_attempts,insertZero_worm_accepts,
                              insertZero_anti_attempts,insertZero_anti_accepts);
@@ -170,28 +170,28 @@ int main(){
               }
               else if (label==3){ // deleteZero
                   deleteZero(kinks_vector,num_kinks,head_idx,tail_idx,
-                             M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                             M,N,U,mu,t,beta,eta,false,N_tracker,
                              N_zero, N_beta, last_kinks,
                              deleteZero_worm_attempts,deleteZero_worm_accepts,
                              deleteZero_anti_attempts,deleteZero_anti_accepts);
               }
               else if (label==4){ // insertBeta
                   insertBeta(kinks_vector,num_kinks,head_idx,tail_idx,
-                             M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                             M,N,U,mu,t,beta,eta,false,N_tracker,
                              N_zero, N_beta, last_kinks,
                              insertBeta_worm_attempts,insertBeta_worm_accepts,
                              insertBeta_anti_attempts,insertBeta_anti_accepts);
               }
               else if (label==5){ // deleteBeta
                   deleteBeta(kinks_vector,num_kinks,head_idx,tail_idx,
-                             M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                             M,N,U,mu,t,beta,eta,false,N_tracker,
                              N_zero, N_beta, last_kinks,
                              deleteBeta_worm_attempts,deleteBeta_worm_accepts,
                              deleteBeta_anti_attempts,deleteBeta_anti_accepts);
               }
               else if (label==6){ // timeshift
                   timeshift(kinks_vector,num_kinks,head_idx,tail_idx,
-                             M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                             M,N,U,mu,t,beta,eta,false,N_tracker,
                              N_zero, N_beta, last_kinks,
                              advance_head_attempts,advance_head_accepts,
                              recede_head_attempts,recede_head_accepts,
@@ -201,42 +201,42 @@ int main(){
               else if (label==7){ // insert kink before head
                   insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,canonical,N_tracker,
+                             beta,eta,false,N_tracker,
                              N_zero, N_beta, last_kinks,
                              ikbh_attempts, ikbh_accepts);
               }
               else if (label==8){ // delete kink before head
                   delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,canonical,N_tracker,
+                             beta,eta,false,N_tracker,
                              N_zero, N_beta, last_kinks,
                              dkbh_attempts, dkbh_accepts);
               }
               else if (label==9){ // insert kink after head
                   insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,canonical,N_tracker,
+                             beta,eta,false,N_tracker,
                              N_zero, N_beta, last_kinks,
                              ikah_attempts, ikah_accepts);
               }
               else if (label==10){ // delete kink after head
                   delete_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,canonical,N_tracker,
+                             beta,eta,false,N_tracker,
                              N_zero, N_beta, last_kinks,
                              dkah_attempts, dkah_accepts);
                       }
               else if (label==11){ // insert kink before tail
                   insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,canonical,N_tracker,
+                             beta,eta,false,N_tracker,
                              N_zero, N_beta, last_kinks,
                              ikbt_attempts, ikbt_accepts);
               }
               else if (label==12){ // delete kink before tail
                   delete_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,canonical,N_tracker,
+                             beta,eta,false,N_tracker,
                              N_zero, N_beta, last_kinks,
                              dkbt_attempts, dkbt_accepts);
               }
@@ -245,14 +245,14 @@ int main(){
               else if (label==13){ // insert kink after tail
                    insert_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                               M,N,U,mu,t,adjacency_matrix,total_nn,
-                              beta,eta,canonical,N_tracker,
+                              beta,eta,false,N_tracker,
                               N_zero, N_beta, last_kinks,
                               ikat_attempts, ikat_accepts);
                }
                else if (label==14){ // delete kink after tail
                    delete_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                               M,N,U,mu,t,adjacency_matrix,total_nn,
-                              beta,eta,canonical,N_tracker,
+                              beta,eta,false,N_tracker,
                               N_zero, N_beta, last_kinks,
                               dkat_attempts, dkat_accepts);
                }
@@ -281,11 +281,11 @@ int main(){
         
         // Get the index of the target N in the support of the distribution
         N_idx = N-N_min;
-        
+
         // Fill out the histogram
         for (int i=0;i<N_data.size();i++){
             N_hist[N_data[i]-N_min]+=1;
-            N_hist_sum+=1;
+            N_hist_sum+=1.0;
         }
         
         // Build the normalized probability distribution P(N) & find its peak
@@ -299,6 +299,34 @@ int main(){
             }
         }
         
+//        // Print out the suppport of the distribution
+//        cout << "N:    ";
+//        for (int i=0;i<N_bins.size();i++){
+//            cout << N_bins[i] << " ";
+//        }
+//        cout << endl;
+//        cout << "P(N): ";
+//        for (int i=0;i<P_N.size();i++){
+//            cout << P_N[i] << " ";
+//        }
+//        cout << endl<<endl;
+        
+        // Print out current mu and probability distribution
+        cout << "mu: " << mu << endl;
+        cout << "N     P(N)"<<endl;
+        for (int i=0;i<N_bins.size();i++){
+            cout << setw(6) << left << N_bins[i];
+//            cout<<"("<< N_bins[i]<<","<<P_N[i]<<")"<<setw(15);
+            for (int j=0;j<=static_cast<int>(100*P_N[i]);j++){
+                cout<<"*";
+            }
+//            cout << N_bins[i] << endl;
+            cout<<endl;
+        }
+        cout << endl << endl;
+        
+        
+        
         if (N_target_in_bins){
             // Stop the loop if the peak is at P(N)
             if (peak_idx==N_idx){break;}
@@ -307,6 +335,8 @@ int main(){
                 // Estimate mu via Eq. 15 in:https://arxiv.org/pdf/1312.6177.pdf
                 if (std::count(N_bins.begin(), N_bins.end(), N-1) &&
                     std::count(N_bins.begin(), N_bins.end(), N+1)){
+ 
+                    cout << endl;
                     mu_right=mu-(1/beta)*log(P_N[N_idx+1]/P_N[N_idx]);
                     mu_left=mu-(1/beta)*log(P_N[N_idx]/P_N[N_idx-1]);
                     mu=0.5*(mu_left+mu_right);
@@ -322,19 +352,12 @@ int main(){
             }
         }
         else{ // Target N not in P_N
-            if (N_bins[peak_idx]>N){mu-=1;}
+            if (N_bins[peak_idx]>N){mu-=0.5;}
             else{mu+=1;}
         }
                 
-        // Print out current mu and probability distribution
-        cout << mu << "|";
-        for (int i=0;i<P_N.size();i++){
-            cout << "(" << N-1+i << "," << P_N[i] << ") | ";
-        }
-        cout << endl;
-        
     }
-    
+
 /*---------------------------- Open files ------------------------------------*/
     
     kinetic_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
@@ -361,7 +384,7 @@ int main(){
 /*---------------------------- Monte Carlo -----------------------------------*/
 
     cout << "Lattice PIGS started: " << endl << endl;
-
+    
 //    boost::random::uniform_int_distribution<> updates(0, 14);
     sweeps *= (beta*M);
     for (unsigned long long int m=0; m < sweeps; m++){
@@ -756,9 +779,19 @@ int main(){
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
 
-    cout << endl;
-    cout << "Total neighbors: " << total_nn << endl << endl;
+//    cout << endl;
+//    cout << "Total neighbors: " << total_nn << endl << endl;
     
+    
+//    for (int i=0; i<num_kinks;i++){
+//        cout << kinks_vector[i] << endl;
+//    }
+//
+//    cout << endl;
+//    kinks_vector=create_kinks_vector(alpha,M);
+//    for (int i=0; i<num_kinks;i++){
+//        cout << kinks_vector[i] << endl;
+//    }
     return 0;
 }
 
