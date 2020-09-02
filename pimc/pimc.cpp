@@ -14,6 +14,8 @@ int main(){
     // Create a uniform distribution with support: [0.0,1.0)
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     
+    boost::random::uniform_int_distribution<> updates(0, 14);
+    
     // Bose-Hubbard parameters
     int L = 3, D = 2, M = pow(L,D), N=M;
     double t = 1.0, U = 1.0, mu = -5.33715;
@@ -21,10 +23,10 @@ int main(){
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.1449, beta = 1.0;
+    double eta = 0.1449, beta = 3.0;
     bool canonical = true;
-    unsigned long long int sweeps=1000000,sweep=M*beta,
-    sweeps_pre=1000000;
+    unsigned long long int sweeps=10000000,sweep=M*beta,
+    sweeps_pre=10000000;
     int label; // random update label;
     
     // Adjacency matrix
@@ -77,8 +79,6 @@ int main(){
     unsigned long long int  ikat_attempts=0,ikat_accepts=0;
     unsigned long long int  dkat_attempts=0,dkat_accepts=0;
     
-    unsigned long long int  dummy_counter=0;
-
     // Observables
     double N_sum=0;
     double measurement_center=beta/2,measurement_plus_minus=0.1*beta;
@@ -87,6 +87,7 @@ int main(){
     
     // Non-observables
     unsigned long long int Z_ctr=0,measurement_attempts=0;
+    double Z_frac;
     
     // Declare data files
     ofstream kinetic_energy_file,diagonal_energy_file,total_energy_file;
@@ -105,12 +106,14 @@ int main(){
     vector<int> N_data,N_hist,N_bins;
     vector<double> P_N;
     int N_min,N_max,peak_idx,N_idx;
+    unsigned long long int  dummy_counter=0;
+
     
     mu_initial=mu;
 //    sweeps_pre=10000000;
     sweeps_pre*=(beta*M);
     
-    cout << "Pre-equilibration (1/2): Determining mu..." << endl;
+    cout << "Pre-equilibration (1/2): Determining mu..." << endl << endl;
     
     // Iterate until particle distribution P(N) is peaked at target N
     while (true){
@@ -304,7 +307,7 @@ int main(){
             }
             cout<<endl;
         }
-        cout << endl << endl;
+        cout << endl;
         
         if (N_target_in_bins){
             // Stop the loop if the peak is at P(N)
@@ -332,9 +335,180 @@ int main(){
             if (N_bins[peak_idx]>N){mu-=0.5;}
             else{mu+=1;}
         }
-                
     }
+    
+/*------------------ Pre-equilibration 2: eta calibration --------------------*/
+    
+    cout << "Pre-equilibration (2/2): Determining eta..." << endl << endl;
+    cout << setw(16) <<"eta";
+    cout << "| Z-fraction (%)" << endl;
+    cout << "--------------------------------"<<endl;
 
+    // Iterate until particle distribution P(N) is peaked at target N
+      while (true){
+          
+          if (!canonical){break;}
+          
+          // Restart the data structure and trackers
+          kinks_vector=create_kinks_vector(alpha,M);
+          for (int i=0;i<M;i++){last_kinks[i] = i;}
+          num_kinks=M;
+          N_tracker=N*1.0;
+          head_idx=-1;
+          tail_idx=-1;
+          N_zero=N;
+          N_beta=N;
+          dummy_counter=0;
+          
+          N_data.clear();
+          N_hist.clear();
+          P_N.clear();
+          N_bins.clear();
+          N_hist_sum=0.0;
+          N_min=-1;
+          N_max=-1;
+          
+          Z_frac=0.0;
+          measurement_attempts=0;
+          
+          boost::random::uniform_int_distribution<> updates(0, 14);
+                          
+          for (unsigned long long int m=0;m<sweeps_pre;m++){
+          
+                label = updates(rng);
+              
+                if (label==0){     // worm_insert
+                    insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
+                                M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                                N_zero,N_beta,last_kinks,
+                                dummy_counter,dummy_counter,
+                                dummy_counter,dummy_counter);
+                }
+                else if (label==1){ // worm_delete
+                    delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
+                                M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                                N_zero,N_beta,last_kinks,
+                                dummy_counter,dummy_counter,
+                                dummy_counter,dummy_counter);
+                }
+                else if (label==2){ // insertZero
+                    insertZero(kinks_vector,num_kinks,head_idx,tail_idx,
+                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                               N_zero,N_beta,last_kinks,
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter);
+                    
+                }
+                else if (label==3){ // deleteZero
+                    deleteZero(kinks_vector,num_kinks,head_idx,tail_idx,
+                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                               N_zero,N_beta,last_kinks,
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter);
+                }
+                else if (label==4){ // insertBeta
+                    insertBeta(kinks_vector,num_kinks,head_idx,tail_idx,
+                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                               N_zero,N_beta,last_kinks,
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter);
+                }
+                else if (label==5){ // deleteBeta
+                    deleteBeta(kinks_vector,num_kinks,head_idx,tail_idx,
+                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                               N_zero,N_beta,last_kinks,
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter);
+                }
+                else if (label==6){ // timeshift
+                    timeshift(kinks_vector,num_kinks,head_idx,tail_idx,
+                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
+                               N_zero,N_beta,last_kinks,
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter);
+                }
+                else if (label==7){ // insert kink before head
+                    insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker,
+                               N_zero,N_beta,last_kinks,
+                               dummy_counter,dummy_counter);
+                }
+                else if (label==8){ // delete kink before head
+                    delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker,
+                               N_zero,N_beta,last_kinks,
+                               dummy_counter,dummy_counter);
+                }
+                else if (label==9){ // insert kink after head
+                    insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker,
+                               N_zero,N_beta,last_kinks,
+                               dummy_counter,dummy_counter);
+                }
+                else if (label==10){ // delete kink after head
+                    delete_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker,
+                               N_zero,N_beta,last_kinks,
+                               dummy_counter,dummy_counter);
+                        }
+                else if (label==11){ // insert kink before tail
+                    insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker,
+                               N_zero,N_beta,last_kinks,
+                               dummy_counter,dummy_counter);
+                }
+                else if (label==12){ // delete kink before tail
+                    delete_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker,
+                               N_zero,N_beta,last_kinks,
+                               dummy_counter,dummy_counter);
+                }
+                else if (label==13){ // insert kink after tail
+                     insert_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
+                                M,N,U,mu,t,adjacency_matrix,total_nn,
+                                beta,eta,canonical,N_tracker,
+                                N_zero,N_beta,last_kinks,
+                                dummy_counter,dummy_counter);
+                 }
+                 else if (label==14){ // delete kink after tail
+                     delete_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
+                                M,N,U,mu,t,adjacency_matrix,total_nn,
+                                beta,eta,canonical,N_tracker,
+                                N_zero,N_beta,last_kinks,
+                                dummy_counter,dummy_counter);
+                 }
+                else{
+                    // lol
+                }
+              
+              // Measure the total number of particles
+              if (m%(sweep*measurement_frequency)==0 && m>0.20*sweeps){
+                  measurement_attempts+=1;
+                  if (head_idx==-1 and tail_idx==-1){Z_frac += 1;}
+              }
+          }
+          
+          Z_frac/=measurement_attempts;
+          cout << setw(16) << eta;
+          cout << "| " << Z_frac*100.0 << endl;
+
+          
+          // Modify eta if necessary
+          if (Z_frac > 0.30 &&
+              Z_frac < 0.40){break;}
+          else{
+              if (Z_frac < 0.30){eta *= 0.5;}
+              else{eta *= 1.5;}
+          }
+      }
 /*---------------------------- Open files ------------------------------------*/
     
     kinetic_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
@@ -356,11 +530,10 @@ int main(){
        cerr << "Error: diagonal energy file could not be opened" << endl;
        exit(1);
     }
-
     
 /*---------------------------- Monte Carlo -----------------------------------*/
 
-    cout << "Lattice PIGS started: " << endl << endl;
+    cout << endl << "Lattice PIGS started... " << endl << endl;
     
     // Time main function execution
     auto start = high_resolution_clock::now();
@@ -375,7 +548,9 @@ int main(){
     N_zero=N;
     N_beta=N;
     
-    boost::random::uniform_int_distribution<> updates(0, 14);
+    Z_frac=0.0;
+    measurement_attempts=0;
+    
     sweeps *= (beta*M);
     for (unsigned long long int m=0; m < sweeps; m++){
         label = updates(rng);
