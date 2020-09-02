@@ -23,8 +23,8 @@ int main(){
     // Simulation parameters
     double eta = 0.1449, beta = 1.0;
     bool canonical = true;
-    unsigned long long int sweeps=10000000,sweep=M*beta,
-    sweeps_pre=2000000;
+    unsigned long long int sweeps=1000000,sweep=M*beta,
+    sweeps_pre=1000000;
     int label; // random update label;
     
     // Adjacency matrix
