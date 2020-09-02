@@ -40,6 +40,40 @@
 			<key>uniqueIdentifier</key>
 			<string>0DE22848-9F65-468D-96B5-8164B321FBF8</string>
 		</dict>
+		<key>1272557B-4DB6-4038-8CE1-E599A1E4CB16</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>1272557B-4DB6-4038-8CE1-E599A1E4CB16.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>620749621.23466003</real>
+			<key>timeStoppedRecording</key>
+			<real>620749625.39459598</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>1272557B-4DB6-4038-8CE1-E599A1E4CB16</string>
+		</dict>
 		<key>259A90EB-BAC7-449F-BA89-7F792C246040</key>
 		<dict>
 			<key>className</key>
@@ -448,6 +482,74 @@
 			<key>uniqueIdentifier</key>
 			<string>685A2B9E-7656-46EA-AFDD-ABE904406520</string>
 		</dict>
+		<key>692A5166-5D36-4111-BE7A-A1B1BAC281F7</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>692A5166-5D36-4111-BE7A-A1B1BAC281F7.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>620749463.00770295</real>
+			<key>timeStoppedRecording</key>
+			<real>620749492.29614604</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>692A5166-5D36-4111-BE7A-A1B1BAC281F7</string>
+		</dict>
+		<key>6DCF562E-6F8C-4CA5-B134-6674CD07F90D</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>6DCF562E-6F8C-4CA5-B134-6674CD07F90D.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>620749642.87853503</real>
+			<key>timeStoppedRecording</key>
+			<real>620749647.741732</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>6DCF562E-6F8C-4CA5-B134-6674CD07F90D</string>
+		</dict>
 		<key>6E7CB91C-419B-42E5-B980-C0B7500969B1</key>
 		<dict>
 			<key>className</key>
@@ -516,6 +618,40 @@
 			<key>uniqueIdentifier</key>
 			<string>72FCF564-CA76-4C5B-97BE-AE30FB457B29</string>
 		</dict>
+		<key>74258D0D-A19B-47E6-B1ED-59EDC05971D6</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>74258D0D-A19B-47E6-B1ED-59EDC05971D6.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>620748943.65335405</real>
+			<key>timeStoppedRecording</key>
+			<real>620748968.995839</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>74258D0D-A19B-47E6-B1ED-59EDC05971D6</string>
+		</dict>
 		<key>7DAC64E8-162F-4594-BED4-F01D3BB9E78D</key>
 		<dict>
 			<key>className</key>
@@ -549,6 +685,74 @@
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
 			<string>7DAC64E8-162F-4594-BED4-F01D3BB9E78D</string>
+		</dict>
+		<key>84BD0AD5-D83E-43B7-A880-E22DF6356F06</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>84BD0AD5-D83E-43B7-A880-E22DF6356F06.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>620749150.03899801</real>
+			<key>timeStoppedRecording</key>
+			<real>620749174.46348095</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>84BD0AD5-D83E-43B7-A880-E22DF6356F06</string>
+		</dict>
+		<key>8C346754-1B13-4B39-8349-EE5A653C569B</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>8C346754-1B13-4B39-8349-EE5A653C569B.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>620748880.99738503</real>
+			<key>timeStoppedRecording</key>
+			<real>620748905.92538404</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>8C346754-1B13-4B39-8349-EE5A653C569B</string>
 		</dict>
 		<key>9403F022-10B7-4C60-83FA-BF45B0F252B9</key>
 		<dict>
@@ -584,6 +788,40 @@
 			<key>uniqueIdentifier</key>
 			<string>9403F022-10B7-4C60-83FA-BF45B0F252B9</string>
 		</dict>
+		<key>99C843C0-329A-4BF5-813E-1D397377D1C1</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>99C843C0-329A-4BF5-813E-1D397377D1C1.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>620749568.54656899</real>
+			<key>timeStoppedRecording</key>
+			<real>620749585.60303605</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>99C843C0-329A-4BF5-813E-1D397377D1C1</string>
+		</dict>
 		<key>9B900752-4CFF-4B81-B0B6-F923C479C097</key>
 		<dict>
 			<key>className</key>
@@ -617,6 +855,40 @@
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
 			<string>9B900752-4CFF-4B81-B0B6-F923C479C097</string>
+		</dict>
+		<key>9E8A5E47-1F93-4A8F-9F5F-A872B0667563</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>9E8A5E47-1F93-4A8F-9F5F-A872B0667563.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>620748811.59521997</real>
+			<key>timeStoppedRecording</key>
+			<real>620748879.39173806</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>9E8A5E47-1F93-4A8F-9F5F-A872B0667563</string>
 		</dict>
 		<key>9FCF99DE-CE03-48ED-B0FF-632C18861E69</key>
 		<dict>
@@ -1026,6 +1298,40 @@
 			<key>uniqueIdentifier</key>
 			<string>D295E179-3733-40E6-8874-B86A297CA633</string>
 		</dict>
+		<key>DAB0E8F3-388D-415B-916C-88F37D43910F</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>DAB0E8F3-388D-415B-916C-88F37D43910F.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>620749104.990376</real>
+			<key>timeStoppedRecording</key>
+			<real>620749129.76753199</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>DAB0E8F3-388D-415B-916C-88F37D43910F</string>
+		</dict>
 		<key>DE682D2D-4BC2-496D-B097-091BEDF46213</key>
 		<dict>
 			<key>className</key>
@@ -1059,6 +1365,40 @@
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
 			<string>DE682D2D-4BC2-496D-B097-091BEDF46213</string>
+		</dict>
+		<key>E3F69A6D-54B7-4EAE-B42B-16A18BC5AD72</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>E3F69A6D-54B7-4EAE-B42B-16A18BC5AD72.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>620749614.83006895</real>
+			<key>timeStoppedRecording</key>
+			<real>620749617.25010705</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>E3F69A6D-54B7-4EAE-B42B-16A18BC5AD72</string>
 		</dict>
 		<key>F0408A45-B1E1-4B8B-A501-EB2E32C7B466</key>
 		<dict>

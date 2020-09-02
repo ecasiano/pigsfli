@@ -3128,6 +3128,7 @@ void get_fock_state(double measurement_center, int M,
             fock_state_at_slice[i]=n_i;
             
             current=kinks_vector[current].next;
+            if (current!=-1)
             tau=kinks_vector[current].tau;
         }
     }
