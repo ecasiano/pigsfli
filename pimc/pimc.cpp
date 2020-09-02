@@ -26,7 +26,7 @@ int main(){
     double eta = 0.1449, beta = 3.0;
     bool canonical = true;
     unsigned long long int sweeps=10000000,sweep=M*beta,
-    sweeps_pre=10000000;
+    sweeps_pre=1000000;
     int label; // random update label;
     
     // Adjacency matrix
@@ -97,6 +97,9 @@ int main(){
 
     // Generate the data structure (vector of kinks)
     vector<Kink> kinks_vector;
+    
+/*------------------- Try drawing a pretty welcome message -------------------*/
+
     
 /*------------------- Pre-equilibration 1: mu calibration --------------------*/
     
@@ -532,8 +535,6 @@ int main(){
     }
     
 /*---------------------------- Monte Carlo -----------------------------------*/
-
-    cout << endl << "Lattice PIGS started... " << endl << endl;
     
     // Time main function execution
     auto start = high_resolution_clock::now();
@@ -552,6 +553,7 @@ int main(){
     measurement_attempts=0;
     
     sweeps *= (beta*M);
+    cout << endl << "Equilibration started..." << endl << endl;
     for (unsigned long long int m=0; m < sweeps; m++){
         label = updates(rng);
         
@@ -820,7 +822,12 @@ int main(){
         
 /*----------------------------- Measurements ---------------------------------*/
 
-        if (m%(sweep*measurement_frequency)==0 && m>0.20*sweeps){
+        if (m%(sweep*measurement_frequency)==0 && m>=sweeps*(20/100)){
+            
+            if (m==sweeps*(20/100)){
+                cout << "Lattice PIGS started... " << endl << endl;
+            }
+            
             measurement_attempts+=1;
             if (head_idx==-1 and tail_idx==-1){
                 N_sum += N_tracker;
@@ -850,19 +857,19 @@ int main(){
 
 /*--------------------------------- FIN --------------------------------------*/
 
-    // Print out the head and tail indices
-    cout << "head_idx: " << head_idx << endl;
-    cout << "tail_idx: " << tail_idx << endl;
-
-    // Print out the N_tracker
-    cout << "N_tracker: " << N_tracker << endl;
-    
-    // Print out number of particles at path ends
-    cout << "N_zero: " << N_zero << endl;
-    cout << "N_beta: " << N_beta << endl;
-
-    // Print out number of active kinks
-    cout << "num_kinks: " << num_kinks << endl;
+//    // Print out the head and tail indices
+//    cout << "head_idx: " << head_idx << endl;
+//    cout << "tail_idx: " << tail_idx << endl;
+//
+//    // Print out the N_tracker
+//    cout << "N_tracker: " << N_tracker << endl;
+//
+//    // Print out number of particles at path ends
+//    cout << "N_zero: " << N_zero << endl;
+//    cout << "N_beta: " << N_beta << endl;
+//
+//    // Print out number of active kinks
+//    cout << "num_kinks: " << num_kinks << endl;
 
     cout<< endl << "Insert Worm: "<<insert_worm_accepts<<"/"<<
                                     insert_worm_attempts<<endl;
