@@ -23,7 +23,7 @@ int main(){
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.1449, beta = 3.0;
+    double eta = 0.1449, beta = 1.0;
     bool canonical = true;
     unsigned long long int sweeps=10000000,sweep=M*beta,
     sweeps_pre=1000000;
@@ -100,6 +100,33 @@ int main(){
     
 /*------------------- Try drawing a pretty welcome message -------------------*/
 
+    cout << R"(
+  _           _   _   _           ______ _____ _____  _____
+ | |         | | | | (_)          | ___ \_   _|  __ \/  ___|
+ | |     __ _| |_| |_ _  ___ ___  | |_/ / | | | |  \/\ `--.
+ | |    / _` | __| __| |/ __/ _ \ |  __/  | | | | __  `--. \
+ | |___| (_| | |_| |_| | (_|  __/ | |    _| |_| |_\ \/\__/ /
+ \_____/\__,_|\__|\__|_|\___\___| \_|    \___/ \____/\____/
+                                                               )";
+    
+    cout << R"(
+                                 _
+                                 ( `.
+                   _,--------.__  ))\`.
+               _,-"   ,::::.    `(( (  \___
+             ,'      .:::::'      \`-\ |   `-.
+           ,'     ___                         \
+          /     -'   `-.               .    ;; \
+         :::          : \    :         ~)       )-._
+         ;::          :: |   .      .  :       /::._)
+        ( `:          ;  :  /: .    (  :__ .,~/_.-'
+        /__ :        .__/_ (:' ,--.  `./o `.|'
+       ((_\`.    `:.      `-.._    `.__`._o )
+        `-'  `""`.____,-.___/`_\______ """"`.
+                            `-`       `-. ,\_\
+                                         `-')";
+
+    cout << endl << endl;
     
 /*------------------- Pre-equilibration 1: mu calibration --------------------*/
     
@@ -116,7 +143,7 @@ int main(){
 //    sweeps_pre=10000000;
     sweeps_pre*=(beta*M);
     
-    cout << "Pre-equilibration (1/2): Determining mu..." << endl << endl;
+    cout << "Stage (1/4): Determining mu..." << endl << endl;
     
     // Iterate until particle distribution P(N) is peaked at target N
     while (true){
@@ -342,7 +369,7 @@ int main(){
     
 /*------------------ Pre-equilibration 2: eta calibration --------------------*/
     
-    cout << "Pre-equilibration (2/2): Determining eta..." << endl << endl;
+    cout << "Stage (2/4): Determining eta..." << endl << endl;
     cout << setw(16) <<"eta";
     cout << "| Z-fraction (%)" << endl;
     cout << "--------------------------------"<<endl;
@@ -553,7 +580,7 @@ int main(){
     measurement_attempts=0;
     
     sweeps *= (beta*M);
-    cout << endl << "Equilibration started..." << endl << endl;
+    cout << endl << "Stage (3/4): Equilibrating..." << endl << endl;
     for (unsigned long long int m=0; m < sweeps; m++){
         label = updates(rng);
         
@@ -825,7 +852,7 @@ int main(){
         if (m%(sweep*measurement_frequency)==0 && m>=sweeps*(20/100)){
             
             if (m==sweeps*(20/100)){
-                cout << "Lattice PIGS started... " << endl << endl;
+                cout << "Stage (4/4): Main Monte Carlo loop..." << endl;
             }
             
             measurement_attempts+=1;
