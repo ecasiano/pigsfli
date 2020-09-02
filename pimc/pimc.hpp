@@ -972,7 +972,8 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         
         // Reconnect the lower,upper bounds of the flat interval.
         kinks_vector[prev].next = next;
-        kinks_vector[next].prev = prev;
+        if (next!=-1)
+            kinks_vector[next].prev = prev;
 
         // Deactivate the worm end
         if (delete_head){
@@ -1938,7 +1939,7 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         if (next_i==-1){last_kinks[i]=prev_i;}
 
         // Stage 2: Delete worm head on j
-        if (kinks_vector[num_kinks-1].next!=-2)
+        if (kinks_vector[num_kinks-2].next!=-1)
             kinks_vector[kinks_vector[num_kinks-2].next].prev = head_idx;
         kinks_vector[kinks_vector[num_kinks-2].prev].next = head_idx;
 
@@ -2664,7 +2665,7 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         if (next_i==-1){last_kinks[i]=prev_i;}
 
         // Stage 2: Delete worm tail on j
-        if (kinks_vector[num_kinks-1].next!=-2)
+        if (kinks_vector[num_kinks-2].next!=-1)
             kinks_vector[kinks_vector[num_kinks-2].next].prev = tail_idx;
         kinks_vector[kinks_vector[num_kinks-2].prev].next = tail_idx;
         
@@ -2697,7 +2698,7 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         if (next_j==-1){last_kinks[j]=kink_idx_j;}
                 
         // Stage 3: Delete kink on j
-        if (kinks_vector[num_kinks-1].next!=-3)
+        if (kinks_vector[num_kinks-3].next!=-1)
             kinks_vector[kinks_vector[num_kinks-3].next].prev = kink_idx_j;
         kinks_vector[kinks_vector[num_kinks-3].prev].next = kink_idx_j;
         
@@ -3025,7 +3026,7 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         if (next_i==-1){last_kinks[i]=prev_i;}
 
         // Stage 2: Delete kink on j
-        if (kinks_vector[num_kinks-1].next!=-2)
+        if (kinks_vector[num_kinks-2].next!=-1)
             kinks_vector[kinks_vector[num_kinks-2].next].prev = kink_idx_j;
         kinks_vector[kinks_vector[num_kinks-2].prev].next = kink_idx_j;
         
@@ -3058,7 +3059,7 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         if (next_j==-1){last_kinks[j]=tail_idx;}
         
         // Stage 3: Delete worm head on j
-        if (kinks_vector[num_kinks-3].next!=-3)
+        if (kinks_vector[num_kinks-3].next!=-1)
             kinks_vector[kinks_vector[num_kinks-3].next].prev = tail_idx;
         kinks_vector[kinks_vector[num_kinks-3].prev].next = tail_idx;
         

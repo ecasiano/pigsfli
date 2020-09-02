@@ -23,7 +23,8 @@ int main(){
     // Simulation parameters
     double eta = 0.1449, beta = 1.0;
     bool canonical = true;
-    unsigned long long int sweeps=10000000,sweep=M*beta;
+    unsigned long long int sweeps=10000000,sweep=M*beta,
+    sweeps_pre=2000000;
     int label; // random update label;
     
     // Adjacency matrix
@@ -99,14 +100,14 @@ int main(){
 /*------------------- Pre-equilibration 1: mu calibration --------------------*/
     
     double mu_initial,N_hist_sum,P_N_peak,mu_right,mu_left;
-    unsigned long long int sweeps_pre;
+//    unsigned long long int sweeps_pre;
     bool N_target_in_bins;
     vector<int> N_data,N_hist,N_bins;
     vector<double> P_N;
     int N_min,N_max,peak_idx,N_idx;
     
     mu_initial=mu;
-    sweeps_pre=10000000;
+//    sweeps_pre=10000000;
     sweeps_pre*=(beta*M);
     
     cout << "Pre-equilibration (1/2): Determining mu..." << endl;
