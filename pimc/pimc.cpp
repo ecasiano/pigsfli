@@ -25,8 +25,8 @@ int main(){
     // Simulation parameters
     double eta = 0.1449, beta = 1.0;
     bool canonical = true;
-    unsigned long long int sweeps=1000000,sweep=M*beta,
-    sweeps_pre=1000000;
+    unsigned long long int sweeps=1600000000,sweep=M*beta,
+    sweeps_pre=10000000;
     int label; // random update label;
     
     // Adjacency matrix
@@ -80,9 +80,9 @@ int main(){
     unsigned long long int  dkat_attempts=0,dkat_accepts=0;
     
     // Observables
-    double N_sum=0;
-    double measurement_center=beta/2,measurement_plus_minus=0.1*beta;
-    int measurement_frequency=1;
+    double N_sum=0.0;
+    double measurement_center=beta/2.0,measurement_plus_minus=0.1;
+    int measurement_frequency=20;
     vector<int> fock_state_at_slice (M,0);
     
     // Non-observables
@@ -520,7 +520,7 @@ int main(){
                 }
               
               // Measure the total number of particles
-              if (m%(sweep*measurement_frequency)==0 && m>0.20*sweeps){
+              if (m%(sweep*measurement_frequency)==0 && m>0.20*sweeps_pre){
                   measurement_attempts+=1;
                   if (head_idx==-1 and tail_idx==-1){Z_frac += 1;}
               }
@@ -532,10 +532,10 @@ int main(){
 
           
           // Modify eta if necessary
-          if (Z_frac > 0.30 &&
-              Z_frac < 0.40){break;}
+          if (Z_frac > 0.08 &&
+              Z_frac < 0.14){break;}
           else{
-              if (Z_frac < 0.30){eta *= 0.5;}
+              if (Z_frac < 0.08){eta *= 0.5;}
               else{eta *= 1.5;}
           }
       }

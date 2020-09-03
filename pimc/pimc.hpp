@@ -342,7 +342,7 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
     
     // Calculate the difference in diagonal energy dV = \epsilon_w - \epsilon
-    dV = (U/2)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
     // Build the Metropolis ratio (R)
     p_dw = 0.5;
@@ -495,7 +495,7 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
         
     // Calculate the difference in diagonal energy dV = \epsilon_w - \epsilon
-    dV = (U/2)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
     // Build the Metropolis ratio (R)
     p_dw = 1.0;
@@ -680,7 +680,7 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     }
     
     // Calculate the diagonal energy difference dV = \epsilon_w - \epsilon
-    dV = (U/2)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
     // deleteZero (reverse update) might've had to choose either head or tail
     if (head_idx==-1 and tail_idx==-1) // only one end after insertZero
@@ -911,7 +911,7 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
         
     // Calculate diagonal energy difference
-    dV = (U/2)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
     // Determine the number of total bosons before the worm/anti was inserted
     if (delete_head)   // delete worm
@@ -1095,7 +1095,7 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     }
     
     // Calculate the diagonal energy difference dV = \epsilon_w - \epsilon
-    dV = (U/2)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
     // deleteBeta (reverse update) might've had to choose either head or tail
     if (head_idx==-1 and tail_idx==-1) // only one end after insertZero
@@ -1316,7 +1316,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
     
     // Calculate diagonal energy difference
-    dV = (U/2)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
     // Determine the number of total bosons before the worm/anti was inserted
     if (delete_head)     // delete antiworm
@@ -3140,12 +3140,12 @@ void get_fock_state(double measurement_center, int M,
 double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
                             double U, double mu){
     
-    double diagonal_energy=0;
+    double diagonal_energy=0.0;
     int n_i;
     
     for (int i=0; i<M; i++){
         n_i = fock_state_at_slice[i];
-        diagonal_energy += (U/2*n_i*(n_i-1)-mu*n_i);
+        diagonal_energy += (U/2.0*n_i*(n_i-1)-mu*n_i);
     }
     return diagonal_energy;
 }
