@@ -17,16 +17,16 @@ int main(){
     boost::random::uniform_int_distribution<> updates(0, 14);
     
     // Bose-Hubbard parameters
-    int L = 3, D = 2, M = pow(L,D), N=M;
-    double t = 1.0, U = 1.0, mu = -5.33715;
+    int L = 4, D = 1, M = pow(L,D), N=M;
+    double t = 1.0, U = 1.0, mu = -1.63596;
     vector<int> alpha;
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.1449, beta = 1.0;
+    double eta = 1.0, beta = 1.1;
     bool canonical = true;
-    unsigned long long int sweeps=1600000000,sweep=M*beta,
-    sweeps_pre=10000000;
+    unsigned long long int sweeps=10000000,sweep=M*beta,
+    sweeps_pre=1000000;
     int label; // random update label;
     
     // Adjacency matrix
@@ -41,6 +41,7 @@ int main(){
     int head_idx = -1, tail_idx = -1;
     int N_zero=N, N_beta=N;
     vector<int> last_kinks (M,-1);
+    bool not_equilibrated=true;
     
     // Attempt/Acceptance counters
     unsigned long long int  insert_worm_attempts=0,insert_worm_accepts=0;
@@ -81,8 +82,8 @@ int main(){
     
     // Observables
     double N_sum=0.0;
-    double measurement_center=beta/2.0,measurement_plus_minus=0.1;
-    int measurement_frequency=20;
+    double measurement_center=beta/2.0,measurement_plus_minus=0.25*beta;
+    int measurement_frequency=40;
     vector<int> fock_state_at_slice (M,0);
     
     // Non-observables
@@ -289,7 +290,7 @@ int main(){
             
             // Measure the total number of particles
             if (head_idx==-1 && tail_idx==-1 &&
-            m%(sweep*measurement_frequency)==0 && m>0.20*sweeps_pre){
+            m%(sweep*measurement_frequency)==0 && m>=0.25*sweeps_pre){
                 N_data.push_back(N_beta);
             }
         }
@@ -520,7 +521,7 @@ int main(){
                 }
               
               // Measure the total number of particles
-              if (m%(sweep*measurement_frequency)==0 && m>0.20*sweeps_pre){
+              if (m%(sweep*measurement_frequency)==0 && m>=0.25*sweeps_pre){
                   measurement_attempts+=1;
                   if (head_idx==-1 and tail_idx==-1){Z_frac += 1;}
               }
@@ -532,10 +533,10 @@ int main(){
 
           
           // Modify eta if necessary
-          if (Z_frac > 0.08 &&
-              Z_frac < 0.14){break;}
+          if (Z_frac > 0.13 &&
+              Z_frac < 0.17){break;}
           else{
-              if (Z_frac < 0.08){eta *= 0.5;}
+              if (Z_frac < 0.17){eta *= 0.5;}
               else{eta *= 1.5;}
           }
       }
@@ -849,9 +850,10 @@ int main(){
         
 /*----------------------------- Measurements ---------------------------------*/
 
-        if (m%(sweep*measurement_frequency)==0 && m>=sweeps*(20/100)){
+        if (m%(sweep*measurement_frequency)==0 && m>=sweeps*0.25){
             
-            if (m==sweeps*(20/100)){
+            if (not_equilibrated){
+                not_equilibrated=false;
                 cout << "Stage (4/4): Main Monte Carlo loop..." << endl;
             }
             
@@ -885,19 +887,6 @@ int main(){
 /*--------------------------------- FIN --------------------------------------*/
 
     cout << endl << "-------- Detailed Balance --------" << endl;
-//    // Print out the head and tail indices
-//    cout << "head_idx: " << head_idx << endl;
-//    cout << "tail_idx: " << tail_idx << endl;
-//
-//    // Print out the N_tracker
-//    cout << "N_tracker: " << N_tracker << endl;
-//
-//    // Print out number of particles at path ends
-//    cout << "N_zero: " << N_zero << endl;
-//    cout << "N_beta: " << N_beta << endl;
-//
-//    // Print out number of active kinks
-//    cout << "num_kinks: " << num_kinks << endl;
 
     cout<< endl << "Insert Worm: "<<insert_worm_accepts<<"/"<<
                                     insert_worm_attempts<<endl;
@@ -970,25 +959,9 @@ int main(){
     << "/" << measurement_attempts << ")" << endl;
     
     cout << endl << "<N>: " << (N_sum)/Z_ctr << endl;
-//````    cout << "<E>: " << (kinetic_energy+diagonal_energy)/Z_ctr+mu*N << endl;
-//    cout << "<K>: " << kinetic_energy/Z_ctr << endl;
-//    cout << "<V>: " << diagonal_energy/Z_ctr + mu*N << endl;````
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
 
-//    cout << endl;
-//    cout << "Total neighbors: " << total_nn << endl << endl;
-    
-    
-//    for (int i=0; i<num_kinks;i++){
-//        cout << kinks_vector[i] << endl;
-//    }
-//    cout << endl;
-//
-//    kinks_vector=create_kinks_vector(alpha,M);
-//    for (int i=0; i<num_kinks;i++){
-//        cout << kinks_vector[i] << endl;
-//    }
     return 0;
 }
 

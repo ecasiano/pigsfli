@@ -329,7 +329,7 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     }
     
     // Reject update if illegal worm insertion is proposed
-    if (n == 0 && !(is_worm)){return;}
+    if (n == 0 && !(is_worm)){insert_anti_attempts-=1;return;}
     if (tau_h == tau_prev || tau_t == tau_prev){return;}
     if (tau_h == tau_t){return;}
     
@@ -540,12 +540,12 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         kinks_vector[low_end].next = next;
         
         // Deactivate the worm end
-        kinks_vector[num_kinks-1].tau = -1.0;
-        kinks_vector[num_kinks-1].n = -1;
-        kinks_vector[num_kinks-1].src = -1;
-        kinks_vector[num_kinks-1].dest = -1;
-        kinks_vector[num_kinks-1].prev = -1;
-        kinks_vector[num_kinks-1].next = -1;
+//        kinks_vector[num_kinks-1].tau = -1.0;
+//        kinks_vector[num_kinks-1].n = -1;
+//        kinks_vector[num_kinks-1].src = -1;
+//        kinks_vector[num_kinks-1].dest = -1;
+//        kinks_vector[num_kinks-1].prev = -1;
+//        kinks_vector[num_kinks-1].next = -1;
         
         if (next==-1){last_kinks[src]=low_end;}
 
@@ -570,12 +570,12 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             kinks_vector[next].prev = prev;
         kinks_vector[prev].next = next;
         
-        kinks_vector[num_kinks-1].tau = -1.0;
-        kinks_vector[num_kinks-1].n = -1;
-        kinks_vector[num_kinks-1].src = -1;
-        kinks_vector[num_kinks-1].dest = -1;
-        kinks_vector[num_kinks-1].prev = -1;
-        kinks_vector[num_kinks-1].next = -1;
+//        kinks_vector[num_kinks-1].tau = -1.0;
+//        kinks_vector[num_kinks-1].n = -1;
+//        kinks_vector[num_kinks-1].src = -1;
+//        kinks_vector[num_kinks-1].dest = -1;
+//        kinks_vector[num_kinks-1].prev = -1;
+//        kinks_vector[num_kinks-1].next = -1;
         
         if (next==-1){last_kinks[src]=prev;}
 
@@ -719,15 +719,13 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     N_b = N_zero;
     
     // Build the weight ratio W'/W
-    // C = 1.0;
+     C = 1.0;
     if (is_worm){
-        C = sqrt(N_b+1)/sqrt(n+1);
-//        C=1.0;
+//        C = sqrt(N_b+1)/sqrt(n+1);
         W = eta * sqrt(n_tail) * C * exp(-dV*tau_new);
     }
     else{
-        C = sqrt(n)/sqrt(N_b);
-//        C=1.0;
+//        C = sqrt(n)/sqrt(N_b);
         W = eta * sqrt(n_tail) * C * exp(dV*tau_new);
     }
     
@@ -920,15 +918,13 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         N_b = N_zero+1;
     
     // Build the weigh ratio W'/W
-    // C = 1.0;
+     C = 1.0;
     if (delete_head){ // delete worm
-        C = sqrt(N_b+1)/sqrt(n+1);
-//        C=1.0;
+//        C = sqrt(N_b+1)/sqrt(n+1);
         W = eta * sqrt(n_tail) * C * exp(-dV*tau);
     }
     else{ // delete antiworm
-        C = sqrt(n)/sqrt(N_b);
-//        C=1.0;
+//        C = sqrt(n)/sqrt(N_b);
         W = eta * sqrt(n_tail) * C * exp(dV*tau);
     }
     
@@ -995,13 +991,13 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             N_zero += 1;
         }
         
-        // Deactivate the deleted kink
-        kinks_vector[num_kinks-1].tau = -1.0;
-        kinks_vector[num_kinks-1].n = -1;
-        kinks_vector[num_kinks-1].src = -1;
-        kinks_vector[num_kinks-1].dest = -1;
-        kinks_vector[num_kinks-1].prev = -1;
-        kinks_vector[num_kinks-1].next = -1;
+//        // Deactivate the deleted kink
+//        kinks_vector[num_kinks-1].tau = -1.0;
+//        kinks_vector[num_kinks-1].n = -1;
+//        kinks_vector[num_kinks-1].src = -1;
+//        kinks_vector[num_kinks-1].dest = -1;
+//        kinks_vector[num_kinks-1].prev = -1;
+//        kinks_vector[num_kinks-1].next = -1;
         
         // Update trackers for: num of active kinks, total particles
         num_kinks -= 1;
@@ -1134,15 +1130,13 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     N_b = N_beta;
     
     // Build the weight ratio W'/W
-    // C = 1.0; // C_pre/C_post
+     C = 1.0; // C_pre/C_post
     if (is_worm){
-        C = sqrt(N_b+1)/sqrt(n+1);
-//        C=1.0;
+//        C = sqrt(N_b+1)/sqrt(n+1);
         W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau_new));
     }
     else{
-        C = sqrt(n)/sqrt(N_b);
-//        C=1.0;
+//        C = sqrt(n)/sqrt(N_b);
         W = eta * sqrt(n_tail) * C * exp(-dV*(tau_new-beta));
     }
     
@@ -1325,15 +1319,13 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         N_b = N_beta-1;
     
     // Build the weigh ratio W'/W
-    // C = 1.0;
+    C = 1.0;
     if (!delete_head){ // delete worm
-        C = sqrt(N_b+1)/sqrt(n);
-//        C=1.0;
+//        C = sqrt(N_b+1)/sqrt(n);
         W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau));
     }
     else{ // delete antiworm
-        C = sqrt(n+1)/sqrt(N_b);
-//        C=1.0;
+//        C = sqrt(n+1)/sqrt(N_b);
         W = eta * sqrt(n_tail) * C * exp(-dV*(tau-beta));
     }
     
@@ -1397,13 +1389,13 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             N_beta -= 1;
         }
         
-        // Deactivate the deleted kink
-        kinks_vector[num_kinks-1].tau = -1.0;
-        kinks_vector[num_kinks-1].n = -1;
-        kinks_vector[num_kinks-1].src = -1;
-        kinks_vector[num_kinks-1].dest = -1;
-        kinks_vector[num_kinks-1].prev = -1;
-        kinks_vector[num_kinks-1].next = -1;
+//        // Deactivate the deleted kink
+//        kinks_vector[num_kinks-1].tau = -1.0;
+//        kinks_vector[num_kinks-1].n = -1;
+//        kinks_vector[num_kinks-1].src = -1;
+//        kinks_vector[num_kinks-1].dest = -1;
+//        kinks_vector[num_kinks-1].prev = -1;
+//        kinks_vector[num_kinks-1].next = -1;
         
         // Update trackers for: num of active kinks, total particles
         num_kinks -= 1;
@@ -1929,12 +1921,12 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_i].prev = prev_i;
         kinks_vector[prev_i].next = next_i;
 
-        kinks_vector[num_kinks-1].tau = -1.0;
-        kinks_vector[num_kinks-1].n = -1;
-        kinks_vector[num_kinks-1].src = -1;
-        kinks_vector[num_kinks-1].dest = -1;
-        kinks_vector[num_kinks-1].prev = -1;
-        kinks_vector[num_kinks-1].next = -1;
+//        kinks_vector[num_kinks-1].tau = -1.0;
+//        kinks_vector[num_kinks-1].n = -1;
+//        kinks_vector[num_kinks-1].src = -1;
+//        kinks_vector[num_kinks-1].dest = -1;
+//        kinks_vector[num_kinks-1].prev = -1;
+//        kinks_vector[num_kinks-1].next = -1;
 
         if (next_i==-1){last_kinks[i]=prev_i;}
 
@@ -1962,12 +1954,12 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = kink_idx_j;
         kinks_vector[kink_idx_j].next = next_j;
 
-        kinks_vector[num_kinks-2].tau = -1.0;
-        kinks_vector[num_kinks-2].n = -1;
-        kinks_vector[num_kinks-2].src = -1;
-        kinks_vector[num_kinks-2].dest = -1;
-        kinks_vector[num_kinks-2].prev = -1;
-        kinks_vector[num_kinks-2].next = -1;
+//        kinks_vector[num_kinks-2].tau = -1.0;
+//        kinks_vector[num_kinks-2].n = -1;
+//        kinks_vector[num_kinks-2].src = -1;
+//        kinks_vector[num_kinks-2].dest = -1;
+//        kinks_vector[num_kinks-2].prev = -1;
+//        kinks_vector[num_kinks-2].next = -1;
 
         if (next_j==-1){last_kinks[j]=kink_idx_j;}
 
@@ -1994,12 +1986,12 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = prev_j;
         kinks_vector[prev_j].next = next_j;
 
-        kinks_vector[num_kinks-3].tau = -1.0;
-        kinks_vector[num_kinks-3].n = -1;
-        kinks_vector[num_kinks-3].src = -1;
-        kinks_vector[num_kinks-3].dest = -1;
-        kinks_vector[num_kinks-3].prev = -1;
-        kinks_vector[num_kinks-3].next = -1;
+//        kinks_vector[num_kinks-3].tau = -1.0;
+//        kinks_vector[num_kinks-3].n = -1;
+//        kinks_vector[num_kinks-3].src = -1;
+//        kinks_vector[num_kinks-3].dest = -1;
+//        kinks_vector[num_kinks-3].prev = -1;
+//        kinks_vector[num_kinks-3].next = -1;
 
         if (next_j==-1){last_kinks[j]=prev_j;}
 
@@ -2293,12 +2285,12 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_i].prev = prev_i;
         kinks_vector[prev_i].next = next_i;
         
-        kinks_vector[num_kinks-1].tau = -1.0;
-        kinks_vector[num_kinks-1].n = -1;
-        kinks_vector[num_kinks-1].src = -1;
-        kinks_vector[num_kinks-1].dest = -1;
-        kinks_vector[num_kinks-1].prev = -1;
-        kinks_vector[num_kinks-1].next = -1;
+//        kinks_vector[num_kinks-1].tau = -1.0;
+//        kinks_vector[num_kinks-1].n = -1;
+//        kinks_vector[num_kinks-1].src = -1;
+//        kinks_vector[num_kinks-1].dest = -1;
+//        kinks_vector[num_kinks-1].prev = -1;
+//        kinks_vector[num_kinks-1].next = -1;
         
         if (next_i==-1){last_kinks[i]=prev_i;}
 
@@ -2326,12 +2318,12 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = head_idx;
         kinks_vector[head_idx].next = next_j;
         
-        kinks_vector[num_kinks-2].tau = -1.0;
-        kinks_vector[num_kinks-2].n = -1;
-        kinks_vector[num_kinks-2].src = -1;
-        kinks_vector[num_kinks-2].dest = -1;
-        kinks_vector[num_kinks-2].prev = -1;
-        kinks_vector[num_kinks-2].next = -1;
+//        kinks_vector[num_kinks-2].tau = -1.0;
+//        kinks_vector[num_kinks-2].n = -1;
+//        kinks_vector[num_kinks-2].src = -1;
+//        kinks_vector[num_kinks-2].dest = -1;
+//        kinks_vector[num_kinks-2].prev = -1;
+//        kinks_vector[num_kinks-2].next = -1;
         
         if (next_j==-1){last_kinks[j]=head_idx;}
         
@@ -2358,12 +2350,12 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = prev_j;
         kinks_vector[prev_j].next = next_j;
         
-        kinks_vector[num_kinks-3].tau = -1.0;
-        kinks_vector[num_kinks-3].n = -1;
-        kinks_vector[num_kinks-3].src = -1;
-        kinks_vector[num_kinks-3].dest = -1;
-        kinks_vector[num_kinks-3].prev = -1;
-        kinks_vector[num_kinks-3].next = -1;
+//        kinks_vector[num_kinks-3].tau = -1.0;
+//        kinks_vector[num_kinks-3].n = -1;
+//        kinks_vector[num_kinks-3].src = -1;
+//        kinks_vector[num_kinks-3].dest = -1;
+//        kinks_vector[num_kinks-3].prev = -1;
+//        kinks_vector[num_kinks-3].next = -1;
         
         if (next_j==-1){last_kinks[j]=prev_j;}
         
@@ -2655,12 +2647,12 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_i].prev = prev_i;
         kinks_vector[prev_i].next = next_i;
         
-        kinks_vector[num_kinks-1].tau = -1.0;
-        kinks_vector[num_kinks-1].n = -1;
-        kinks_vector[num_kinks-1].src = -1;
-        kinks_vector[num_kinks-1].dest = -1;
-        kinks_vector[num_kinks-1].prev = -1;
-        kinks_vector[num_kinks-1].next = -1;
+//        kinks_vector[num_kinks-1].tau = -1.0;
+//        kinks_vector[num_kinks-1].n = -1;
+//        kinks_vector[num_kinks-1].src = -1;
+//        kinks_vector[num_kinks-1].dest = -1;
+//        kinks_vector[num_kinks-1].prev = -1;
+//        kinks_vector[num_kinks-1].next = -1;
         
         if (next_i==-1){last_kinks[i]=prev_i;}
 
@@ -2688,12 +2680,12 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = kink_idx_j;
         kinks_vector[kink_idx_j].next = next_j;
         
-        kinks_vector[num_kinks-2].tau = -1.0;
-        kinks_vector[num_kinks-2].n = -1;
-        kinks_vector[num_kinks-2].src = -1;
-        kinks_vector[num_kinks-2].dest = -1;
-        kinks_vector[num_kinks-2].prev = -1;
-        kinks_vector[num_kinks-2].next = -1;
+//        kinks_vector[num_kinks-2].tau = -1.0;
+//        kinks_vector[num_kinks-2].n = -1;
+//        kinks_vector[num_kinks-2].src = -1;
+//        kinks_vector[num_kinks-2].dest = -1;
+//        kinks_vector[num_kinks-2].prev = -1;
+//        kinks_vector[num_kinks-2].next = -1;
         
         if (next_j==-1){last_kinks[j]=kink_idx_j;}
                 
@@ -2720,12 +2712,12 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = prev_j;
         kinks_vector[prev_j].next = next_j;
         
-        kinks_vector[num_kinks-3].tau = -1.0;
-        kinks_vector[num_kinks-3].n = -1;
-        kinks_vector[num_kinks-3].src = -1;
-        kinks_vector[num_kinks-3].dest = -1;
-        kinks_vector[num_kinks-3].prev = -1;
-        kinks_vector[num_kinks-3].next = -1;
+//        kinks_vector[num_kinks-3].tau = -1.0;
+//        kinks_vector[num_kinks-3].n = -1;
+//        kinks_vector[num_kinks-3].src = -1;
+//        kinks_vector[num_kinks-3].dest = -1;
+//        kinks_vector[num_kinks-3].prev = -1;
+//        kinks_vector[num_kinks-3].next = -1;
         
         if (next_j==-1){last_kinks[j]=prev_j;}
 
@@ -3016,12 +3008,12 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_i].prev = prev_i;
         kinks_vector[prev_i].next = next_i;
         
-        kinks_vector[num_kinks-1].tau = -1.0;
-        kinks_vector[num_kinks-1].n = -1;
-        kinks_vector[num_kinks-1].src = -1;
-        kinks_vector[num_kinks-1].dest = -1;
-        kinks_vector[num_kinks-1].prev = -1;
-        kinks_vector[num_kinks-1].next = -1;
+//        kinks_vector[num_kinks-1].tau = -1.0;
+//        kinks_vector[num_kinks-1].n = -1;
+//        kinks_vector[num_kinks-1].src = -1;
+//        kinks_vector[num_kinks-1].dest = -1;
+//        kinks_vector[num_kinks-1].prev = -1;
+//        kinks_vector[num_kinks-1].next = -1;
         
         if (next_i==-1){last_kinks[i]=prev_i;}
 
@@ -3049,12 +3041,12 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = tail_idx;
         kinks_vector[tail_idx].next = next_j;
         
-        kinks_vector[num_kinks-2].tau = -1.0;
-        kinks_vector[num_kinks-2].n = -1;
-        kinks_vector[num_kinks-2].src = -1;
-        kinks_vector[num_kinks-2].dest = -1;
-        kinks_vector[num_kinks-2].prev = -1;
-        kinks_vector[num_kinks-2].next = -1;
+//        kinks_vector[num_kinks-2].tau = -1.0;
+//        kinks_vector[num_kinks-2].n = -1;
+//        kinks_vector[num_kinks-2].src = -1;
+//        kinks_vector[num_kinks-2].dest = -1;
+//        kinks_vector[num_kinks-2].prev = -1;
+//        kinks_vector[num_kinks-2].next = -1;
         
         if (next_j==-1){last_kinks[j]=tail_idx;}
         
@@ -3081,12 +3073,12 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = prev_j;
         kinks_vector[prev_j].next = next_j;
         
-        kinks_vector[num_kinks-3].tau = -1.0;
-        kinks_vector[num_kinks-3].n = -1;
-        kinks_vector[num_kinks-3].src = -1;
-        kinks_vector[num_kinks-3].dest = -1;
-        kinks_vector[num_kinks-3].prev = -1;
-        kinks_vector[num_kinks-3].next = -1;
+//        kinks_vector[num_kinks-3].tau = -1.0;
+//        kinks_vector[num_kinks-3].n = -1;
+//        kinks_vector[num_kinks-3].src = -1;
+//        kinks_vector[num_kinks-3].dest = -1;
+//        kinks_vector[num_kinks-3].prev = -1;
+//        kinks_vector[num_kinks-3].next = -1;
         
         if (next_j==-1){last_kinks[j]=prev_j;}
         
@@ -3140,9 +3132,10 @@ void get_fock_state(double measurement_center, int M,
 double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
                             double U, double mu){
     
-    double diagonal_energy=0.0;
+    double diagonal_energy;
     int n_i;
     
+    diagonal_energy=0.0;
     for (int i=0; i<M; i++){
         n_i = fock_state_at_slice[i];
         diagonal_energy += (U/2.0*n_i*(n_i-1)-mu*n_i);
@@ -3153,7 +3146,7 @@ double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
 /*------------------------------ Off-Diagonal --------------------------------*/
 
 
-double pimc_kinetic_energy(vector<Kink> &kinks_vector, int &num_kinks,
+double pimc_kinetic_energy(vector<Kink> &kinks_vector, int num_kinks,
                       double measurement_center,double measurement_plus_minus,
                       int M, double t, double beta){
     
