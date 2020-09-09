@@ -23,10 +23,10 @@ int main(){
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 1.0, beta = 1.1;
+    double eta = 0.12345, beta = 0.5;
     bool canonical = true;
     unsigned long long int sweeps=100000000,sweep=M*beta,
-    sweeps_pre=1000000;
+    sweeps_pre=10000000;
     int label; // random update label;
     
     // Adjacency matrix
@@ -142,7 +142,8 @@ int main(){
     
     mu_initial=mu;
 //    sweeps_pre=10000000;
-    sweeps_pre*=(beta*M);
+    if (beta>=1.0){sweeps_pre*=(beta*M);}
+    else {sweeps_pre*=M;sweep=M;}
     
     cout << "Stage (1/4): Determining mu..." << endl << endl;
     
@@ -582,7 +583,9 @@ int main(){
     Z_frac=0.0;
     measurement_attempts=0;
     
-    sweeps *= (beta*M);
+    if (beta>1.0){sweeps*=(beta*M);}
+    else {sweeps*=M;}
+    
     cout << endl << "Stage (3/4): Equilibrating..." << endl << endl;
     for (unsigned long long int m=0; m < sweeps; m++){
         label = updates(rng);
