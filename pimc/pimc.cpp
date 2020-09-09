@@ -17,15 +17,15 @@ int main(){
     boost::random::uniform_int_distribution<> updates(0, 14);
     
     // Bose-Hubbard parameters
-    int L = 2, D = 1, M = pow(L,D), N=M;
+    int L = 3, D = 1, M = pow(L,D), N=M;
     double t = 1.0, U = 1.0, mu = -1.63596;
     vector<int> initial_fock_state;
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.12345, beta = 0.1;
+    double eta = 0.5, beta = 0.1;
     bool canonical = true;
-    unsigned long long int sweeps=100000000,sweep=M*beta,
+    unsigned long long int sweeps=100000000,sweep,
     sweeps_pre=10000000;
     int label; // random update label;
     
@@ -142,7 +142,7 @@ int main(){
     
     mu_initial=mu;
 //    sweeps_pre=10000000;
-    if (beta>=1.0){sweeps_pre*=(beta*M);}
+    if (beta>=1.0){sweeps_pre*=(beta*M);sweep=beta*M;}
     else {sweeps_pre*=M;sweep=M;}
     
     cout << "Stage (1/4): Determining mu..." << endl << endl;
@@ -958,7 +958,7 @@ int main(){
     auto elapsed_time = duration_cast<nanoseconds>(end - start);
     double duration = elapsed_time.count() * 1e-9;
     
-    cout << endl << "sweeps: " << sweeps/(M*beta) << endl;
+    cout << endl << "sweeps: " << sweeps/(sweep) << endl;
     cout << "Z_ctr: " << Z_ctr << endl;
     cout << "Z_frac: " << Z_ctr*100.0/measurement_attempts << "% (" << Z_ctr
     << "/" << measurement_attempts << ")" << endl;
