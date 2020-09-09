@@ -19,11 +19,11 @@ int main(){
     // Bose-Hubbard parameters
     int L = 2, D = 1, M = pow(L,D), N=M;
     double t = 1.0, U = 1.0, mu = -1.63596;
-    vector<int> alpha;
+    vector<int> initial_fock_state;
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.12345, beta = 0.5;
+    double eta = 0.12345, beta = 0.1;
     bool canonical = true;
     unsigned long long int sweeps=100000000,sweep=M*beta,
     sweeps_pre=10000000;
@@ -94,7 +94,7 @@ int main(){
     ofstream kinetic_energy_file,diagonal_energy_file,total_energy_file;
         
     // Generate a random fock state
-    alpha = random_boson_config(M,N);
+    initial_fock_state = random_boson_config(M,N);
 
     // Generate the data structure (vector of kinks)
     vector<Kink> kinks_vector;
@@ -153,7 +153,7 @@ int main(){
         if (!canonical){break;}
         
         // Restart the data structure and trackers
-        kinks_vector=create_kinks_vector(alpha,M);
+        kinks_vector=create_kinks_vector(initial_fock_state,M);
         for (int i=0;i<M;i++){last_kinks[i] = i;}
         num_kinks=M;
         N_tracker=N*1.0;
@@ -384,7 +384,7 @@ int main(){
           if (!canonical){break;}
           
           // Restart the data structure and trackers
-          kinks_vector=create_kinks_vector(alpha,M);
+          kinks_vector=create_kinks_vector(initial_fock_state,M);
           for (int i=0;i<M;i++){last_kinks[i] = i;}
           num_kinks=M;
           N_tracker=N*1.0;
@@ -571,7 +571,7 @@ int main(){
     auto start = high_resolution_clock::now();
     
     // Restart the data structure and trackers
-    kinks_vector=create_kinks_vector(alpha,M);
+    kinks_vector=create_kinks_vector(initial_fock_state,M);
     for (int i=0; i<M; i++){last_kinks[i] = i;}
     num_kinks=M;
     N_tracker=N*1.0;
