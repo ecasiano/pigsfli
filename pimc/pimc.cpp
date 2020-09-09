@@ -17,7 +17,7 @@ int main(){
     boost::random::uniform_int_distribution<> updates(0, 14);
     
     // Bose-Hubbard parameters
-    int L = 4, D = 1, M = pow(L,D), N=M;
+    int L = 2, D = 1, M = pow(L,D), N=M;
     double t = 1.0, U = 1.0, mu = -1.63596;
     vector<int> alpha;
     string boundary_condition = "pbc";
@@ -25,7 +25,7 @@ int main(){
     // Simulation parameters
     double eta = 1.0, beta = 1.1;
     bool canonical = true;
-    unsigned long long int sweeps=10000000,sweep=M*beta,
+    unsigned long long int sweeps=100000000,sweep=M*beta,
     sweeps_pre=1000000;
     int label; // random update label;
     
@@ -110,25 +110,25 @@ int main(){
  \_____/\__,_|\__|\__|_|\___\___| \_|    \___/ \____/\____/
                                                                )";
     
-    cout << R"(
-                                 _
-                                ( `.
-                  _,--------.__  ))\`.
-              _,-"   ,::::.    `(( (  \___
-            ,'      .:::::'      \`-\ |   `-.
-          ,'     ___                         \
-         /     -'   `-.               .    ;; \
-        :::          : \    :         ~)       )-._
-        ;::          :: |   .      .  :       /::._)
-       ( `:          ;  :  /: .    (  :__ .,~/_.-'
-       /__ :        .__/_ (:' ,--.  `./o `.|'
-      ((_\`.    `:.      `-.._    `.__`._o )
- -hrr- `-'  `""`.____,-.___/`_\______ """"`.
-                           `-`       `-. ,\_\
-                                        `-')";
-
+//    cout << R"(
+//                                 _
+//                                ( `.
+//                  _,--------.__  ))\`.
+//              _,-"   ,::::.    `(( (  \___
+//            ,'      .:::::'      \`-\ |   `-.
+//          ,'     ___                         \
+//         /     -'   `-.               .    ;; \
+//        :::          : \    :         ~)       )-._
+//        ;::          :: |   .      .  :       /::._)
+//       ( `:          ;  :  /: .    (  :__ .,~/_.-'
+//       /__ :        .__/_ (:' ,--.  `./o `.|'
+//      ((_\`.    `:.      `-.._    `.__`._o )
+// -hrr- `-'  `""`.____,-.___/`_\______ """"`.
+//                           `-`       `-. ,\_\
+//                                        `-')";
+//
     cout << endl << endl;
-    
+
 /*------------------- Pre-equilibration 1: mu calibration --------------------*/
     
     double mu_initial,N_hist_sum,P_N_peak,mu_right,mu_left;
@@ -292,6 +292,8 @@ int main(){
             if (head_idx==-1 && tail_idx==-1 &&
             m%(sweep*measurement_frequency)==0 && m>=0.25*sweeps_pre){
                 N_data.push_back(N_beta);
+                // If we did not collect data, decrease eta and try again.
+                if (m>=0.99*sweeps_pre&&N_data.size()<5){eta*=0.5;break;}
             }
         }
                 
