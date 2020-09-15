@@ -17,15 +17,15 @@ int main(){
     boost::random::uniform_int_distribution<> updates(0, 14);
     
     // Bose-Hubbard parameters
-    int L = 3, D = 1, M = pow(L,D), N=M;
-    double t = 1.0, U = 1.0, mu = -1.63596;
+    int L = 3, D = 2, M = pow(L,D), N=M;
+    double t = 1.0, U = 1.0, mu = -3.63596;
     vector<int> initial_fock_state;
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.5, beta = 0.1;
+    double eta = 0.5, beta = 1.0;
     bool canonical = true;
-    unsigned long long int sweeps=100000000,sweep,
+    unsigned long long int sweeps=10000000,sweep,
     sweeps_pre=10000000;
     int label; // random update label;
     
@@ -81,10 +81,14 @@ int main(){
     unsigned long long int  dkat_attempts=0,dkat_accepts=0;
     
     // Observables
-    double N_sum=0.0;
-    double measurement_center=beta/2.0,measurement_plus_minus=0.25*beta;
-    int measurement_frequency=40;
+    double N_sum=0.0,diagonal_energy=0.0,kinetic_energy=0.0;
+    
+    // Measurement settings
+    double measurement_center=beta/2.0,measurement_plus_minus=0.10*beta;
+    int measurement_frequency=1,bin_size=50,bin_ctr=0;
     vector<int> fock_state_at_slice (M,0);
+    int num_slices=40;
+    vector<double> tau_slices=get_tau_slices(beta,num_slices);
     
     // Non-observables
     unsigned long long int Z_ctr=0,measurement_attempts=0;
@@ -139,11 +143,13 @@ int main(){
     int N_min,N_max,peak_idx,N_idx;
     unsigned long long int  dummy_counter=0;
 
-    
     mu_initial=mu;
-//    sweeps_pre=10000000;
-    if (beta>=1.0){sweeps_pre*=(beta*M);sweep=beta*M;}
-    else {sweeps_pre*=M;sweep=M;}
+    
+    if (beta>=1.0){sweeps_pre*=(beta*M);}
+    else {sweeps_pre*=M;}
+    
+    sweep=beta*M;
+    if (sweep==0){sweep=1;}
     
     cout << "Stage (1/4): Determining mu..." << endl << endl;
     
@@ -292,6 +298,7 @@ int main(){
             // Measure the total number of particles
             if (head_idx==-1 && tail_idx==-1 &&
             m%(sweep*measurement_frequency)==0 && m>=0.25*sweeps_pre){
+//                cout << "lol" << endl;
                 N_data.push_back(N_beta);
                 // If we did not collect data, decrease eta and try again.
                 if (m>=0.99*sweeps_pre&&N_data.size()<5){eta*=0.5;break;}
@@ -583,7 +590,7 @@ int main(){
     Z_frac=0.0;
     measurement_attempts=0;
     
-    if (beta>1.0){sweeps*=(beta*M);}
+    if (beta>=1.0){sweeps*=(beta*M);}
     else {sweeps*=M;}
     
     cout << endl << "Stage (3/4): Equilibrating..." << endl << endl;
@@ -872,14 +879,25 @@ int main(){
                 // Get fock state at desired measurement center
                 get_fock_state(measurement_center,M,fock_state_at_slice,
                                kinks_vector);
-                
-                // Measure <K>
-                kinetic_energy_file<<pimc_kinetic_energy(kinks_vector,num_kinks,
-                measurement_center,measurement_plus_minus,M,t,beta)<<endl;
-
-                // Measure <V>
-                diagonal_energy_file<<pimc_diagonal_energy(fock_state_at_slice,
-                                                            M,U,mu)<<endl;
+                    
+                // Measure and accumulate <K>
+                kinetic_energy+=pimc_kinetic_energy(kinks_vector,num_kinks,
+                            measurement_center,measurement_plus_minus,M,t,beta);
+                    
+                // Measure and accumulate <V>
+                diagonal_energy+=pimc_diagonal_energy(fock_state_at_slice,
+                                                      M,U,mu);
+                    
+                bin_ctr+=1;
+                // Take binned averages and write to disk
+                if (bin_ctr==bin_size){
+                    kinetic_energy_file<<kinetic_energy/bin_size<<endl;
+                    diagonal_energy_file<<diagonal_energy/bin_size<<endl;
+                    
+                    bin_ctr=0;
+                    kinetic_energy=0.0;
+                    diagonal_energy=0.0;
+                    }
                 }
             }
         }
@@ -958,7 +976,8 @@ int main(){
     auto elapsed_time = duration_cast<nanoseconds>(end - start);
     double duration = elapsed_time.count() * 1e-9;
     
-    cout << endl << "sweeps: " << sweeps/(sweep) << endl;
+    cout << endl << "beta: " << beta << endl;
+    cout << endl << "sweeps: " << sweeps/(beta*M) << endl;
     cout << "Z_ctr: " << Z_ctr << endl;
     cout << "Z_frac: " << Z_ctr*100.0/measurement_attempts << "% (" << Z_ctr
     << "/" << measurement_attempts << ")" << endl;
@@ -968,5 +987,6 @@ int main(){
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
 
     return 0;
+    
 }
 
