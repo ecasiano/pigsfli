@@ -3181,37 +3181,36 @@ double pimc_kinetic_energy(vector<Kink> &kinks_vector, int num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-//
-//vector<double> tau_resolved_kinetic_energy(vector<Kink> &kinks_vector,
-//                                           int num_kinks, int M,
-//                                           double t, double beta,
-//                                           vector<double> &tau_slices){
-//    vector<double> tr_kinetic_energy,measurement_centers;
-//    int kinks_in_window;
-//    double tau,measurement_center,tau_spacing;
-//
-//    for (int i=1; j<tau_slices.size()-1; i+=2){
-//        measurement_centers[i] = tau_slices[]
-//    }
-//    for (int i=0;i<(tau_slices.size()-1)/2;i++){tr_kinetic_energy[i]=0;}
-//
-//    tau_spacing=tau_slices[1]-tau_slices[0];
-//    for (int i=0; i<num_kinks; i++){
-//        tau = kinks_vector[i].tau;
-//
-//        for (int j=1; j<tau_slices.size()-1; j+=2){
-//            measurement_center=tau_slices[j];
-//
-//            if (tau>=measurement_center-tau_spacing &&
-//                tau<measurement_center+tau_spacing){
-//                // add kink to bin
-//            }
-//
-//        }
-//    }
-//
-//    return;
-//}
+
+vector<double> tau_resolved_kinetic_energy(vector<Kink> &kinks_vector,
+                                           int num_kinks, int M,
+                                           double t, double beta,
+                                           vector<double> &measurement_centers){
+    vector<double> tr_kinetic_energy;
+    double tau,measurement_center,window_width;
+
+    for (int i=0;i<measurement_centers.size();i++){
+        tr_kinetic_energy.push_back(0.0);
+    }
+
+    window_width = measurement_centers[2]-measurement_centers[1];
+    
+    for (int i=0; i<num_kinks; i++){
+        tau = kinks_vector[i].tau;
+
+        for (int j=0; j<measurement_centers.size(); j++){
+            measurement_center=measurement_centers[j];
+
+            if (tau>=measurement_center-window_width/2.0 &&
+                tau<measurement_center+window_width/2.0){
+                // add kink to bin
+                tr_kinetic_energy[j]+=(-1.0/(2.0*window_width));
+            }
+        }
+    }
+    
+    return tr_kinetic_energy;
+}
 /*----------------------------------------------------------------------------*/
 
 #endif /* pimc_hpp */
