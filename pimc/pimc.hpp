@@ -3134,8 +3134,8 @@ vector<double> get_tau_slices(double beta,int num_slices){
     
     tau_slice=0;
     for (int i=0; i<num_slices; i++){
-        tau_slice+=(beta/num_slices);
         tau_slices.push_back(tau_slice);
+        tau_slice+=(beta/(num_slices-1));
     }
     return tau_slices;
 }
