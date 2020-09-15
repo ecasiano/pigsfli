@@ -3127,17 +3127,21 @@ void get_fock_state(double measurement_center, int M,
     return;
 }
 
-vector<double> get_tau_slices(double beta,int num_slices){
+/*----------------------------------------------------------------------------*/
+
+vector<double> get_measurement_centers(double beta){
     
-    double tau_slice;
-    vector<double> tau_slices;
+    double tau_center;
+    vector<double> measurement_centers;
+    int num_centers;
     
-    tau_slice=0;
-    for (int i=0; i<num_slices; i++){
-        tau_slices.push_back(tau_slice);
-        tau_slice+=(beta/(num_slices-1));
+    num_centers=25; // use odd number please.
+    tau_center=beta/(2*num_centers);
+    for (int i=0; i<num_centers; i++){
+        measurement_centers.push_back(tau_center);
+        tau_center+=(beta/(num_centers));
     }
-    return tau_slices;
+    return measurement_centers;
 }
 
 /*-------------------------------- Diagonal ----------------------------------*/
@@ -3175,12 +3179,38 @@ double pimc_kinetic_energy(vector<Kink> &kinks_vector, int num_kinks,
     return (-t*kinks_in_window/2.0)/(2.0*measurement_plus_minus);
 }
 
+/*----------------------------------------------------------------------------*/
+
+//
 //vector<double> tau_resolved_kinetic_energy(vector<Kink> &kinks_vector,
 //                                           int num_kinks, int M,
 //                                           double t, double beta,
-//                                           vector<double> &tau_slices,
-//                                           vector<double> &tr_kinetic_energy){
+//                                           vector<double> &tau_slices){
+//    vector<double> tr_kinetic_energy,measurement_centers;
+//    int kinks_in_window;
+//    double tau,measurement_center,tau_spacing;
 //
+//    for (int i=1; j<tau_slices.size()-1; i+=2){
+//        measurement_centers[i] = tau_slices[]
+//    }
+//    for (int i=0;i<(tau_slices.size()-1)/2;i++){tr_kinetic_energy[i]=0;}
+//
+//    tau_spacing=tau_slices[1]-tau_slices[0];
+//    for (int i=0; i<num_kinks; i++){
+//        tau = kinks_vector[i].tau;
+//
+//        for (int j=1; j<tau_slices.size()-1; j+=2){
+//            measurement_center=tau_slices[j];
+//
+//            if (tau>=measurement_center-tau_spacing &&
+//                tau<measurement_center+tau_spacing){
+//                // add kink to bin
+//            }
+//
+//        }
+//    }
+//
+//    return;
 //}
 /*----------------------------------------------------------------------------*/
 

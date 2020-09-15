@@ -87,13 +87,12 @@ int main(){
     double measurement_center=beta/2.0,measurement_plus_minus=0.10*beta;
     int measurement_frequency=1,bin_size=50,bin_ctr=0;
     vector<int> fock_state_at_slice (M,0);
-    int num_slices=51;
-    vector<double> tau_slices=get_tau_slices(beta,num_slices);
+    vector<double> measurement_centers=get_measurement_centers(beta*5);
     
-//    for (int i=0;i<num_slices;i++){
-//        cout << tau_slices[i] << " ";
-//    }
-//    cout << endl;
+    for (int i=0;i<measurement_centers.size();i++){
+        cout << measurement_centers[i] << " ";
+    }
+    cout << endl;
     
     // Non-observables
     unsigned long long int Z_ctr=0,measurement_attempts=0;
