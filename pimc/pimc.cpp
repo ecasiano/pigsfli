@@ -23,10 +23,10 @@ int main(){
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.5, beta = 1.0;
+    double eta = 0.5, beta = 2.0;
     bool canonical = true;
-    unsigned long long int sweeps=10000000,sweep,
-    sweeps_pre=10000000;
+    unsigned long long int sweeps=1000000,sweep,
+    sweeps_pre=100000;
     int label; // random update label;
     
     // Adjacency matrix
@@ -82,12 +82,13 @@ int main(){
     
     // Observables
     double N_sum=0.0,diagonal_energy=0.0,kinetic_energy=0.0;
+    vector<double> tr_kinetic_energy;
     
     // Measurement settings
     double measurement_center=beta/2.0,measurement_plus_minus=0.10*beta;
     int measurement_frequency=1,bin_size=50,bin_ctr=0;
     vector<int> fock_state_at_slice (M,0);
-    vector<double> measurement_centers=get_measurement_centers(beta*5);
+    vector<double> measurement_centers=get_measurement_centers(beta);
     
     for (int i=0;i<measurement_centers.size();i++){
         cout << measurement_centers[i] << " ";
@@ -891,6 +892,16 @@ int main(){
                 // Measure and accumulate <V>
                 diagonal_energy+=pimc_diagonal_energy(fock_state_at_slice,
                                                       M,U,mu);
+                    
+                tr_kinetic_energy=tau_resolved_kinetic_energy(kinks_vector,
+                                                              num_kinks,M,t,
+                                                              beta,
+                                                           measurement_centers);
+                    
+                    for (int g=0; g<tr_kinetic_energy.size(); g++){
+                        cout << tr_kinetic_energy[g] << " ";
+                    }
+                    cout << endl;
                     
                 bin_ctr+=1;
                 // Take binned averages and write to disk
