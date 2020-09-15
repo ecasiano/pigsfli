@@ -23,10 +23,10 @@ int main(){
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.5, beta = 2.0;
+    double eta = 0.079, beta = 3.0;
     bool canonical = true;
-    unsigned long long int sweeps=1000000,sweep,
-    sweeps_pre=100000;
+    unsigned long long int sweeps=1000000000,sweep,
+    sweeps_pre=10000000;
     int label; // random update label;
     
     // Adjacency matrix
@@ -100,7 +100,8 @@ int main(){
     double Z_frac;
     
     // Declare data files
-    ofstream kinetic_energy_file,diagonal_energy_file,total_energy_file;
+    ofstream kinetic_energy_file,diagonal_energy_file,total_energy_file,
+    tr_kinetic_energy_file,tr_diagonal_energy_file;
         
     // Generate a random fock state
     initial_fock_state = random_boson_config(M,N);
@@ -577,6 +578,16 @@ int main(){
        exit(1);
     }
     
+    tr_kinetic_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
+                             to_string(U)+"_"+to_string(mu)+"_"+
+                             to_string(t)+"_"+to_string(beta)+"_"+
+                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+                             "can"+"_tauResolvedK.dat",fstream::out);
+    if( !tr_kinetic_energy_file ) { // file couldn't be opened
+       cerr << "Error: tr kinetic energy file could not be opened" << endl;
+       exit(1);
+    }
+    
 /*---------------------------- Monte Carlo -----------------------------------*/
     
     // Time main function execution
@@ -597,6 +608,10 @@ int main(){
     
     if (beta>=1.0){sweeps*=(beta*M);}
     else {sweeps*=M;}
+    
+    for (int i=0;i<measurement_centers.size();i++){
+        tr_kinetic_energy.push_back(0.0);
+    }
     
     cout << endl << "Stage (3/4): Equilibrating..." << endl << endl;
     for (unsigned long long int m=0; m < sweeps; m++){
@@ -893,15 +908,9 @@ int main(){
                 diagonal_energy+=pimc_diagonal_energy(fock_state_at_slice,
                                                       M,U,mu);
                     
-                tr_kinetic_energy=tau_resolved_kinetic_energy(kinks_vector,
-                                                              num_kinks,M,t,
-                                                              beta,
-                                                           measurement_centers);
-                    
-                    for (int g=0; g<tr_kinetic_energy.size(); g++){
-                        cout << tr_kinetic_energy[g] << " ";
-                    }
-                    cout << endl;
+                tau_resolved_kinetic_energy(kinks_vector,num_kinks,M,t,beta,
+                                            measurement_centers,
+                                            tr_kinetic_energy);
                     
                 bin_ctr+=1;
                 // Take binned averages and write to disk
@@ -909,9 +918,19 @@ int main(){
                     kinetic_energy_file<<kinetic_energy/bin_size<<endl;
                     diagonal_energy_file<<diagonal_energy/bin_size<<endl;
                     
+                    // Save tau resolved estimators
+                    for (int i=0; i<measurement_centers.size(); i++){
+                        tr_kinetic_energy_file<< setw(7) << left <<
+                        tr_kinetic_energy[i]/bin_size << " ";
+                    }
+                    tr_kinetic_energy_file<<endl;
+                    
+                    
                     bin_ctr=0;
                     kinetic_energy=0.0;
                     diagonal_energy=0.0;
+                    std::fill(tr_kinetic_energy.begin(),
+                              tr_kinetic_energy.end(),0);
                     }
                 }
             }
@@ -921,6 +940,7 @@ int main(){
     // Close data files
     kinetic_energy_file.close();
     diagonal_energy_file.close();
+    tr_kinetic_energy_file.close();
 
 /*--------------------------------- FIN --------------------------------------*/
 
