@@ -3127,6 +3127,19 @@ void get_fock_state(double measurement_center, int M,
     return;
 }
 
+vector<double> get_tau_slices(double beta,int num_slices){
+    
+    double tau_slice;
+    vector<double> tau_slices;
+    
+    tau_slice=0;
+    for (int i=0; i<num_slices; i++){
+        tau_slice+=(beta/num_slices);
+        tau_slices.push_back(tau_slice);
+    }
+    return tau_slices;
+}
+
 /*-------------------------------- Diagonal ----------------------------------*/
 
 double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
@@ -3162,6 +3175,13 @@ double pimc_kinetic_energy(vector<Kink> &kinks_vector, int num_kinks,
     return (-t*kinks_in_window/2.0)/(2.0*measurement_plus_minus);
 }
 
+//vector<double> tau_resolved_kinetic_energy(vector<Kink> &kinks_vector,
+//                                           int num_kinks, int M,
+//                                           double t, double beta,
+//                                           vector<double> &tau_slices,
+//                                           vector<double> &tr_kinetic_energy){
+//
+//}
 /*----------------------------------------------------------------------------*/
 
 #endif /* pimc_hpp */
