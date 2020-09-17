@@ -18,15 +18,15 @@ int main(){
     
     // Bose-Hubbard parameters
     int L = 3, D = 2, M = pow(L,D), N=M;
-    double t = 1.0, U = 1.0, mu = -3.63596;
+    double t = 1.0, U = 1.0, mu = -2.63596;
     vector<int> initial_fock_state;
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.079, beta = 3.0;
+    double eta = 0.079, beta = 1.0;
     bool canonical = true;
-    unsigned long long int sweeps=1000000000,sweep,
-    sweeps_pre=10000000;
+    unsigned long long int sweeps=100000000,sweep,
+    sweeps_pre=1000000;
     int label; // random update label;
     
     // Adjacency matrix
@@ -82,7 +82,7 @@ int main(){
     
     // Observables
     double N_sum=0.0,diagonal_energy=0.0,kinetic_energy=0.0;
-    vector<double> tr_kinetic_energy;
+    vector<double> tr_kinetic_energy,tr_diagonal_energy;
     
     // Measurement settings
     double measurement_center=beta/2.0,measurement_plus_minus=0.10*beta;
@@ -191,21 +191,21 @@ int main(){
             
               if (label==0){     // worm_insert
                   insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
-                              M,N,U,mu,t,beta,eta,false,N_tracker,
+                              M,N,U,mu,t,beta,eta,canonical,N_tracker,
                               N_zero,N_beta,last_kinks,
                               dummy_counter,dummy_counter,
                               dummy_counter,dummy_counter);
               }
               else if (label==1){ // worm_delete
                   delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
-                              M,N,U,mu,t,beta,eta,false,N_tracker,
+                              M,N,U,mu,t,beta,eta,canonical,N_tracker,
                               N_zero,N_beta,last_kinks,
                               dummy_counter,dummy_counter,
                               dummy_counter,dummy_counter);
               }
               else if (label==2){ // insertZero
                   insertZero(kinks_vector,num_kinks,head_idx,tail_idx,
-                             M,N,U,mu,t,beta,eta,false,N_tracker,
+                             M,N,U,mu,t,beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter,
                              dummy_counter,dummy_counter);
@@ -213,28 +213,28 @@ int main(){
               }
               else if (label==3){ // deleteZero
                   deleteZero(kinks_vector,num_kinks,head_idx,tail_idx,
-                             M,N,U,mu,t,beta,eta,false,N_tracker,
+                             M,N,U,mu,t,beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter,
                              dummy_counter,dummy_counter);
               }
               else if (label==4){ // insertBeta
                   insertBeta(kinks_vector,num_kinks,head_idx,tail_idx,
-                             M,N,U,mu,t,beta,eta,false,N_tracker,
+                             M,N,U,mu,t,beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter,
                              dummy_counter,dummy_counter);
               }
               else if (label==5){ // deleteBeta
                   deleteBeta(kinks_vector,num_kinks,head_idx,tail_idx,
-                             M,N,U,mu,t,beta,eta,false,N_tracker,
+                             M,N,U,mu,t,beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter,
                              dummy_counter,dummy_counter);
               }
               else if (label==6){ // timeshift
                   timeshift(kinks_vector,num_kinks,head_idx,tail_idx,
-                             M,N,U,mu,t,beta,eta,false,N_tracker,
+                             M,N,U,mu,t,beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter,
                              dummy_counter,dummy_counter,
@@ -244,56 +244,56 @@ int main(){
               else if (label==7){ // insert kink before head
                   insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,false,N_tracker,
+                             beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter);
               }
               else if (label==8){ // delete kink before head
                   delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,false,N_tracker,
+                             beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter);
               }
               else if (label==9){ // insert kink after head
                   insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,false,N_tracker,
+                             beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter);
               }
               else if (label==10){ // delete kink after head
                   delete_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,false,N_tracker,
+                             beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter);
                       }
               else if (label==11){ // insert kink before tail
                   insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,false,N_tracker,
+                             beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter);
               }
               else if (label==12){ // delete kink before tail
                   delete_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
-                             beta,eta,false,N_tracker,
+                             beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter);
               }
               else if (label==13){ // insert kink after tail
                    insert_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                               M,N,U,mu,t,adjacency_matrix,total_nn,
-                              beta,eta,false,N_tracker,
+                              beta,eta,canonical,N_tracker,
                               N_zero,N_beta,last_kinks,
                               dummy_counter,dummy_counter);
                }
                else if (label==14){ // delete kink after tail
                    delete_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                               M,N,U,mu,t,adjacency_matrix,total_nn,
-                              beta,eta,false,N_tracker,
+                              beta,eta,canonical,N_tracker,
                               N_zero,N_beta,last_kinks,
                               dummy_counter,dummy_counter);
                }
@@ -385,7 +385,7 @@ int main(){
     }
     
 /*------------------ Pre-equilibration 2: eta calibration --------------------*/
-    
+
     cout << "Stage (2/4): Determining eta..." << endl << endl;
     cout << setw(16) <<"eta";
     cout << "| Z-fraction (%)" << endl;
@@ -393,9 +393,9 @@ int main(){
 
     // Iterate until particle distribution P(N) is peaked at target N
       while (true){
-          
+
           if (!canonical){break;}
-          
+
           // Restart the data structure and trackers
           kinks_vector=create_kinks_vector(initial_fock_state,M);
           for (int i=0;i<M;i++){last_kinks[i] = i;}
@@ -406,7 +406,7 @@ int main(){
           N_zero=N;
           N_beta=N;
           dummy_counter=0;
-          
+
           N_data.clear();
           N_hist.clear();
           P_N.clear();
@@ -414,16 +414,16 @@ int main(){
           N_hist_sum=0.0;
           N_min=-1;
           N_max=-1;
-          
+
           Z_frac=0.0;
           measurement_attempts=0;
-          
+
           boost::random::uniform_int_distribution<> updates(0, 14);
-                          
+
           for (unsigned long long int m=0;m<sweeps_pre;m++){
-          
+
                 label = updates(rng);
-              
+
                 if (label==0){     // worm_insert
                     insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
                                 M,N,U,mu,t,beta,eta,canonical,N_tracker,
@@ -444,7 +444,7 @@ int main(){
                                N_zero,N_beta,last_kinks,
                                dummy_counter,dummy_counter,
                                dummy_counter,dummy_counter);
-                    
+
                 }
                 else if (label==3){ // deleteZero
                     deleteZero(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -535,19 +535,19 @@ int main(){
                 else{
                     // lol
                 }
-              
+
               // Measure the total number of particles
               if (m%(sweep*measurement_frequency)==0 && m>=0.25*sweeps_pre){
                   measurement_attempts+=1;
                   if (head_idx==-1 and tail_idx==-1){Z_frac += 1;}
               }
           }
-          
+
           Z_frac/=measurement_attempts;
           cout << setw(16) << eta;
           cout << "| " << Z_frac*100.0 << endl;
 
-          
+
           // Modify eta if necessary
           if (Z_frac > 0.13 &&
               Z_frac < 0.17){break;}
@@ -556,6 +556,7 @@ int main(){
               else{eta *= 1.5;}
           }
       }
+    
 /*---------------------------- Open files ------------------------------------*/
     
     kinetic_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
@@ -588,6 +589,16 @@ int main(){
        exit(1);
     }
     
+    tr_diagonal_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
+                             to_string(U)+"_"+to_string(mu)+"_"+
+                             to_string(t)+"_"+to_string(beta)+"_"+
+                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+                             "can"+"_tauResolvedV.dat",fstream::out);
+    if( !tr_diagonal_energy_file ) { // file couldn't be opened
+       cerr << "Error: tr diagonal energy file could not be opened" << endl;
+       exit(1);
+    }
+    
 /*---------------------------- Monte Carlo -----------------------------------*/
     
     // Time main function execution
@@ -609,8 +620,10 @@ int main(){
     if (beta>=1.0){sweeps*=(beta*M);}
     else {sweeps*=M;}
     
+    // Initialize tau resolved estimators
     for (int i=0;i<measurement_centers.size();i++){
         tr_kinetic_energy.push_back(0.0);
+        tr_diagonal_energy.push_back(0.0);
     }
     
     cout << endl << "Stage (3/4): Equilibrating..." << endl << endl;
@@ -912,6 +925,10 @@ int main(){
                                             measurement_centers,
                                             tr_kinetic_energy);
                     
+                tau_resolved_diagonal_energy(kinks_vector,num_kinks,M,U,mu,beta,
+                                            measurement_centers,
+                                            tr_diagonal_energy);
+                    
                 bin_ctr+=1;
                 // Take binned averages and write to disk
                 if (bin_ctr==bin_size){
@@ -922,15 +939,20 @@ int main(){
                     for (int i=0; i<measurement_centers.size(); i++){
                         tr_kinetic_energy_file<< setw(7) << left <<
                         tr_kinetic_energy[i]/bin_size << " ";
+                        
+                        tr_diagonal_energy_file<< setw(7) << left <<
+                        tr_diagonal_energy[i]/bin_size << " ";
                     }
                     tr_kinetic_energy_file<<endl;
-                    
+                    tr_diagonal_energy_file<<endl;
                     
                     bin_ctr=0;
                     kinetic_energy=0.0;
                     diagonal_energy=0.0;
                     std::fill(tr_kinetic_energy.begin(),
                               tr_kinetic_energy.end(),0);
+                    std::fill(tr_diagonal_energy.begin(),
+                              tr_diagonal_energy.end(),0);
                     }
                 }
             }
@@ -941,6 +963,8 @@ int main(){
     kinetic_energy_file.close();
     diagonal_energy_file.close();
     tr_kinetic_energy_file.close();
+    tr_diagonal_energy_file.close();
+
 
 /*--------------------------------- FIN --------------------------------------*/
 

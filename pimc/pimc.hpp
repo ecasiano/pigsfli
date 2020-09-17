@@ -3121,11 +3121,26 @@ void get_fock_state(double measurement_center, int M,
             
             current=kinks_vector[current].next;
             if (current!=-1)
-            tau=kinks_vector[current].tau;
+                tau=kinks_vector[current].tau;
         }
     }
     return;
 }
+
+/*----------------------------------------------------------------------------*/
+
+//void tau_resolved_fock_state(vector<Kink> &kinks_vector, int M,
+//                             vector<double> &measurement_centers,
+//                             vector<vector<int>> &tr_fock_state){
+//    double tau;
+//    int current,n_i;
+//
+//    for (int i=0; i<measurement_centers.size(); i++){
+//        for (int j=0; j<)
+//    }
+//
+//    return;
+//}
 
 /*----------------------------------------------------------------------------*/
 
@@ -3151,7 +3166,7 @@ double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
     
     double diagonal_energy;
     int n_i;
-    
+        
     diagonal_energy=0.0;
     for (int i=0; i<M; i++){
         n_i = fock_state_at_slice[i];
@@ -3160,8 +3175,37 @@ double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
     return diagonal_energy;
 }
 
-/*------------------------------ Off-Diagonal --------------------------------*/
+/*----------------------------------------------------------------------------*/
 
+void tau_resolved_diagonal_energy(vector<Kink> &kinks_vector,
+                                           int num_kinks, int M,
+                                           double U, double mu, double beta,
+                                           vector<double> &measurement_centers,
+                                           vector<double> &tr_diagonal_energy){
+    double tau,measurement_center;
+    int current,n_i;
+    
+    for (int i=0; i<M; i++){
+        current=i;
+        tau=kinks_vector[current].tau;
+        n_i=kinks_vector[current].n;
+        for (int j=0; j<measurement_centers.size(); j++){
+            measurement_center=measurement_centers[j];
+            while (tau<=measurement_center && current!=-1){
+                n_i=kinks_vector[current].n;
+                
+                current=kinks_vector[current].next;
+                if (current!=-1)
+                    tau=kinks_vector[current].tau;
+            }
+            tr_diagonal_energy[j]+=(U/2.0*n_i*(n_i-1.0)-mu*n_i);
+        }
+    }
+    
+    return;
+}
+
+/*------------------------------ Off-Diagonal --------------------------------*/
 
 double pimc_kinetic_energy(vector<Kink> &kinks_vector, int num_kinks,
                       double measurement_center,double measurement_plus_minus,
@@ -3180,7 +3224,6 @@ double pimc_kinetic_energy(vector<Kink> &kinks_vector, int num_kinks,
 }
 
 /*----------------------------------------------------------------------------*/
-
 
 void tau_resolved_kinetic_energy(vector<Kink> &kinks_vector,
                                            int num_kinks, int M,
