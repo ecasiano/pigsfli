@@ -166,6 +166,11 @@ void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
         if (L<2){
             cout << "ERROR: CODE DOES NOT SUPPORT L<2 AT THE MOMENT" << endl;
         }
+        else if (L==2){
+            adjacency_matrix[site][0]=site_left;
+            if (D>1){adjacency_matrix[site][1]=site_up;}
+            if (D>2){adjacency_matrix[site][2]=site_high;}
+        }
         else{
             adjacency_matrix[site][0]=site_left;
             adjacency_matrix[site][1]=site_right;
@@ -1698,7 +1703,7 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
     j = adjacency_matrix[i][random_nn(rng)];
     p_site = 1.0/total_nn;
-
+    
     // Retrieve the time of the worm head
     tau_h = kinks_vector[head_idx].tau;
     

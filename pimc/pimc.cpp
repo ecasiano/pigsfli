@@ -17,7 +17,7 @@ int main(){
     boost::random::uniform_int_distribution<> updates(0, 14);
     
     // Bose-Hubbard parameters
-    int L = 3, D = 2, M = pow(L,D), N=M;
+    int L = 2, D = 3, M = pow(L,D), N=M;
     double t = 1.0, U = 1.0, mu = -2.63596;
     vector<int> initial_fock_state;
     string boundary_condition = "pbc";
@@ -25,8 +25,8 @@ int main(){
     // Simulation parameters
     double eta = 0.079, beta = 1.0;
     bool canonical = true;
-    unsigned long long int sweeps=100000000,sweep,
-    sweeps_pre=1000000;
+    unsigned long long int sweeps=10000000,sweep,
+    sweeps_pre=10000000;
     int label; // random update label;
     
     // Adjacency matrix
@@ -34,6 +34,14 @@ int main(){
     vector<int> adjacency_matrix_rows (total_nn,0);
     vector<vector<int>> adjacency_matrix (M,adjacency_matrix_rows);
     build_hypercube_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
+   
+    cout << "Adjacency Matrix (compact form): " << endl;
+    for (int i=0; i<M; i++){
+        for (int j=0; j<adjacency_matrix[0].size(); j++){
+            cout << adjacency_matrix[i][j] << " ";
+        }
+        cout << endl;
+    }
     
     // Trackers
     int num_kinks = M;
@@ -86,7 +94,7 @@ int main(){
     
     // Measurement settings
     double measurement_center=beta/2.0,measurement_plus_minus=0.10*beta;
-    int measurement_frequency=1,bin_size=50,bin_ctr=0;
+    int measurement_frequency=1,bin_size=500,bin_ctr=0;
     vector<int> fock_state_at_slice (M,0);
     vector<double> measurement_centers=get_measurement_centers(beta);
     
