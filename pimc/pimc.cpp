@@ -17,31 +17,32 @@ int main(){
     boost::random::uniform_int_distribution<> updates(0, 14);
     
     // Bose-Hubbard parameters
-    int L = 2, D = 3, M = pow(L,D), N=M;
+    int L = 3, D = 2, M = pow(L,D), N=M;
     double t = 1.0, U = 1.0, mu = -2.63596;
     vector<int> initial_fock_state;
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.079, beta = 1.0;
+    double eta = 0.079, beta = 5.0;
     bool canonical = true;
-    unsigned long long int sweeps=10000000,sweep,
+    unsigned long long int sweeps=10000000000,sweep,
     sweeps_pre=10000000;
     int label; // random update label;
     
     // Adjacency matrix
-    int total_nn = count_hypercube_nearest_neighbors(L,D,boundary_condition);
+    int total_nn = D*2; // Perhaps it's better to get total_nn from adj. mat.
     vector<int> adjacency_matrix_rows (total_nn,0);
     vector<vector<int>> adjacency_matrix (M,adjacency_matrix_rows);
     build_hypercube_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
    
     cout << "Adjacency Matrix (compact form): " << endl;
     for (int i=0; i<M; i++){
-        for (int j=0; j<adjacency_matrix[0].size(); j++){
+        for (int j=0; j<total_nn; j++){
             cout << adjacency_matrix[i][j] << " ";
         }
         cout << endl;
     }
+    cout << "total_nn: " << total_nn << endl;
     
     // Trackers
     int num_kinks = M;
@@ -927,29 +928,31 @@ int main(){
                     
                 // Measure and accumulate <V>
                 diagonal_energy+=pimc_diagonal_energy(fock_state_at_slice,
-                                                      M,U,mu);
+                                                      M,canonical,U,mu);
                     
                 tau_resolved_kinetic_energy(kinks_vector,num_kinks,M,t,beta,
                                             measurement_centers,
                                             tr_kinetic_energy);
                     
-                tau_resolved_diagonal_energy(kinks_vector,num_kinks,M,U,mu,beta,
+                tau_resolved_diagonal_energy(kinks_vector,num_kinks,M,canonical,U,mu,beta,
                                             measurement_centers,
                                             tr_diagonal_energy);
                     
                 bin_ctr+=1;
                 // Take binned averages and write to disk
                 if (bin_ctr==bin_size){
-                    kinetic_energy_file<<kinetic_energy/bin_size<<endl;
-                    diagonal_energy_file<<diagonal_energy/bin_size<<endl;
+                    kinetic_energy_file<<setprecision(17)<<
+                    kinetic_energy/bin_size<<endl;
+                    diagonal_energy_file<<setprecision(17)<<
+                    diagonal_energy/bin_size<<endl;
                     
                     // Save tau resolved estimators
                     for (int i=0; i<measurement_centers.size(); i++){
                         tr_kinetic_energy_file<< setw(7) << left <<
-                        tr_kinetic_energy[i]/bin_size << " ";
+                        setprecision(17)<<tr_kinetic_energy[i]/bin_size << " ";
                         
                         tr_diagonal_energy_file<< setw(7) << left <<
-                        tr_diagonal_energy[i]/bin_size << " ";
+                        setprecision(17)<<tr_diagonal_energy[i]/bin_size << " ";
                     }
                     tr_kinetic_energy_file<<endl;
                     tr_diagonal_energy_file<<endl;
