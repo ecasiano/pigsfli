@@ -109,16 +109,6 @@ double norm(vector<double> point){
     return sqrt(squared_sum);
 }
 
-
-/*----------------------------------------------------------------------------*/
-
-int count_hypercube_nearest_neighbors(int L,int D,string boundary_condition){
-    
-    // NOTE: THESE OUTPUTS ARE VALID FOR PERIODIC BOUNDARY CONDITIONS.
-    if (L>2){return D*2;}
-    else {return D;}
-}
-
 /*----------------------------------------------------------------------------*/
 
 void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
@@ -166,11 +156,11 @@ void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
         if (L<2){
             cout << "ERROR: CODE DOES NOT SUPPORT L<2 AT THE MOMENT" << endl;
         }
-        else if (L==2){
-            adjacency_matrix[site][0]=site_left;
-            if (D>1){adjacency_matrix[site][1]=site_up;}
-            if (D>2){adjacency_matrix[site][2]=site_high;}
-        }
+//        else if (L==2){
+//            adjacency_matrix[site][0]=site_left;
+//            if (D>1){adjacency_matrix[site][1]=site_up;}
+//            if (D>2){adjacency_matrix[site][2]=site_high;}
+//        }
         else{
             adjacency_matrix[site][0]=site_left;
             adjacency_matrix[site][1]=site_right;
@@ -3167,7 +3157,7 @@ vector<double> get_measurement_centers(double beta){
 /*-------------------------------- Diagonal ----------------------------------*/
 
 double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
-                            double U, double mu){
+                            bool canonical, double U, double mu){
     
     double diagonal_energy;
     int n_i;
@@ -3175,7 +3165,10 @@ double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
     diagonal_energy=0.0;
     for (int i=0; i<M; i++){
         n_i = fock_state_at_slice[i];
-        diagonal_energy += (U/2.0*n_i*(n_i-1)-mu*n_i);
+        if (canonical)
+            diagonal_energy += (U/2.0*n_i*(n_i-1));
+        else
+            diagonal_energy += (U/2.0*n_i*(n_i-1)-mu*n_i);
     }
     return diagonal_energy;
 }
@@ -3183,7 +3176,7 @@ double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
 /*----------------------------------------------------------------------------*/
 
 void tau_resolved_diagonal_energy(vector<Kink> &kinks_vector,
-                                           int num_kinks, int M,
+                                           int num_kinks, int M, bool canonical,
                                            double U, double mu, double beta,
                                            vector<double> &measurement_centers,
                                            vector<double> &tr_diagonal_energy){
@@ -3203,7 +3196,10 @@ void tau_resolved_diagonal_energy(vector<Kink> &kinks_vector,
                 if (current!=-1)
                     tau=kinks_vector[current].tau;
             }
-            tr_diagonal_energy[j]+=(U/2.0*n_i*(n_i-1.0)-mu*n_i);
+            if (canonical)
+                tr_diagonal_energy[j]+=(U/2.0*n_i*(n_i-1.0));
+            else
+                tr_diagonal_energy[j]+=(U/2.0*n_i*(n_i-1.0)-mu*n_i);
         }
     }
     
