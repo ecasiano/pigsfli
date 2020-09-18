@@ -25,7 +25,7 @@ int main(){
     // Simulation parameters
     double eta = 0.079, beta = 5.0;
     bool canonical = true;
-    unsigned long long int sweeps=10000000000,sweep,
+    unsigned long long int sweeps=20000000000,sweep,
     sweeps_pre=10000000;
     int label; // random update label;
     
@@ -95,7 +95,7 @@ int main(){
     
     // Measurement settings
     double measurement_center=beta/2.0,measurement_plus_minus=0.10*beta;
-    int measurement_frequency=1,bin_size=500,bin_ctr=0;
+    int measurement_frequency=1,bin_size=1000,bin_ctr=0;
     vector<int> fock_state_at_slice (M,0);
     vector<double> measurement_centers=get_measurement_centers(beta);
     
@@ -941,18 +941,18 @@ int main(){
                 bin_ctr+=1;
                 // Take binned averages and write to disk
                 if (bin_ctr==bin_size){
-                    kinetic_energy_file<<setprecision(17)<<
+                    kinetic_energy_file<<fixed<<setprecision(17)<<
                     kinetic_energy/bin_size<<endl;
-                    diagonal_energy_file<<setprecision(17)<<
+                    diagonal_energy_file<<fixed<<setprecision(17)<<
                     diagonal_energy/bin_size<<endl;
                     
                     // Save tau resolved estimators
                     for (int i=0; i<measurement_centers.size(); i++){
-                        tr_kinetic_energy_file<< setw(7) << left <<
-                        setprecision(17)<<tr_kinetic_energy[i]/bin_size << " ";
+                        tr_kinetic_energy_file<<fixed<<setprecision(17)<<
+                        tr_kinetic_energy[i]/bin_size << " ";
                         
-                        tr_diagonal_energy_file<< setw(7) << left <<
-                        setprecision(17)<<tr_diagonal_energy[i]/bin_size << " ";
+                        tr_diagonal_energy_file<<fixed<<setprecision(17)<<
+                        tr_diagonal_energy[i]/bin_size << " ";
                     }
                     tr_kinetic_energy_file<<endl;
                     tr_diagonal_energy_file<<endl;
