@@ -22,8 +22,12 @@
 using namespace std;
 using namespace std::chrono;
 
-// Set the random number generator
-boost::random::mt19937 rng;
+//// Set the random number generator
+//int seed_A=17,seed_B=42;
+//
+//boost::random::mt19937 rng_A(seed_A);
+//boost::random::mt19937 rng_B(seed_B);
+//boost::random::mt19937 rng;
 
 /*--------------------------- Class Definitions ------------------------------*/
 
@@ -64,7 +68,7 @@ ostream& operator<<(ostream& os, const Kink& dt)
 
 /*-------------------------- Function Definitions ----------------------------*/
 
-vector<int> random_boson_config(int M,int N){
+vector<int> random_boson_config(int M,int N,boost::random::mt19937 &rng){
     // Generates random Fock state of N bosons in M=L^D sites
     
     vector<int> alpha (M,0);
@@ -268,7 +272,8 @@ void insert_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  unsigned long long int &insert_worm_attempts,
                  unsigned long long int &insert_worm_accepts,
                  unsigned long long int &insert_anti_attempts,
-                 unsigned long long int &insert_anti_accepts){
+                 unsigned long long int &insert_anti_accepts,
+                 boost::random::mt19937 &rng){
     
     // Variable declarations
     int k,n,src,dest,prev,next,n_head,n_tail;
@@ -407,7 +412,8 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                  unsigned long long int &delete_worm_attempts,
                  unsigned long long int &delete_worm_accepts,
                  unsigned long long int &delete_anti_attempts,
-                 unsigned long long int &delete_anti_accepts){
+                 unsigned long long int &delete_anti_accepts,
+                 boost::random::mt19937 &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail;
@@ -598,7 +604,8 @@ void insertZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 unsigned long long int &insertZero_worm_attempts,
                 unsigned long long int &insertZero_worm_accepts,
                 unsigned long long int &insertZero_anti_attempts,
-                unsigned long long int &insertZero_anti_accepts){
+                unsigned long long int &insertZero_anti_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,i,N_b;
@@ -795,7 +802,8 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteZero_worm_attempts,
                 unsigned long long int &deleteZero_worm_accepts,
                 unsigned long long int &deleteZero_anti_attempts,
-                unsigned long long int &deleteZero_anti_accepts){
+                unsigned long long int &deleteZero_anti_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
@@ -1012,7 +1020,8 @@ void insertBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 unsigned long long int &insertBeta_worm_attempts,
                 unsigned long long int &insertBeta_worm_accepts,
                 unsigned long long int &insertBeta_anti_attempts,
-                unsigned long long int &insertBeta_anti_accepts){
+                unsigned long long int &insertBeta_anti_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,i,N_b;
@@ -1199,7 +1208,8 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteBeta_worm_attempts,
                 unsigned long long int &deleteBeta_worm_accepts,
                 unsigned long long int &deleteBeta_anti_attempts,
-                unsigned long long int &deleteBeta_anti_accepts){
+                unsigned long long int &deleteBeta_anti_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
@@ -1414,7 +1424,8 @@ void timeshift_uniform(vector<Kink> &kinks_vector, int &num_kinks,int &head_idx,
                 unsigned long long int &advance_tail_attempts,
                 unsigned long long int &advance_tail_accepts,
                 unsigned long long int &recede_tail_attempts,
-                unsigned long long int &recede_tail_accepts){
+                unsigned long long int &recede_tail_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,worm_end_idx;
@@ -1546,7 +1557,8 @@ void timeshift(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
                 unsigned long long int &advance_tail_attempts,
                 unsigned long long int &advance_tail_accepts,
                 unsigned long long int &recede_tail_attempts,
-                unsigned long long int &recede_tail_accepts){
+                unsigned long long int &recede_tail_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,worm_end_idx;
@@ -1670,7 +1682,8 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikbh_attempts,
-                unsigned long long int &ikbh_accepts){
+                unsigned long long int &ikbh_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -1796,7 +1809,8 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkbh_attempts,
-                unsigned long long int &dkbh_accepts){
+                unsigned long long int &dkbh_accepts,
+                boost::random::mt19937 &rng){
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2019,7 +2033,8 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikah_attempts,
-                unsigned long long int &ikah_accepts){
+                unsigned long long int &ikah_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -2156,7 +2171,8 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkah_attempts,
-                unsigned long long int &dkah_accepts){
+                unsigned long long int &dkah_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2385,7 +2401,8 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikbt_attempts,
-                unsigned long long int &ikbt_accepts){
+                unsigned long long int &ikbt_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -2522,7 +2539,8 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkbt_attempts,
-                unsigned long long int &dkbt_accepts){
+                unsigned long long int &dkbt_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2745,7 +2763,8 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikat_attempts,
-                unsigned long long int &ikat_accepts){
+                unsigned long long int &ikat_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
@@ -2879,7 +2898,8 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkat_attempts,
-                unsigned long long int &dkat_accepts){
+                unsigned long long int &dkat_accepts,
+                boost::random::mt19937 &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,

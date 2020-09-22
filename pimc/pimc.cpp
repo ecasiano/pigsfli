@@ -11,21 +11,32 @@
 // Main
 int main(){
     
-    // Create a uniform distribution with support: [0.0,1.0)
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    // Initialize a Mersenne Twister RNG for each replica
+    int seed_A=17,seed_B=42;
+    boost::random::mt19937 rng_A(seed_A);
+    boost::random::mt19937 rng_B(seed_B);
+//    vector<boost::random::mt19937> rng_vector;
+//    rng_vector.push_back(rng_A);
+//    rng_vector.push_back(rng_B);
+    boost::random::mt19937 rng;
+    //rng=rng_B;
     
-    boost::random::uniform_int_distribution<> updates(0, 14);
+    // Create a uniform distribution with support: [0.0,1.0)
+    boost::random::uniform_real_distribution<double> rnum(0.0,1.0);
+    
+    // Create integer distribution with support: [0,14]
+    boost::random::uniform_int_distribution<> updates(0,14);
     
     // Bose-Hubbard parameters
-    int L = 3, D = 2, M = pow(L,D), N=M;
+    int L = 2, D = 1, M = pow(L,D), N=M;
     double t = 1.0, U = 1.0, mu = -2.63596;
     vector<int> initial_fock_state;
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.079, beta = 5.0;
+    double eta = 0.1678, beta = 1.0;
     bool canonical = true;
-    unsigned long long int sweeps=20000000000,sweep,
+    unsigned long long int sweeps=1000000000,sweep,
     sweeps_pre=10000000;
     int label; // random update label;
     
@@ -35,14 +46,14 @@ int main(){
     vector<vector<int>> adjacency_matrix (M,adjacency_matrix_rows);
     build_hypercube_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
    
-    cout << "Adjacency Matrix (compact form): " << endl;
-    for (int i=0; i<M; i++){
-        for (int j=0; j<total_nn; j++){
-            cout << adjacency_matrix[i][j] << " ";
-        }
-        cout << endl;
-    }
-    cout << "total_nn: " << total_nn << endl;
+//    cout << "Adjacency Matrix (compact form): " << endl;
+//    for (int i=0; i<M; i++){
+//        for (int j=0; j<total_nn; j++){
+//            cout << adjacency_matrix[i][j] << " ";
+//        }
+//        cout << endl;
+//    }
+//    cout << "total_nn: " << total_nn << endl;
     
     // Trackers
     int num_kinks = M;
@@ -95,14 +106,14 @@ int main(){
     
     // Measurement settings
     double measurement_center=beta/2.0,measurement_plus_minus=0.10*beta;
-    int measurement_frequency=1,bin_size=1000,bin_ctr=0;
+    int measurement_frequency=1,bin_size=5000,bin_ctr=0;
     vector<int> fock_state_at_slice (M,0);
     vector<double> measurement_centers=get_measurement_centers(beta);
     
-    for (int i=0;i<measurement_centers.size();i++){
-        cout << measurement_centers[i] << " ";
-    }
-    cout << endl;
+//    for (int i=0;i<measurement_centers.size();i++){
+//        cout << measurement_centers[i] << " ";
+//    }
+//    cout << endl;
     
     // Non-observables
     unsigned long long int Z_ctr=0,measurement_attempts=0;
@@ -113,7 +124,7 @@ int main(){
     tr_kinetic_energy_file,tr_diagonal_energy_file;
         
     // Generate a random fock state
-    initial_fock_state = random_boson_config(M,N);
+    initial_fock_state = random_boson_config(M,N,rng);
 
     // Generate the data structure (vector of kinks)
     vector<Kink> kinks_vector;
@@ -203,21 +214,21 @@ int main(){
                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
                               N_zero,N_beta,last_kinks,
                               dummy_counter,dummy_counter,
-                              dummy_counter,dummy_counter);
+                              dummy_counter,dummy_counter,rng);
               }
               else if (label==1){ // worm_delete
                   delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
                               N_zero,N_beta,last_kinks,
                               dummy_counter,dummy_counter,
-                              dummy_counter,dummy_counter);
+                              dummy_counter,dummy_counter,rng);
               }
               else if (label==2){ // insertZero
                   insertZero(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter,
-                             dummy_counter,dummy_counter);
+                             dummy_counter,dummy_counter,rng);
                   
               }
               else if (label==3){ // deleteZero
@@ -225,21 +236,21 @@ int main(){
                              M,N,U,mu,t,beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter,
-                             dummy_counter,dummy_counter);
+                             dummy_counter,dummy_counter,rng);
               }
               else if (label==4){ // insertBeta
                   insertBeta(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter,
-                             dummy_counter,dummy_counter);
+                             dummy_counter,dummy_counter,rng);
               }
               else if (label==5){ // deleteBeta
                   deleteBeta(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
                              dummy_counter,dummy_counter,
-                             dummy_counter,dummy_counter);
+                             dummy_counter,dummy_counter,rng);
               }
               else if (label==6){ // timeshift
                   timeshift(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -248,63 +259,63 @@ int main(){
                              dummy_counter,dummy_counter,
                              dummy_counter,dummy_counter,
                              dummy_counter,dummy_counter,
-                             dummy_counter,dummy_counter);
+                             dummy_counter,dummy_counter,rng);
               }
               else if (label==7){ // insert kink before head
                   insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
-                             dummy_counter,dummy_counter);
+                             dummy_counter,dummy_counter,rng);
               }
               else if (label==8){ // delete kink before head
                   delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
-                             dummy_counter,dummy_counter);
+                             dummy_counter,dummy_counter,rng);
               }
               else if (label==9){ // insert kink after head
                   insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
-                             dummy_counter,dummy_counter);
+                             dummy_counter,dummy_counter,rng);
               }
               else if (label==10){ // delete kink after head
                   delete_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
-                             dummy_counter,dummy_counter);
+                             dummy_counter,dummy_counter,rng);
                       }
               else if (label==11){ // insert kink before tail
                   insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
-                             dummy_counter,dummy_counter);
+                             dummy_counter,dummy_counter,rng);
               }
               else if (label==12){ // delete kink before tail
                   delete_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker,
                              N_zero,N_beta,last_kinks,
-                             dummy_counter,dummy_counter);
+                             dummy_counter,dummy_counter,rng);
               }
               else if (label==13){ // insert kink after tail
                    insert_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                               M,N,U,mu,t,adjacency_matrix,total_nn,
                               beta,eta,canonical,N_tracker,
                               N_zero,N_beta,last_kinks,
-                              dummy_counter,dummy_counter);
+                              dummy_counter,dummy_counter,rng);
                }
                else if (label==14){ // delete kink after tail
                    delete_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                               M,N,U,mu,t,adjacency_matrix,total_nn,
                               beta,eta,canonical,N_tracker,
                               N_zero,N_beta,last_kinks,
-                              dummy_counter,dummy_counter);
+                              dummy_counter,dummy_counter,rng);
                }
               else{
                   // lol
@@ -438,21 +449,21 @@ int main(){
                                 M,N,U,mu,t,beta,eta,canonical,N_tracker,
                                 N_zero,N_beta,last_kinks,
                                 dummy_counter,dummy_counter,
-                                dummy_counter,dummy_counter);
+                                dummy_counter,dummy_counter,rng);
                 }
                 else if (label==1){ // worm_delete
                     delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
                                 M,N,U,mu,t,beta,eta,canonical,N_tracker,
                                 N_zero,N_beta,last_kinks,
                                 dummy_counter,dummy_counter,
-                                dummy_counter,dummy_counter);
+                                dummy_counter,dummy_counter,rng);
                 }
                 else if (label==2){ // insertZero
                     insertZero(kinks_vector,num_kinks,head_idx,tail_idx,
                                M,N,U,mu,t,beta,eta,canonical,N_tracker,
                                N_zero,N_beta,last_kinks,
                                dummy_counter,dummy_counter,
-                               dummy_counter,dummy_counter);
+                               dummy_counter,dummy_counter,rng);
 
                 }
                 else if (label==3){ // deleteZero
@@ -460,21 +471,21 @@ int main(){
                                M,N,U,mu,t,beta,eta,canonical,N_tracker,
                                N_zero,N_beta,last_kinks,
                                dummy_counter,dummy_counter,
-                               dummy_counter,dummy_counter);
+                               dummy_counter,dummy_counter,rng);
                 }
                 else if (label==4){ // insertBeta
                     insertBeta(kinks_vector,num_kinks,head_idx,tail_idx,
                                M,N,U,mu,t,beta,eta,canonical,N_tracker,
                                N_zero,N_beta,last_kinks,
                                dummy_counter,dummy_counter,
-                               dummy_counter,dummy_counter);
+                               dummy_counter,dummy_counter,rng);
                 }
                 else if (label==5){ // deleteBeta
                     deleteBeta(kinks_vector,num_kinks,head_idx,tail_idx,
                                M,N,U,mu,t,beta,eta,canonical,N_tracker,
                                N_zero,N_beta,last_kinks,
                                dummy_counter,dummy_counter,
-                               dummy_counter,dummy_counter);
+                               dummy_counter,dummy_counter,rng);
                 }
                 else if (label==6){ // timeshift
                     timeshift(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -483,63 +494,63 @@ int main(){
                                dummy_counter,dummy_counter,
                                dummy_counter,dummy_counter,
                                dummy_counter,dummy_counter,
-                               dummy_counter,dummy_counter);
+                               dummy_counter,dummy_counter,rng);
                 }
                 else if (label==7){ // insert kink before head
                     insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
                                M,N,U,mu,t,adjacency_matrix,total_nn,
                                beta,eta,canonical,N_tracker,
                                N_zero,N_beta,last_kinks,
-                               dummy_counter,dummy_counter);
+                               dummy_counter,dummy_counter,rng);
                 }
                 else if (label==8){ // delete kink before head
                     delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
                                M,N,U,mu,t,adjacency_matrix,total_nn,
                                beta,eta,canonical,N_tracker,
                                N_zero,N_beta,last_kinks,
-                               dummy_counter,dummy_counter);
+                               dummy_counter,dummy_counter,rng);
                 }
                 else if (label==9){ // insert kink after head
                     insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
                                M,N,U,mu,t,adjacency_matrix,total_nn,
                                beta,eta,canonical,N_tracker,
                                N_zero,N_beta,last_kinks,
-                               dummy_counter,dummy_counter);
+                               dummy_counter,dummy_counter,rng);
                 }
                 else if (label==10){ // delete kink after head
                     delete_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
                                M,N,U,mu,t,adjacency_matrix,total_nn,
                                beta,eta,canonical,N_tracker,
                                N_zero,N_beta,last_kinks,
-                               dummy_counter,dummy_counter);
+                               dummy_counter,dummy_counter,rng);
                         }
                 else if (label==11){ // insert kink before tail
                     insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                                M,N,U,mu,t,adjacency_matrix,total_nn,
                                beta,eta,canonical,N_tracker,
                                N_zero,N_beta,last_kinks,
-                               dummy_counter,dummy_counter);
+                               dummy_counter,dummy_counter,rng);
                 }
                 else if (label==12){ // delete kink before tail
                     delete_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                                M,N,U,mu,t,adjacency_matrix,total_nn,
                                beta,eta,canonical,N_tracker,
                                N_zero,N_beta,last_kinks,
-                               dummy_counter,dummy_counter);
+                               dummy_counter,dummy_counter,rng);
                 }
                 else if (label==13){ // insert kink after tail
                      insert_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                                 M,N,U,mu,t,adjacency_matrix,total_nn,
                                 beta,eta,canonical,N_tracker,
                                 N_zero,N_beta,last_kinks,
-                                dummy_counter,dummy_counter);
+                                dummy_counter,dummy_counter,rng);
                  }
                  else if (label==14){ // delete kink after tail
                      delete_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                                 M,N,U,mu,t,adjacency_matrix,total_nn,
                                 beta,eta,canonical,N_tracker,
                                 N_zero,N_beta,last_kinks,
-                                dummy_counter,dummy_counter);
+                                dummy_counter,dummy_counter,rng);
                  }
                 else{
                     // lol
@@ -644,21 +655,21 @@ int main(){
                         M,N,U,mu,t,beta,eta,canonical,N_tracker,
                         N_zero, N_beta, last_kinks,
                         insert_worm_attempts,insert_worm_accepts,
-                        insert_anti_attempts,insert_anti_accepts);
+                        insert_anti_attempts,insert_anti_accepts,rng);
         }
         else if (label==1){ // worm_delete
             delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
                         M,N,U,mu,t,beta,eta,canonical,N_tracker,
                         N_zero, N_beta, last_kinks,
                         delete_worm_attempts,delete_worm_accepts,
-                        delete_anti_attempts,delete_anti_accepts);
+                        delete_anti_attempts,delete_anti_accepts,rng);
         }
         else if (label==2){ // insertZero
             insertZero(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,beta,eta,canonical,N_tracker,
                        N_zero, N_beta, last_kinks,
                        insertZero_worm_attempts,insertZero_worm_accepts,
-                       insertZero_anti_attempts,insertZero_anti_accepts);
+                       insertZero_anti_attempts,insertZero_anti_accepts,rng);
             
         }
         else if (label==3){ // deleteZero
@@ -666,21 +677,21 @@ int main(){
                        M,N,U,mu,t,beta,eta,canonical,N_tracker,
                        N_zero, N_beta, last_kinks,
                        deleteZero_worm_attempts,deleteZero_worm_accepts,
-                       deleteZero_anti_attempts,deleteZero_anti_accepts);
+                       deleteZero_anti_attempts,deleteZero_anti_accepts,rng);
         }
         else if (label==4){ // insertBeta
             insertBeta(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,beta,eta,canonical,N_tracker,
                        N_zero, N_beta, last_kinks,
                        insertBeta_worm_attempts,insertBeta_worm_accepts,
-                       insertBeta_anti_attempts,insertBeta_anti_accepts);
+                       insertBeta_anti_attempts,insertBeta_anti_accepts,rng);
         }
         else if (label==5){ // deleteBeta
             deleteBeta(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,beta,eta,canonical,N_tracker,
                        N_zero, N_beta, last_kinks,
                        deleteBeta_worm_attempts,deleteBeta_worm_accepts,
-                       deleteBeta_anti_attempts,deleteBeta_anti_accepts);
+                       deleteBeta_anti_attempts,deleteBeta_anti_accepts,rng);
         }
         else if (label==6){ // timeshift
             timeshift(kinks_vector,num_kinks,head_idx,tail_idx,
@@ -689,63 +700,63 @@ int main(){
                        advance_head_attempts,advance_head_accepts,
                        recede_head_attempts,recede_head_accepts,
                        advance_tail_attempts,advance_tail_accepts,
-                       recede_tail_attempts,recede_tail_accepts);
+                       recede_tail_attempts,recede_tail_accepts,rng);
         }
         else if (label==7){ // insert kink before head
             insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker,
                        N_zero, N_beta, last_kinks,
-                       ikbh_attempts, ikbh_accepts);
+                       ikbh_attempts,ikbh_accepts,rng);
         }
         else if (label==8){ // delete kink before head
             delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       dkbh_attempts, dkbh_accepts);
+                       N_zero,N_beta,last_kinks,
+                       dkbh_attempts,dkbh_accepts,rng);
         }
         else if (label==9){ // insert kink after head
             insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       ikah_attempts, ikah_accepts);
+                       N_zero,N_beta,last_kinks,
+                       ikah_attempts,ikah_accepts,rng);
         }
         else if (label==10){ // delete kink after head
             delete_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       dkah_attempts, dkah_accepts);
+                       N_zero,N_beta,last_kinks,
+                       dkah_attempts,dkah_accepts,rng);
                 }
         else if (label==11){ // insert kink before tail
             insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       ikbt_attempts, ikbt_accepts);
+                       N_zero,N_beta,last_kinks,
+                       ikbt_attempts,ikbt_accepts,rng);
         }
         else if (label==12){ // delete kink before tail
             delete_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker,
-                       N_zero, N_beta, last_kinks,
-                       dkbt_attempts, dkbt_accepts);
+                       N_zero,N_beta,last_kinks,
+                       dkbt_attempts,dkbt_accepts,rng);
         }
         else if (label==13){ // insert kink after tail
              insert_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                         M,N,U,mu,t,adjacency_matrix,total_nn,
                         beta,eta,canonical,N_tracker,
-                        N_zero, N_beta, last_kinks,
-                        ikat_attempts, ikat_accepts);
+                        N_zero,N_beta,last_kinks,
+                        ikat_attempts,ikat_accepts,rng);
          }
          else if (label==14){ // delete kink after tail
              delete_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
                         M,N,U,mu,t,adjacency_matrix,total_nn,
                         beta,eta,canonical,N_tracker,
-                        N_zero, N_beta, last_kinks,
-                        dkat_attempts, dkat_accepts);
+                        N_zero,N_beta,last_kinks,
+                        dkat_attempts,dkat_accepts,rng);
          }
         else{
             // lol
