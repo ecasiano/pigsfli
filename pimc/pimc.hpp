@@ -22,13 +22,6 @@
 using namespace std;
 using namespace std::chrono;
 
-//// Set the random number generator
-//int seed_A=17,seed_B=42;
-//
-//boost::random::mt19937 rng_A(seed_A);
-//boost::random::mt19937 rng_B(seed_B);
-//boost::random::mt19937 rng;
-
 /*--------------------------- Class Definitions ------------------------------*/
 
 class Kink
@@ -160,11 +153,6 @@ void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
         if (L<2){
             cout << "ERROR: CODE DOES NOT SUPPORT L<2 AT THE MOMENT" << endl;
         }
-//        else if (L==2){
-//            adjacency_matrix[site][0]=site_left;
-//            if (D>1){adjacency_matrix[site][1]=site_up;}
-//            if (D>2){adjacency_matrix[site][2]=site_high;}
-//        }
         else{
             adjacency_matrix[site][0]=site_left;
             adjacency_matrix[site][1]=site_right;
@@ -540,14 +528,6 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             kinks_vector[next].prev = low_end;
         kinks_vector[low_end].next = next;
         
-        // Deactivate the worm end
-//        kinks_vector[num_kinks-1].tau = -1.0;
-//        kinks_vector[num_kinks-1].n = -1;
-//        kinks_vector[num_kinks-1].src = -1;
-//        kinks_vector[num_kinks-1].dest = -1;
-//        kinks_vector[num_kinks-1].prev = -1;
-//        kinks_vector[num_kinks-1].next = -1;
-        
         if (next==-1){last_kinks[src]=low_end;}
 
         // Stage 2: Delete the lower worm end
@@ -570,13 +550,6 @@ void delete_worm(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
         if (next!=-1)
             kinks_vector[next].prev = prev;
         kinks_vector[prev].next = next;
-        
-//        kinks_vector[num_kinks-1].tau = -1.0;
-//        kinks_vector[num_kinks-1].n = -1;
-//        kinks_vector[num_kinks-1].src = -1;
-//        kinks_vector[num_kinks-1].dest = -1;
-//        kinks_vector[num_kinks-1].prev = -1;
-//        kinks_vector[num_kinks-1].next = -1;
         
         if (next==-1){last_kinks[src]=prev;}
 
@@ -994,14 +967,6 @@ void deleteZero(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             N_zero += 1;
         }
         
-//        // Deactivate the deleted kink
-//        kinks_vector[num_kinks-1].tau = -1.0;
-//        kinks_vector[num_kinks-1].n = -1;
-//        kinks_vector[num_kinks-1].src = -1;
-//        kinks_vector[num_kinks-1].dest = -1;
-//        kinks_vector[num_kinks-1].prev = -1;
-//        kinks_vector[num_kinks-1].next = -1;
-        
         // Update trackers for: num of active kinks, total particles
         num_kinks -= 1;
         N_tracker += dN;
@@ -1342,9 +1307,7 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
     
     // Metropolis sampling
     if (rnum(rng) < R){ // accept
-        
-        //
-        
+                
         // num_kinks-1 (last available kink) will be swapped. Modify links to it
         if (kinks_vector[num_kinks-1].next!=-1) // avoids access with -1 index
             kinks_vector[kinks_vector[num_kinks-1].next].prev = worm_end_idx;
@@ -1393,14 +1356,6 @@ void deleteBeta(vector<Kink> &kinks_vector, int &num_kinks, int &head_idx,
             // Worm deleted, subtracts one to tau=beta particle tracker
             N_beta -= 1;
         }
-        
-//        // Deactivate the deleted kink
-//        kinks_vector[num_kinks-1].tau = -1.0;
-//        kinks_vector[num_kinks-1].n = -1;
-//        kinks_vector[num_kinks-1].src = -1;
-//        kinks_vector[num_kinks-1].dest = -1;
-//        kinks_vector[num_kinks-1].prev = -1;
-//        kinks_vector[num_kinks-1].next = -1;
         
         // Update trackers for: num of active kinks, total particles
         num_kinks -= 1;
@@ -1930,13 +1885,6 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_i].prev = prev_i;
         kinks_vector[prev_i].next = next_i;
 
-//        kinks_vector[num_kinks-1].tau = -1.0;
-//        kinks_vector[num_kinks-1].n = -1;
-//        kinks_vector[num_kinks-1].src = -1;
-//        kinks_vector[num_kinks-1].dest = -1;
-//        kinks_vector[num_kinks-1].prev = -1;
-//        kinks_vector[num_kinks-1].next = -1;
-
         if (next_i==-1){last_kinks[i]=prev_i;}
 
         // Stage 2: Delete worm head on j
@@ -1963,13 +1911,6 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = kink_idx_j;
         kinks_vector[kink_idx_j].next = next_j;
 
-//        kinks_vector[num_kinks-2].tau = -1.0;
-//        kinks_vector[num_kinks-2].n = -1;
-//        kinks_vector[num_kinks-2].src = -1;
-//        kinks_vector[num_kinks-2].dest = -1;
-//        kinks_vector[num_kinks-2].prev = -1;
-//        kinks_vector[num_kinks-2].next = -1;
-
         if (next_j==-1){last_kinks[j]=kink_idx_j;}
 
         // Stage 3: Delete kink on j
@@ -1994,13 +1935,6 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         if (next_j!=-1)
             kinks_vector[next_j].prev = prev_j;
         kinks_vector[prev_j].next = next_j;
-
-//        kinks_vector[num_kinks-3].tau = -1.0;
-//        kinks_vector[num_kinks-3].n = -1;
-//        kinks_vector[num_kinks-3].src = -1;
-//        kinks_vector[num_kinks-3].dest = -1;
-//        kinks_vector[num_kinks-3].prev = -1;
-//        kinks_vector[num_kinks-3].next = -1;
 
         if (next_j==-1){last_kinks[j]=prev_j;}
 
@@ -2296,13 +2230,6 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_i].prev = prev_i;
         kinks_vector[prev_i].next = next_i;
         
-//        kinks_vector[num_kinks-1].tau = -1.0;
-//        kinks_vector[num_kinks-1].n = -1;
-//        kinks_vector[num_kinks-1].src = -1;
-//        kinks_vector[num_kinks-1].dest = -1;
-//        kinks_vector[num_kinks-1].prev = -1;
-//        kinks_vector[num_kinks-1].next = -1;
-        
         if (next_i==-1){last_kinks[i]=prev_i;}
 
         // Stage 2: Delete kink on j
@@ -2329,13 +2256,6 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = head_idx;
         kinks_vector[head_idx].next = next_j;
         
-//        kinks_vector[num_kinks-2].tau = -1.0;
-//        kinks_vector[num_kinks-2].n = -1;
-//        kinks_vector[num_kinks-2].src = -1;
-//        kinks_vector[num_kinks-2].dest = -1;
-//        kinks_vector[num_kinks-2].prev = -1;
-//        kinks_vector[num_kinks-2].next = -1;
-        
         if (next_j==-1){last_kinks[j]=head_idx;}
         
         // Stage 3: Delete worm head on j
@@ -2361,13 +2281,6 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = prev_j;
         kinks_vector[prev_j].next = next_j;
         
-//        kinks_vector[num_kinks-3].tau = -1.0;
-//        kinks_vector[num_kinks-3].n = -1;
-//        kinks_vector[num_kinks-3].src = -1;
-//        kinks_vector[num_kinks-3].dest = -1;
-//        kinks_vector[num_kinks-3].prev = -1;
-//        kinks_vector[num_kinks-3].next = -1;
-        
         if (next_j==-1){last_kinks[j]=prev_j;}
         
         // Stage 4: Insert worm head on i
@@ -2382,9 +2295,7 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         
         // Update number of kinks tracker
         num_kinks -= 2;
-        
 
-        
         return;
 
     }
@@ -2660,13 +2571,6 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_i].prev = prev_i;
         kinks_vector[prev_i].next = next_i;
         
-//        kinks_vector[num_kinks-1].tau = -1.0;
-//        kinks_vector[num_kinks-1].n = -1;
-//        kinks_vector[num_kinks-1].src = -1;
-//        kinks_vector[num_kinks-1].dest = -1;
-//        kinks_vector[num_kinks-1].prev = -1;
-//        kinks_vector[num_kinks-1].next = -1;
-        
         if (next_i==-1){last_kinks[i]=prev_i;}
 
         // Stage 2: Delete worm tail on j
@@ -2693,13 +2597,6 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = kink_idx_j;
         kinks_vector[kink_idx_j].next = next_j;
         
-//        kinks_vector[num_kinks-2].tau = -1.0;
-//        kinks_vector[num_kinks-2].n = -1;
-//        kinks_vector[num_kinks-2].src = -1;
-//        kinks_vector[num_kinks-2].dest = -1;
-//        kinks_vector[num_kinks-2].prev = -1;
-//        kinks_vector[num_kinks-2].next = -1;
-        
         if (next_j==-1){last_kinks[j]=kink_idx_j;}
                 
         // Stage 3: Delete kink on j
@@ -2724,13 +2621,6 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         if (next_j!=-1)
             kinks_vector[next_j].prev = prev_j;
         kinks_vector[prev_j].next = next_j;
-        
-//        kinks_vector[num_kinks-3].tau = -1.0;
-//        kinks_vector[num_kinks-3].n = -1;
-//        kinks_vector[num_kinks-3].src = -1;
-//        kinks_vector[num_kinks-3].dest = -1;
-//        kinks_vector[num_kinks-3].prev = -1;
-//        kinks_vector[num_kinks-3].next = -1;
         
         if (next_j==-1){last_kinks[j]=prev_j;}
 
@@ -3023,13 +2913,6 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_i].prev = prev_i;
         kinks_vector[prev_i].next = next_i;
         
-//        kinks_vector[num_kinks-1].tau = -1.0;
-//        kinks_vector[num_kinks-1].n = -1;
-//        kinks_vector[num_kinks-1].src = -1;
-//        kinks_vector[num_kinks-1].dest = -1;
-//        kinks_vector[num_kinks-1].prev = -1;
-//        kinks_vector[num_kinks-1].next = -1;
-        
         if (next_i==-1){last_kinks[i]=prev_i;}
 
         // Stage 2: Delete kink on j
@@ -3056,13 +2939,6 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
             kinks_vector[next_j].prev = tail_idx;
         kinks_vector[tail_idx].next = next_j;
         
-//        kinks_vector[num_kinks-2].tau = -1.0;
-//        kinks_vector[num_kinks-2].n = -1;
-//        kinks_vector[num_kinks-2].src = -1;
-//        kinks_vector[num_kinks-2].dest = -1;
-//        kinks_vector[num_kinks-2].prev = -1;
-//        kinks_vector[num_kinks-2].next = -1;
-        
         if (next_j==-1){last_kinks[j]=tail_idx;}
         
         // Stage 3: Delete worm head on j
@@ -3087,13 +2963,6 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         if (next_j!=-1)
             kinks_vector[next_j].prev = prev_j;
         kinks_vector[prev_j].next = next_j;
-        
-//        kinks_vector[num_kinks-3].tau = -1.0;
-//        kinks_vector[num_kinks-3].n = -1;
-//        kinks_vector[num_kinks-3].src = -1;
-//        kinks_vector[num_kinks-3].dest = -1;
-//        kinks_vector[num_kinks-3].prev = -1;
-//        kinks_vector[num_kinks-3].next = -1;
         
         if (next_j==-1){last_kinks[j]=prev_j;}
         
@@ -3141,21 +3010,6 @@ void get_fock_state(double measurement_center, int M,
     }
     return;
 }
-
-/*----------------------------------------------------------------------------*/
-
-//void tau_resolved_fock_state(vector<Kink> &kinks_vector, int M,
-//                             vector<double> &measurement_centers,
-//                             vector<vector<int>> &tr_fock_state){
-//    double tau;
-//    int current,n_i;
-//
-//    for (int i=0; i<measurement_centers.size(); i++){
-//        for (int j=0; j<)
-//    }
-//
-//    return;
-//}
 
 /*----------------------------------------------------------------------------*/
 
@@ -3269,7 +3123,6 @@ void tau_resolved_kinetic_energy(vector<Kink> &kinks_vector,
             }
         }
     }
-    
     return;
 }
 /*----------------------------------------------------------------------------*/
