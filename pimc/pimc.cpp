@@ -34,10 +34,10 @@ int main(){
     string boundary_condition = "pbc";
     
     // Simulation parameters
-    double eta = 0.1678, beta = 1.0;
+    double eta = 0.1678, beta = 9.0;
     bool canonical = true;
-    unsigned long long int sweeps=1000000000,sweep,
-    sweeps_pre=10000000;
+    unsigned long long int sweeps=100000000,sweep,
+    sweeps_pre=1000000;
     int label; // random update label;
     
     // Adjacency matrix
@@ -45,15 +45,6 @@ int main(){
     vector<int> adjacency_matrix_rows (total_nn,0);
     vector<vector<int>> adjacency_matrix (M,adjacency_matrix_rows);
     build_hypercube_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
-   
-//    cout << "Adjacency Matrix (compact form): " << endl;
-//    for (int i=0; i<M; i++){
-//        for (int j=0; j<total_nn; j++){
-//            cout << adjacency_matrix[i][j] << " ";
-//        }
-//        cout << endl;
-//    }
-//    cout << "total_nn: " << total_nn << endl;
     
     // Trackers
     int num_kinks = M;
@@ -109,11 +100,6 @@ int main(){
     int measurement_frequency=1,bin_size=5000,bin_ctr=0;
     vector<int> fock_state_at_slice (M,0);
     vector<double> measurement_centers=get_measurement_centers(beta);
-    
-//    for (int i=0;i<measurement_centers.size();i++){
-//        cout << measurement_centers[i] << " ";
-//    }
-//    cout << endl;
     
     // Non-observables
     unsigned long long int Z_ctr=0,measurement_attempts=0;
@@ -324,7 +310,6 @@ int main(){
             // Measure the total number of particles
             if (head_idx==-1 && tail_idx==-1 &&
             m%(sweep*measurement_frequency)==0 && m>=0.25*sweeps_pre){
-//                cout << "lol" << endl;
                 N_data.push_back(N_beta);
                 // If we did not collect data, decrease eta and try again.
                 if (m>=0.99*sweeps_pre&&N_data.size()<5){eta*=0.5;break;}
