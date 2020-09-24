@@ -6,7 +6,7 @@
 	<integer>10</integer>
 	<key>logs</key>
 	<dict>
-		<key>01E77C13-8BDB-4F16-B551-EE34F95A3DE8</key>
+		<key>04B8C63D-07AE-4EDC-998E-9EF832E395F3</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -15,7 +15,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>01E77C13-8BDB-4F16-B551-EE34F95A3DE8.xcactivitylog</string>
+			<string>04B8C63D-07AE-4EDC-998E-9EF832E395F3.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -32,15 +32,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622597937.43638301</real>
+			<real>622644295.51881397</real>
 			<key>timeStoppedRecording</key>
-			<real>622598008.28137302</real>
+			<real>622644313.75957501</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>01E77C13-8BDB-4F16-B551-EE34F95A3DE8</string>
+			<string>04B8C63D-07AE-4EDC-998E-9EF832E395F3</string>
 		</dict>
-		<key>1EFA9E92-9B7A-4902-BA36-27816F41470C</key>
+		<key>22B2BCDD-99A6-4BE9-809B-5E897947B875</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -49,7 +49,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>1EFA9E92-9B7A-4902-BA36-27816F41470C.xcactivitylog</string>
+			<string>22B2BCDD-99A6-4BE9-809B-5E897947B875.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -66,15 +66,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622597299.64196801</real>
+			<real>622647296.16996396</real>
 			<key>timeStoppedRecording</key>
-			<real>622597309.77735806</real>
+			<real>622647329.64016902</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>1EFA9E92-9B7A-4902-BA36-27816F41470C</string>
+			<string>22B2BCDD-99A6-4BE9-809B-5E897947B875</string>
 		</dict>
-		<key>2B595DE8-F4B5-4EA7-B1F9-AB8590D49E41</key>
+		<key>2374EED3-43AC-4274-BEFA-72B0BAF21920</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -83,7 +83,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>2B595DE8-F4B5-4EA7-B1F9-AB8590D49E41.xcactivitylog</string>
+			<string>2374EED3-43AC-4274-BEFA-72B0BAF21920.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -100,15 +100,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622596491.10449195</real>
+			<real>622646741.69353998</real>
 			<key>timeStoppedRecording</key>
-			<real>622596496.60154498</real>
+			<real>622646748.75351298</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>2B595DE8-F4B5-4EA7-B1F9-AB8590D49E41</string>
+			<string>2374EED3-43AC-4274-BEFA-72B0BAF21920</string>
 		</dict>
-		<key>33986D1E-14DC-4F43-A4C6-C5A22275BAC8</key>
+		<key>239D316A-9E4B-4393-956E-5CA6BF909BF4</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -117,7 +117,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>33986D1E-14DC-4F43-A4C6-C5A22275BAC8.xcactivitylog</string>
+			<string>239D316A-9E4B-4393-956E-5CA6BF909BF4.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -134,15 +134,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622597148.68563199</real>
+			<real>622646987.51346099</real>
 			<key>timeStoppedRecording</key>
-			<real>622597157.47634602</real>
+			<real>622647068.39767599</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>33986D1E-14DC-4F43-A4C6-C5A22275BAC8</string>
+			<string>239D316A-9E4B-4393-956E-5CA6BF909BF4</string>
 		</dict>
-		<key>37D2493A-CF16-4471-9AE4-5EAD5DAE4175</key>
+		<key>32E23CDE-4DE1-4283-BD0C-34A64B2A2F22</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -151,7 +151,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>37D2493A-CF16-4471-9AE4-5EAD5DAE4175.xcactivitylog</string>
+			<string>32E23CDE-4DE1-4283-BD0C-34A64B2A2F22.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -168,15 +168,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622605166.02578795</real>
+			<real>622647269.51328599</real>
 			<key>timeStoppedRecording</key>
-			<real>622605170.15811706</real>
+			<real>622647293.66169405</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>37D2493A-CF16-4471-9AE4-5EAD5DAE4175</string>
+			<string>32E23CDE-4DE1-4283-BD0C-34A64B2A2F22</string>
 		</dict>
-		<key>588A98B2-A8BE-41EC-860A-D10772D9C1F7</key>
+		<key>3716C184-0321-44CA-8ADB-FFA495488C28</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -185,7 +185,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>588A98B2-A8BE-41EC-860A-D10772D9C1F7.xcactivitylog</string>
+			<string>3716C184-0321-44CA-8ADB-FFA495488C28.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -202,15 +202,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622596946.44098401</real>
+			<real>622647384.43558896</real>
 			<key>timeStoppedRecording</key>
-			<real>622596952.31933606</real>
+			<real>622647433.44896102</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>588A98B2-A8BE-41EC-860A-D10772D9C1F7</string>
+			<string>3716C184-0321-44CA-8ADB-FFA495488C28</string>
 		</dict>
-		<key>63E683E0-813C-441B-86A1-636CA0BD11C6</key>
+		<key>3F84C3DB-1C18-4839-934B-4828F46BAFCE</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -219,7 +219,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>63E683E0-813C-441B-86A1-636CA0BD11C6.xcactivitylog</string>
+			<string>3F84C3DB-1C18-4839-934B-4828F46BAFCE.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -236,15 +236,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622597249.31242096</real>
+			<real>622648193.89282095</real>
 			<key>timeStoppedRecording</key>
-			<real>622597299.58477604</real>
+			<real>622648211.13642502</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>63E683E0-813C-441B-86A1-636CA0BD11C6</string>
+			<string>3F84C3DB-1C18-4839-934B-4828F46BAFCE</string>
 		</dict>
-		<key>6BE46027-F420-4F51-99A8-F3532B1BF81B</key>
+		<key>40BD1B1D-D8EF-4B70-A651-244A4A870E0B</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -253,7 +253,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>6BE46027-F420-4F51-99A8-F3532B1BF81B.xcactivitylog</string>
+			<string>40BD1B1D-D8EF-4B70-A651-244A4A870E0B.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -270,15 +270,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622605249.48424804</real>
+			<real>622647436.20372498</real>
 			<key>timeStoppedRecording</key>
-			<real>622605322.15861201</real>
+			<real>622647448.50967395</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>6BE46027-F420-4F51-99A8-F3532B1BF81B</string>
+			<string>40BD1B1D-D8EF-4B70-A651-244A4A870E0B</string>
 		</dict>
-		<key>7220DF5A-416E-4D94-A5CF-165A5E161FA8</key>
+		<key>40DFD33B-4A90-4291-873C-90A8A6339D26</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -287,7 +287,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>7220DF5A-416E-4D94-A5CF-165A5E161FA8.xcactivitylog</string>
+			<string>40DFD33B-4A90-4291-873C-90A8A6339D26.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -304,15 +304,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622605071.99215496</real>
+			<real>622647358.09704697</real>
 			<key>timeStoppedRecording</key>
-			<real>622605164.33652699</real>
+			<real>622647369.92409098</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>7220DF5A-416E-4D94-A5CF-165A5E161FA8</string>
+			<string>40DFD33B-4A90-4291-873C-90A8A6339D26</string>
 		</dict>
-		<key>776B4F2A-5FA6-4812-92A6-748445336E5C</key>
+		<key>47C380B1-814D-4D06-A5FE-C9C804943884</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -321,7 +321,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>776B4F2A-5FA6-4812-92A6-748445336E5C.xcactivitylog</string>
+			<string>47C380B1-814D-4D06-A5FE-C9C804943884.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -338,15 +338,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622595765.30202901</real>
+			<real>622645031.67699897</real>
 			<key>timeStoppedRecording</key>
-			<real>622595771.42267895</real>
+			<real>622645115.88618195</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>776B4F2A-5FA6-4812-92A6-748445336E5C</string>
+			<string>47C380B1-814D-4D06-A5FE-C9C804943884</string>
 		</dict>
-		<key>B36CEDC2-6A74-4A52-A5F4-9DD7D4A7F7C4</key>
+		<key>4F5042AB-7D70-4AA2-ACD7-F183C6466466</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -355,7 +355,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>B36CEDC2-6A74-4A52-A5F4-9DD7D4A7F7C4.xcactivitylog</string>
+			<string>4F5042AB-7D70-4AA2-ACD7-F183C6466466.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -372,15 +372,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622605425.51919901</real>
+			<real>622648217.96125305</real>
 			<key>timeStoppedRecording</key>
-			<real>622605502.90309894</real>
+			<real>622648240.47806704</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>B36CEDC2-6A74-4A52-A5F4-9DD7D4A7F7C4</string>
+			<string>4F5042AB-7D70-4AA2-ACD7-F183C6466466</string>
 		</dict>
-		<key>B589904F-358E-452E-8CC0-0625A8CBF936</key>
+		<key>5B4EB4D7-6895-414F-941C-633B86678D29</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -389,7 +389,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>B589904F-358E-452E-8CC0-0625A8CBF936.xcactivitylog</string>
+			<string>5B4EB4D7-6895-414F-941C-633B86678D29.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -406,15 +406,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622604584.89823103</real>
+			<real>622646659.48300195</real>
 			<key>timeStoppedRecording</key>
-			<real>622605070.42306304</real>
+			<real>622646739.16948998</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>B589904F-358E-452E-8CC0-0625A8CBF936</string>
+			<string>5B4EB4D7-6895-414F-941C-633B86678D29</string>
 		</dict>
-		<key>BDBB7365-0F09-492C-AA92-4B391FDF27E1</key>
+		<key>69EBA71C-654A-4FAB-ACFC-B8A2142E2451</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -423,7 +423,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>BDBB7365-0F09-492C-AA92-4B391FDF27E1.xcactivitylog</string>
+			<string>69EBA71C-654A-4FAB-ACFC-B8A2142E2451.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -440,15 +440,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622597351.97365296</real>
+			<real>622648283.18282902</real>
 			<key>timeStoppedRecording</key>
-			<real>622597361.53101504</real>
+			<real>622648310.75167203</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>BDBB7365-0F09-492C-AA92-4B391FDF27E1</string>
+			<string>69EBA71C-654A-4FAB-ACFC-B8A2142E2451</string>
 		</dict>
-		<key>C4118323-6A46-4106-87D4-0ED3A34B0465</key>
+		<key>81689103-D31B-44DE-A9A8-00F0F8BE8F18</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -457,7 +457,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>C4118323-6A46-4106-87D4-0ED3A34B0465.xcactivitylog</string>
+			<string>81689103-D31B-44DE-A9A8-00F0F8BE8F18.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -474,15 +474,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622590509.52135706</real>
+			<real>622639790.70301104</real>
 			<key>timeStoppedRecording</key>
-			<real>622590517.33254898</real>
+			<real>622639801.32659304</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>C4118323-6A46-4106-87D4-0ED3A34B0465</string>
+			<string>81689103-D31B-44DE-A9A8-00F0F8BE8F18</string>
 		</dict>
-		<key>CFBBF897-8D2F-4BB8-93CC-85C04A397CF1</key>
+		<key>8A5533CB-F97A-41AC-926E-B31118327473</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -491,7 +491,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>CFBBF897-8D2F-4BB8-93CC-85C04A397CF1.xcactivitylog</string>
+			<string>8A5533CB-F97A-41AC-926E-B31118327473.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -508,15 +508,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622597371.74312901</real>
+			<real>622647071.12204301</real>
 			<key>timeStoppedRecording</key>
-			<real>622597442.64016402</real>
+			<real>622647089.92859495</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>CFBBF897-8D2F-4BB8-93CC-85C04A397CF1</string>
+			<string>8A5533CB-F97A-41AC-926E-B31118327473</string>
 		</dict>
-		<key>D1B9958D-3C51-4A4B-B7DB-F9553F8DE8D4</key>
+		<key>91C2248D-9BA8-47EB-9D2E-362AB7CBC4B4</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -525,7 +525,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>D1B9958D-3C51-4A4B-B7DB-F9553F8DE8D4.xcactivitylog</string>
+			<string>91C2248D-9BA8-47EB-9D2E-362AB7CBC4B4.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -542,15 +542,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622595691.29166102</real>
+			<real>622648173.10429299</real>
 			<key>timeStoppedRecording</key>
-			<real>622595706.82277596</real>
+			<real>622648185.47315097</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>D1B9958D-3C51-4A4B-B7DB-F9553F8DE8D4</string>
+			<string>91C2248D-9BA8-47EB-9D2E-362AB7CBC4B4</string>
 		</dict>
-		<key>D86C4788-708F-46A3-984E-C4F222E561C7</key>
+		<key>A2AC0226-2D9C-4327-9C85-5AEE98438ED7</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -559,7 +559,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>D86C4788-708F-46A3-984E-C4F222E561C7.xcactivitylog</string>
+			<string>A2AC0226-2D9C-4327-9C85-5AEE98438ED7.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -576,15 +576,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622580079.97669494</real>
+			<real>622644786.35339701</real>
 			<key>timeStoppedRecording</key>
-			<real>622580088.15083897</real>
+			<real>622644797.69894695</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>D86C4788-708F-46A3-984E-C4F222E561C7</string>
+			<string>A2AC0226-2D9C-4327-9C85-5AEE98438ED7</string>
 		</dict>
-		<key>DDF84B9C-C65A-44C3-9F23-850C584F5902</key>
+		<key>A833385C-D599-490B-8FF5-CC9814E766EA</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -593,7 +593,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>DDF84B9C-C65A-44C3-9F23-850C584F5902.xcactivitylog</string>
+			<string>A833385C-D599-490B-8FF5-CC9814E766EA.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -610,15 +610,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622596424.50140595</real>
+			<real>622648087.44760597</real>
 			<key>timeStoppedRecording</key>
-			<real>622596430.09925604</real>
+			<real>622648099.095402</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>DDF84B9C-C65A-44C3-9F23-850C584F5902</string>
+			<string>A833385C-D599-490B-8FF5-CC9814E766EA</string>
 		</dict>
-		<key>F1BB2856-F43D-446A-9C6B-32DFE2A5ECB5</key>
+		<key>E9A3B99F-11B4-436F-8B97-4C0529E1D04C</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -627,7 +627,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>F1BB2856-F43D-446A-9C6B-32DFE2A5ECB5.xcactivitylog</string>
+			<string>E9A3B99F-11B4-436F-8B97-4C0529E1D04C.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -644,15 +644,15 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622590274.32522404</real>
+			<real>622647332.09744596</real>
 			<key>timeStoppedRecording</key>
-			<real>622590295.83665204</real>
+			<real>622647339.13205504</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>F1BB2856-F43D-446A-9C6B-32DFE2A5ECB5</string>
+			<string>E9A3B99F-11B4-436F-8B97-4C0529E1D04C</string>
 		</dict>
-		<key>F7054800-B504-4566-82F3-168644E165DD</key>
+		<key>E9D078D2-6053-45D5-9DEE-46586BF534E5</key>
 		<dict>
 			<key>className</key>
 			<string>DBGConsoleLog</string>
@@ -661,7 +661,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
 			<key>fileName</key>
-			<string>F7054800-B504-4566-82F3-168644E165DD.xcactivitylog</string>
+			<string>E9D078D2-6053-45D5-9DEE-46586BF534E5.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -678,13 +678,81 @@
 			<key>signature</key>
 			<string>Run pimc</string>
 			<key>timeStartedRecording</key>
-			<real>622596041.92872095</real>
+			<real>622644587.52560902</real>
 			<key>timeStoppedRecording</key>
-			<real>622596047.57211602</real>
+			<real>622644598.33606398</real>
 			<key>title</key>
 			<string>Run pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>F7054800-B504-4566-82F3-168644E165DD</string>
+			<string>E9D078D2-6053-45D5-9DEE-46586BF534E5</string>
+		</dict>
+		<key>F737F632-CE60-4948-81AF-995A3468C5B5</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>F737F632-CE60-4948-81AF-995A3468C5B5.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>622644764.99885905</real>
+			<key>timeStoppedRecording</key>
+			<real>622644775.87637198</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>F737F632-CE60-4948-81AF-995A3468C5B5</string>
+		</dict>
+		<key>FC824393-3F10-4B32-A8BB-1FDCBA1198DC</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>FC824393-3F10-4B32-A8BB-1FDCBA1198DC.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run pimc</string>
+			<key>timeStartedRecording</key>
+			<real>622647199.793823</real>
+			<key>timeStoppedRecording</key>
+			<real>622647230.59067404</real>
+			<key>title</key>
+			<string>Run pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>FC824393-3F10-4B32-A8BB-1FDCBA1198DC</string>
 		</dict>
 	</dict>
 </dict>
