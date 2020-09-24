@@ -86,7 +86,7 @@ int main(){
     unsigned long long int  dummy_counter;
     
     // SWAP
-    int num_replicas;
+    int num_replicas=2;
     
     // Attempt/Acceptance counters
     unsigned long long int  insert_worm_attempts=0,insert_worm_accepts=0;
@@ -137,6 +137,9 @@ int main(){
     mu=-2.63596;
     boundary_condition="pbc";
     
+    // Initialize Fock State
+    initial_fock_state = random_boson_config(M,N,rng);
+    
     // Simulation parameters
     eta=0.566325;
     beta=1.0;
@@ -168,6 +171,21 @@ int main(){
         N_zero.push_back(N);
         N_beta.push_back(N);
     }
+    
+    cout << "YEE"<<endl;
+    // Initialize vector containing indices of last kinks at each site
+    for (int r=0;r<num_replicas;r++){
+        last_kinks.push_back(vector<int> (M,-1));
+        for (int i=0;i<M;i++){last_kinks[r][i]=i;}
+    }
+    cout << "HAW"<<endl;
+
+//    kinks_vector=create_kinks_vector(initial_fock_state,M);
+    paths.push_back(create_kinks_vector(initial_fock_state,M));
+    paths.push_back(create_kinks_vector(initial_fock_state,M));
+    
+    // SWAP
+    num_replicas=2;
 
     // Observables and other measurements
     N_sum=0.0;
@@ -184,24 +202,6 @@ int main(){
     bin_ctr=0;
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){fock_state_at_slice.push_back(0);}
-
-    // Initialize Fock State
-    initial_fock_state = random_boson_config(M,N,rng);
-    
-    // Initialize vector containing indices of last kinks at each site
-    for (int r=0;r<num_replicas;r++){
-        for (int i=0;i<M;i++){vector<int> (M,-1);}
-    }
-    
-//    kinks_vector=create_kinks_vector(initial_fock_state,M);
-    
-    paths.push_back(create_kinks_vector(initial_fock_state,M));
-    paths.push_back(create_kinks_vector(initial_fock_state,M));
-    
-    // SWAP
-    num_replicas=2;
-    
-
     
 /*------------------- Try drawing a pretty welcome message -------------------*/
 
