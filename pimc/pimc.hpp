@@ -113,7 +113,15 @@ void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
     
     int M = pow(L,D);
     int site_left,site_right,site_up,site_down,site_high,site_low;
-    int top_row_ctr=L,bottom_row_ctr=0;
+    int top_row_ctr,bottom_row_ctr;
+    
+    vector<int> rows (D*2,0);
+    
+    top_row_ctr=L;
+    bottom_row_ctr=0;
+    
+    // Initialize adjacency matrix with placeholder zeroes
+    for (int i=0; i<M; i++){adjacency_matrix.push_back(rows);}
     
     for (int site=0; site<M; site++){
         
