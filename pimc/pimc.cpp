@@ -13,11 +13,12 @@ int main(){
     
     // Initialize a Mersenne Twister RNG for each replica
     int seed_A=17,seed_B=42;
+//    vector<boost::random::mt19937> rng;
 //    boost::random::mt19937 rng_A(seed_A);
 //    boost::random::mt19937 rng_B(seed_B);
-//    vector<boost::random::mt19937> rng;
 //    rng.push_back(rng_A);
 //    rng.push_back(rng_B);
+    
     boost::random::mt19937 rng(seed_A);
 
     
@@ -51,31 +52,37 @@ int main(){
 //    int num_kinks,head_idx,tail_idx,N_zero,N_beta;
 //    double N_tracker;
 //    vector<int> last_kinks;
+//    unsigned long long int Z_ctr,measurement_attempts;
+//    double Z_frac;
     bool not_equilibrated;
     
     // Replicated trackers
-    vector<int> num_kinks,head_idx,tail_idx,N_zero,N_beta;
-    vector<double> N_tracker;
+    vector<int> num_kinks,head_idx,tail_idx,N_zero,N_beta,bin_ctr;
+    vector<double> N_tracker,Z_frac;
     vector<vector<int>> last_kinks;
+    vector<unsigned long long int> Z_ctr,measurement_attempts;
     
     // Observables
-    double N_sum,diagonal_energy,kinetic_energy;
-    vector<double> tr_kinetic_energy,tr_diagonal_energy;
+//    double N_sum,diagonal_energy,kinetic_energy;
+//    vector<double> tr_kinetic_energy,tr_diagonal_energy;
     
+    // Replicated observables
+    vector<double> N_sum,diagonal_energy,kinetic_energy;
+    vector<vector<double>> tr_kinetic_energy,tr_diagonal_energy;
+
     // Measurement settings
     double measurement_center,measurement_plus_minus;
-    int measurement_frequency,bin_size,bin_ctr;
+    int measurement_frequency,bin_size;
+//    int bin_ctr;
     vector<double> measurement_centers;
     vector<int> fock_state_at_slice;
     
-    // Non-observables
-    unsigned long long int Z_ctr,measurement_attempts;
-    double Z_frac;
-    
     // Declare data files
-    ofstream kinetic_energy_file,diagonal_energy_file,total_energy_file,
-    tr_kinetic_energy_file,tr_diagonal_energy_file,
-    tr_kinetic_energy_file_B,tr_diagonal_energy_file_B;
+//    ofstream kinetic_energy_file,diagonal_energy_file,total_energy_file,
+//    tr_kinetic_energy_file,tr_diagonal_energy_file;
+    
+    vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,
+    tr_kinetic_energy_file,tr_diagonal_energy_file;
     
     // mu-calibration variables
     double mu_initial,N_hist_sum,P_N_peak,mu_right,mu_left;
@@ -86,7 +93,7 @@ int main(){
     unsigned long long int  dummy_counter;
     
     // SWAP
-    int num_replicas=2;
+    int num_replicas;
     
     // Attempt/Acceptance counters
     unsigned long long int  insert_worm_attempts=0,insert_worm_accepts=0;
@@ -127,6 +134,9 @@ int main(){
     
 /*------------------------- Initialize variables -----------------------------*/
 
+    // SWAP
+    num_replicas=5;
+    
     // Bose-Hubbard parameters
     L=2;
     D=1;
@@ -144,7 +154,7 @@ int main(){
     eta=0.566325;
     beta=1.0;
     canonical=true;
-    sweeps=100000000;
+    sweeps=10000000;
     sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;}
@@ -170,36 +180,49 @@ int main(){
         tail_idx.push_back(-1);
         N_zero.push_back(N);
         N_beta.push_back(N);
+        measurement_attempts.push_back(0);
+        Z_frac.push_back(0);
+        bin_ctr.push_back(0);
     }
     
-    cout << "YEE"<<endl;
     // Initialize vector containing indices of last kinks at each site
     for (int r=0;r<num_replicas;r++){
         last_kinks.push_back(vector<int> (M,-1));
         for (int i=0;i<M;i++){last_kinks[r][i]=i;}
     }
-    cout << "HAW"<<endl;
 
 //    kinks_vector=create_kinks_vector(initial_fock_state,M);
     paths.push_back(create_kinks_vector(initial_fock_state,M));
     paths.push_back(create_kinks_vector(initial_fock_state,M));
     
-    // SWAP
-    num_replicas=2;
+    for (int r=0;r<num_replicas;r++){
+        paths.push_back(create_kinks_vector(initial_fock_state,M));
+//        paths.push_back(create_kinks_vector(initial_fock_state,M));
+    }
 
     // Observables and other measurements
-    N_sum=0.0;
-    diagonal_energy=0.0;
-    kinetic_energy=0.0;
-    Z_ctr=0;
-    measurement_attempts=0;
+//    N_sum=0.0;
+//    diagonal_energy=0.0;
+//    kinetic_energy=0.0;
+//    Z_ctr=0;
+//    measurement_attempts=0;
+    
+    // Replicated observables and other measurements
+    for (int i=0;i<num_replicas;i++){
+        N_sum.push_back(0);
+        diagonal_energy.push_back(0);
+        kinetic_energy.push_back(0);
+        Z_ctr.push_back(0);
+        measurement_attempts.push_back(0);
+//        N_beta.push_back(N);
+    }
     
     // Measurement settings
     measurement_center=beta/2.0;
     measurement_plus_minus=0.10*beta;
     measurement_frequency=1;
-    bin_size=5000;
-    bin_ctr=0;
+    bin_size=500;
+//    bin_ctr=0;
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){fock_state_at_slice.push_back(0);}
     
@@ -643,64 +666,106 @@ int main(){
     
 /*---------------------------- Open files ------------------------------------*/
     
-    kinetic_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
-                             to_string(U)+"_"+to_string(mu)+"_"+
-                             to_string(t)+"_"+to_string(beta)+"_"+
-                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-                             "can"+"_K.dat",fstream::out);
-    if( !kinetic_energy_file ) { // file couldn't be opened
-       cerr << "Error: kinetic energy file could not be opened" << endl;
-       exit(1);
-    }
-    
-    diagonal_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
-                             to_string(U)+"_"+to_string(mu)+"_"+
-                             to_string(t)+"_"+to_string(beta)+"_"+
-                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-                             "can"+"_V.dat",fstream::out);
-    if( !diagonal_energy_file ) { // file couldn't be opened
-       cerr << "Error: diagonal energy file could not be opened" << endl;
-       exit(1);
-    }
-    
-    tr_kinetic_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
-                             to_string(U)+"_"+to_string(mu)+"_"+
-                             to_string(t)+"_"+to_string(beta)+"_"+
-                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-                             "can"+"_tauResolvedK.dat",fstream::out);
-    if( !tr_kinetic_energy_file ) { // file couldn't be opened
-       cerr << "Error: tr kinetic energy file could not be opened" << endl;
-       exit(1);
-    }
-    
-    tr_diagonal_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
-                             to_string(U)+"_"+to_string(mu)+"_"+
-                             to_string(t)+"_"+to_string(beta)+"_"+
-                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-                             "can"+"_tauResolvedV.dat",fstream::out);
-    if( !tr_diagonal_energy_file ) { // file couldn't be opened
-       cerr << "Error: tr diagonal energy file could not be opened" << endl;
-       exit(1);
-    }
-    
-    tr_kinetic_energy_file_B.open(to_string(L)+"_"+to_string(M)+"_"+
-                             to_string(U)+"_"+to_string(mu)+"_"+
-                             to_string(t)+"_"+to_string(beta)+"_"+
-                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-                             "can"+"_tauResolvedK_B.dat",fstream::out);
-    if( !tr_kinetic_energy_file_B ) { // file couldn't be opened
-       cerr << "Error: tr kinetic energy file B could not be opened" << endl;
-       exit(1);
-    }
-    
-    tr_diagonal_energy_file_B.open(to_string(L)+"_"+to_string(M)+"_"+
-                             to_string(U)+"_"+to_string(mu)+"_"+
-                             to_string(t)+"_"+to_string(beta)+"_"+
-                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-                             "can"+"_tauResolvedV_B.dat",fstream::out);
-    if( !tr_diagonal_energy_file_B ) { // file couldn't be opened
-       cerr << "Error: tr diagonal energy B file could not be opened" << endl;
-       exit(1);
+    for (int r=0;r<num_replicas;r++){
+        
+        ofstream K_out,V_out,tr_K_out,tr_V_out;
+        string K_name,V_name,tr_K_name,tr_V_name,rep;
+        
+        rep=r+65; // rep=65='A'...rep=66='B'...rep=67='C'...
+        
+        K_name=to_string(L)+"_"+to_string(M)+"_"+
+        to_string(U)+"_"+to_string(mu)+"_"+
+        to_string(t)+"_"+to_string(beta)+"_"+
+        to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+        "can_"+"K_"+"rep"+rep+"_.dat";
+        
+        V_name=to_string(L)+"_"+to_string(M)+"_"+
+        to_string(U)+"_"+to_string(mu)+"_"+
+        to_string(t)+"_"+to_string(beta)+"_"+
+        to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+        "can_"+"V_"+"rep"+rep+"_.dat";
+        
+        tr_K_name=to_string(L)+"_"+to_string(M)+"_"+
+        to_string(U)+"_"+to_string(mu)+"_"+
+        to_string(t)+"_"+to_string(beta)+"_"+
+        to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+        "can_"+"tauResolvedK_"+"rep"+rep+".dat";
+        
+        tr_V_name=to_string(L)+"_"+to_string(M)+"_"+
+        to_string(U)+"_"+to_string(mu)+"_"+
+        to_string(t)+"_"+to_string(beta)+"_"+
+        to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+        "can_"+"tauResolvedV_"+"rep"+rep+".dat";
+        
+        K_out.open(K_name);
+        V_out.open(V_name);
+        tr_K_out.open(tr_K_name);
+        tr_V_out.open(tr_V_name);
+        
+        kinetic_energy_file.push_back(std::move(K_out));
+        diagonal_energy_file.push_back(std::move(V_out));
+        tr_kinetic_energy_file.push_back(std::move(tr_K_out));
+        tr_diagonal_energy_file.push_back(std::move(tr_V_out));
+
+//    kinetic_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
+//                             to_string(U)+"_"+to_string(mu)+"_"+
+//                             to_string(t)+"_"+to_string(beta)+"_"+
+//                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+//                             "can"+"_K.dat",fstream::out);
+//    if( !kinetic_energy_file ) { // file couldn't be opened
+//       cerr << "Error: kinetic energy file could not be opened" << endl;
+//       exit(1);
+//    }
+//
+//    diagonal_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
+//                             to_string(U)+"_"+to_string(mu)+"_"+
+//                             to_string(t)+"_"+to_string(beta)+"_"+
+//                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+//                             "can"+"_V.dat",fstream::out);
+//    if( !diagonal_energy_file ) { // file couldn't be opened
+//       cerr << "Error: diagonal energy file could not be opened" << endl;
+//       exit(1);
+//    }
+//
+//    tr_kinetic_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
+//                             to_string(U)+"_"+to_string(mu)+"_"+
+//                             to_string(t)+"_"+to_string(beta)+"_"+
+//                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+//                             "can"+"_tauResolvedK.dat",fstream::out);
+//    if( !tr_kinetic_energy_file ) { // file couldn't be opened
+//       cerr << "Error: tr kinetic energy file could not be opened" << endl;
+//       exit(1);
+//    }
+//
+//    tr_diagonal_energy_file.open(to_string(L)+"_"+to_string(M)+"_"+
+//                             to_string(U)+"_"+to_string(mu)+"_"+
+//                             to_string(t)+"_"+to_string(beta)+"_"+
+//                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+//                             "can"+"_tauResolvedV.dat",fstream::out);
+//    if( !tr_diagonal_energy_file ) { // file couldn't be opened
+//       cerr << "Error: tr diagonal energy file could not be opened" << endl;
+//       exit(1);
+//    }
+//
+//    tr_kinetic_energy_file_B.open(to_string(L)+"_"+to_string(M)+"_"+
+//                             to_string(U)+"_"+to_string(mu)+"_"+
+//                             to_string(t)+"_"+to_string(beta)+"_"+
+//                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+//                             "can"+"_tauResolvedK_B.dat",fstream::out);
+//    if( !tr_kinetic_energy_file_B ) { // file couldn't be opened
+//       cerr << "Error: tr kinetic energy file B could not be opened" << endl;
+//       exit(1);
+//    }
+//
+//    tr_diagonal_energy_file_B.open(to_string(L)+"_"+to_string(M)+"_"+
+//                             to_string(U)+"_"+to_string(mu)+"_"+
+//                             to_string(t)+"_"+to_string(beta)+"_"+
+//                             to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+//                             "can"+"_tauResolvedV_B.dat",fstream::out);
+//    if( !tr_diagonal_energy_file_B ) { // file couldn't be opened
+//       cerr << "Error: tr diagonal energy B file could not be opened" << endl;
+//       exit(1);
+//    }
     }
     
 /*---------------------------- Monte Carlo -----------------------------------*/
@@ -720,17 +785,27 @@ int main(){
 //    N_zero=N;
 //    N_beta=N;
     
-    Z_frac=0.0;
-    measurement_attempts=0;
+//    Z_frac=0.0;
+//    measurement_attempts=0;
+    std::fill(Z_frac.begin(),Z_frac.end(),0);
+    std::fill(measurement_attempts.begin(),measurement_attempts.end(),0);
     
     if (beta>=1.0){sweeps*=(beta*M);}
     else {sweeps*=M;}
     
-    // Initialize tau resolved estimators
-    for (int i=0;i<measurement_centers.size();i++){
-        tr_kinetic_energy.push_back(0.0);
-        tr_diagonal_energy.push_back(0.0);
-    }
+//    // Initialize tau resolved estimators
+//    for (int i=0;i<measurement_centers.size();i++){
+//        tr_kinetic_energy.push_back(0.0);
+//        tr_diagonal_energy.push_back(0.0);
+//    }
+        // Initialize tau resolved estimators
+        for (int r=0;r<num_replicas;r++){
+            tr_kinetic_energy.push_back(vector<double>
+                                        (measurement_centers.size(),0.0));
+            tr_diagonal_energy.push_back(vector<double>
+                                         (measurement_centers.size(),0.0));
+        }
+    
     
     cout << endl << "Stage (3/4): Equilibrating..." << endl << endl;
     for (int r=0;r<num_replicas;r++){
@@ -1009,10 +1084,10 @@ int main(){
                 cout << "Stage (4/4): Main Monte Carlo loop..." << endl;
             }
             
-            measurement_attempts+=1;
+            measurement_attempts[r]+=1;
             if (head_idx[r]==-1 and tail_idx[r]==-1){
-                N_sum += N_tracker[r];
-                Z_ctr += 1;
+                N_sum[r] += N_tracker[r];
+                Z_ctr[r] += 1;
                            
                 if (N_beta[r]==N){ // canonical measurement
                     
@@ -1021,48 +1096,48 @@ int main(){
                                paths[r]);
                     
                 // Measure and accumulate <K>
-                kinetic_energy+=pimc_kinetic_energy(paths[r],num_kinks[r],
+                kinetic_energy[r]+=pimc_kinetic_energy(paths[r],num_kinks[r],
                             measurement_center,measurement_plus_minus,M,t,beta);
                     
                 // Measure and accumulate <V>
-                diagonal_energy+=pimc_diagonal_energy(fock_state_at_slice,
+                diagonal_energy[r]+=pimc_diagonal_energy(fock_state_at_slice,
                                                       M,canonical,U,mu);
                     
                 tau_resolved_kinetic_energy(paths[r],num_kinks[r],M,t,beta,
                                             measurement_centers,
-                                            tr_kinetic_energy);
+                                            tr_kinetic_energy[r]);
                     
                 tau_resolved_diagonal_energy(paths[r],num_kinks[r],
                                             M,canonical,U,mu,beta,
                                             measurement_centers,
-                                            tr_diagonal_energy);
+                                            tr_diagonal_energy[r]);
                     
-                bin_ctr+=1;
+                bin_ctr[r]+=1;
                 // Take binned averages and write to disk
-                if (bin_ctr==bin_size){
-                    kinetic_energy_file<<fixed<<setprecision(17)<<
-                    kinetic_energy/bin_size<<endl;
-                    diagonal_energy_file<<fixed<<setprecision(17)<<
-                    diagonal_energy/bin_size<<endl;
+                if (bin_ctr[r]==bin_size){
+                    kinetic_energy_file[r]<<fixed<<setprecision(17)<<
+                    kinetic_energy[r]/bin_size<<endl;
+                    diagonal_energy_file[r]<<fixed<<setprecision(17)<<
+                    diagonal_energy[r]/bin_size<<endl;
                     
                     // Save tau resolved estimators
                     for (int i=0; i<measurement_centers.size(); i++){
-                        tr_kinetic_energy_file<<fixed<<setprecision(17)<<
-                        tr_kinetic_energy[i]/bin_size << " ";
+                        tr_kinetic_energy_file[r]<<fixed<<setprecision(17)<<
+                        tr_kinetic_energy[r][i]/bin_size << " ";
                         
-                        tr_diagonal_energy_file<<fixed<<setprecision(17)<<
-                        tr_diagonal_energy[i]/bin_size << " ";
+                        tr_diagonal_energy_file[r]<<fixed<<setprecision(17)<<
+                        tr_diagonal_energy[r][i]/bin_size << " ";
                     }
-                    tr_kinetic_energy_file<<endl;
-                    tr_diagonal_energy_file<<endl;
+                    tr_kinetic_energy_file[r]<<endl;
+                    tr_diagonal_energy_file[r]<<endl;
                     
-                    bin_ctr=0;
-                    kinetic_energy=0.0;
-                    diagonal_energy=0.0;
-                    std::fill(tr_kinetic_energy.begin(),
-                              tr_kinetic_energy.end(),0);
-                    std::fill(tr_diagonal_energy.begin(),
-                              tr_diagonal_energy.end(),0);
+                    bin_ctr[r]=0;
+                    kinetic_energy[r]=0.0;
+                    diagonal_energy[r]=0.0;
+                    std::fill(tr_kinetic_energy[r].begin(),
+                              tr_kinetic_energy[r].end(),0);
+                    std::fill(tr_diagonal_energy[r].begin(),
+                              tr_diagonal_energy[r].end(),0);
                     }
                 }
             }
@@ -1071,12 +1146,12 @@ int main(){
     } // end of sweep loop
     
     // Close data files
-    kinetic_energy_file.close();
-    diagonal_energy_file.close();
-    tr_kinetic_energy_file.close();
-    tr_diagonal_energy_file.close();
-
-
+    for (int r=0;r<num_replicas;r++){
+        kinetic_energy_file[r].close();
+        diagonal_energy_file[r].close();
+        tr_kinetic_energy_file[r].close();
+        tr_diagonal_energy_file[r].close();
+    }
 /*--------------------------------- FIN --------------------------------------*/
 
     cout << endl << "-------- Detailed Balance --------" << endl;
@@ -1148,15 +1223,14 @@ int main(){
     
     cout << endl << "beta: " << beta << endl;
     cout << endl << "sweeps: " << sweeps/(beta*M) << endl;
-    cout << "Z_ctr: " << Z_ctr << endl;
-    cout << "Z_frac: " << Z_ctr*100.0/measurement_attempts << "% (" << Z_ctr
-    << "/" << measurement_attempts << ")" << endl;
+    cout << "Z_ctr: " << Z_ctr[0] << endl;
+    cout<<"Z_frac: "<<Z_ctr[0]*100.0/measurement_attempts[0]<<"% ("<<Z_ctr[0]
+    <<"/"<< measurement_attempts[0]<<")"<<endl;
     
-    cout << endl << "<N>: " << (N_sum)/Z_ctr << endl;
+    cout << endl << "<N>: " << (N_sum[0])/Z_ctr[0] << endl;
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
 
     return 0;
     
 }
-
