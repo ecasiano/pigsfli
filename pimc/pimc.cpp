@@ -49,7 +49,7 @@ int main(){
         
     // Replicated trackers
     vector<int> num_kinks,head_idx,tail_idx,N_zero,N_beta,bin_ctr;
-    vector<double> N_tracker,Z_frac;
+    vector<double> N_tracker;
     vector<vector<int>> last_kinks;
     vector<unsigned long long int> Z_ctr,measurement_attempts;
     
@@ -70,6 +70,7 @@ int main(){
     // mu-calibration variables
     bool not_equilibrated;
     double mu_initial,N_hist_sum,P_N_peak,mu_right,mu_left;
+    double Z_frac; // used only in eta-equilibration
     bool N_target_in_bins;
     vector<int> N_data,N_hist,N_bins;
     vector<double> P_N;
@@ -124,7 +125,7 @@ int main(){
     num_replicas=1;
     
     // Bose-Hubbard parameters
-    L=128;
+    L=4;
     D=1;
     M=pow(L,D);
     N=M;
@@ -159,7 +160,6 @@ int main(){
         N_zero.push_back(N);
         N_beta.push_back(N);
         measurement_attempts.push_back(0);
-        Z_frac.push_back(0);
         bin_ctr.push_back(0);
         
         // Initialize vector containing indices of last kinks at each site
@@ -483,178 +483,198 @@ int main(){
         }
     }
 //
-///*------------------ Pre-equilibration 2: eta calibration --------------------*/
-//
-//    cout << "Stage (2/4): Determining eta..." << endl << endl;
-//    cout << setw(16) <<"eta";
-//    cout << "| Z-fraction (%)" << endl;
-//    cout << "--------------------------------"<<endl;
-//
-//    // Iterate until particle distribution P(N) is peaked at target N
-//      while (true){
-//
-//          if (!canonical){break;}
-//
-//          // Restart the data structure and trackers
-//          kinks_vector=create_kinks_vector(initial_fock_state,M);
-//          for (int i=0;i<M;i++){last_kinks[i] = i;}
-//          num_kinks=M;
-//          N_tracker=N*1.0;
-//          head_idx=-1;
-//          tail_idx=-1;
-//          N_zero=N;
-//          N_beta=N;
-//          dummy_counter=0;
-//
-//          N_data.clear();
-//          N_hist.clear();
-//          P_N.clear();
-//          N_bins.clear();
-//          N_hist_sum=0.0;
-//          N_min=-1;
-//          N_max=-1;
-//
-//          Z_frac=0.0;
-//          measurement_attempts=0;
-//
-//          boost::random::uniform_int_distribution<> updates(0, 14);
-//
-//          for (unsigned long long int m=0;m<sweeps_pre;m++){
-//
-//                label = updates(rng);
-//
-//                if (label==0){     // worm_insert
-//                    insert_worm(kinks_vector,num_kinks,head_idx,tail_idx,
-//                                M,N,U,mu,t,beta,eta,canonical,N_tracker,
-//                                N_zero,N_beta,last_kinks,
-//                                dummy_counter,dummy_counter,
-//                                dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==1){ // worm_delete
-//                    delete_worm(kinks_vector,num_kinks,head_idx,tail_idx,
-//                                M,N,U,mu,t,beta,eta,canonical,N_tracker,
-//                                N_zero,N_beta,last_kinks,
-//                                dummy_counter,dummy_counter,
-//                                dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==2){ // insertZero
-//                    insertZero(kinks_vector,num_kinks,head_idx,tail_idx,
-//                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
-//                               N_zero,N_beta,last_kinks,
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,rng);
-//
-//                }
-//                else if (label==3){ // deleteZero
-//                    deleteZero(kinks_vector,num_kinks,head_idx,tail_idx,
-//                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
-//                               N_zero,N_beta,last_kinks,
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==4){ // insertBeta
-//                    insertBeta(kinks_vector,num_kinks,head_idx,tail_idx,
-//                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
-//                               N_zero,N_beta,last_kinks,
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==5){ // deleteBeta
-//                    deleteBeta(kinks_vector,num_kinks,head_idx,tail_idx,
-//                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
-//                               N_zero,N_beta,last_kinks,
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==6){ // timeshift
-//                    timeshift(kinks_vector,num_kinks,head_idx,tail_idx,
-//                               M,N,U,mu,t,beta,eta,canonical,N_tracker,
-//                               N_zero,N_beta,last_kinks,
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==7){ // insert kink before head
-//                    insert_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker,
-//                               N_zero,N_beta,last_kinks,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==8){ // delete kink before head
-//                    delete_kink_before_head(kinks_vector,num_kinks,head_idx,tail_idx,
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker,
-//                               N_zero,N_beta,last_kinks,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==9){ // insert kink after head
-//                    insert_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker,
-//                               N_zero,N_beta,last_kinks,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==10){ // delete kink after head
-//                    delete_kink_after_head(kinks_vector,num_kinks,head_idx,tail_idx,
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker,
-//                               N_zero,N_beta,last_kinks,
-//                               dummy_counter,dummy_counter,rng);
-//                        }
-//                else if (label==11){ // insert kink before tail
-//                    insert_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker,
-//                               N_zero,N_beta,last_kinks,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==12){ // delete kink before tail
-//                    delete_kink_before_tail(kinks_vector,num_kinks,head_idx,tail_idx,
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker,
-//                               N_zero,N_beta,last_kinks,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==13){ // insert kink after tail
-//                     insert_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
-//                                M,N,U,mu,t,adjacency_matrix,total_nn,
-//                                beta,eta,canonical,N_tracker,
-//                                N_zero,N_beta,last_kinks,
-//                                dummy_counter,dummy_counter,rng);
-//                 }
-//                 else if (label==14){ // delete kink after tail
-//                     delete_kink_after_tail(kinks_vector,num_kinks,head_idx,tail_idx,
-//                                M,N,U,mu,t,adjacency_matrix,total_nn,
-//                                beta,eta,canonical,N_tracker,
-//                                N_zero,N_beta,last_kinks,
-//                                dummy_counter,dummy_counter,rng);
-//                 }
-//                else{
-//                    // lol
-//                }
-//
-//              // Measure the total number of particles
-//              if (m%(sweep*measurement_frequency)==0 && m>=0.25*sweeps_pre){
-//                  measurement_attempts+=1;
-//                  if (head_idx==-1 and tail_idx==-1){Z_frac += 1;}
-//              }
-//          }
-//
-//          Z_frac/=measurement_attempts;
-//          cout << setw(16) << eta;
-//          cout << "| " << Z_frac*100.0 << endl;
-//
-//
-//          // Modify eta if necessary
-//          if (Z_frac > 0.13 &&
-//              Z_frac < 0.17){break;}
-//          else{
-//              if (Z_frac < 0.17){eta *= 0.5;}
-//              else{eta *= 1.5;}
-//          }
-//      }
+/*------------------ Pre-equilibration 2: eta calibration --------------------*/
+
+    cout << "Stage (2/4): Determining eta..." << endl << endl;
+    cout << setw(16) <<"eta";
+    cout << "| Z-fraction (%)" << endl;
+    cout << "--------------------------------"<<endl;
+
+    // Iterate until particle distribution P(N) is peaked at target N
+      while (true){
+
+          if (!canonical){break;}
+
+          // Restart data structure and trackers
+          num_kinks.clear();
+          N_tracker.clear();
+          head_idx.clear();
+          tail_idx.clear();
+          N_zero.clear();
+          N_beta.clear();
+          last_kinks.clear();
+          paths.clear();
+          for (int r=0;r<num_replicas;r++){
+              num_kinks.push_back(M);
+              N_tracker.push_back(M);
+              head_idx.push_back(-1);
+              tail_idx.push_back(-1);
+              N_zero.push_back(N);
+              N_beta.push_back(N);
+              
+              last_kinks.push_back(vector<int> (M,-1));
+              for (int i=0;i<M;i++){last_kinks[r][i]=i;}
+              
+              paths.push_back(create_kinks_vector(initial_fock_state,M));
+          }
+
+          N_data.clear();
+          N_hist.clear();
+          P_N.clear();
+          N_bins.clear();
+          N_hist_sum=0.0;
+          N_min=-1;
+          N_max=-1;
+
+          Z_frac=0.0; // think about making this a vector too
+          std::fill(measurement_attempts.begin(),measurement_attempts.end(),0);
+
+          boost::random::uniform_int_distribution<> updates(0, 14);
+
+          for (unsigned long long int m=0;m<sweeps_pre;m++){
+
+                label = updates(rng);
+
+                if (label==0){     // worm_insert
+                    insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+                                M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+                                N_zero[0],N_beta[0],last_kinks[0],
+                                dummy_counter,dummy_counter,
+                                dummy_counter,dummy_counter,rng);
+                }
+                else if (label==1){ // worm_delete
+                    delete_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+                                M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+                                N_zero[0],N_beta[0],last_kinks[0],
+                                dummy_counter,dummy_counter,
+                                dummy_counter,dummy_counter,rng);
+                }
+                else if (label==2){ // insertZero
+                    insertZero(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+                               N_zero[0],N_beta[0],last_kinks[0],
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter,rng);
+
+                }
+                else if (label==3){ // deleteZero
+                    deleteZero(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+                               N_zero[0],N_beta[0],last_kinks[0],
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter,rng);
+                }
+                else if (label==4){ // insertBeta
+                    insertBeta(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+                               N_zero[0],N_beta[0],last_kinks[0],
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter,rng);
+                }
+                else if (label==5){ // deleteBeta
+                    deleteBeta(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+                               N_zero[0],N_beta[0],last_kinks[0],
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter,rng);
+                }
+                else if (label==6){ // timeshift
+                    timeshift(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+                               N_zero[0],N_beta[0],last_kinks[0],
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter,
+                               dummy_counter,dummy_counter,rng);
+                }
+                else if (label==7){ // insert kink before head
+                    insert_kink_before_head(paths[0],num_kinks[0],
+                               head_idx[0],tail_idx[0],
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker[0],
+                               N_zero[0],N_beta[0],last_kinks[0],
+                               dummy_counter,dummy_counter,rng);
+                }
+                else if (label==8){ // delete kink before head
+                    delete_kink_before_head(paths[0],num_kinks[0],
+                               head_idx[0],tail_idx[0],
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker[0],
+                               N_zero[0],N_beta[0],last_kinks[0],
+                               dummy_counter,dummy_counter,rng);
+                }
+                else if (label==9){ // insert kink after head
+                    insert_kink_after_head(paths[0],num_kinks[0],
+                               head_idx[0],tail_idx[0],
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker[0],
+                               N_zero[0],N_beta[0],last_kinks[0],
+                               dummy_counter,dummy_counter,rng);
+                }
+                else if (label==10){ // delete kink after head
+                    delete_kink_after_head(paths[0],num_kinks[0],
+                               head_idx[0],tail_idx[0],
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker[0],
+                               N_zero[0],N_beta[0],last_kinks[0],
+                               dummy_counter,dummy_counter,rng);
+                        }
+                else if (label==11){ // insert kink before tail
+                    insert_kink_before_tail(paths[0],num_kinks[0],
+                               head_idx[0],tail_idx[0],
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker[0],
+                               N_zero[0],N_beta[0],last_kinks[0],
+                               dummy_counter,dummy_counter,rng);
+                }
+                else if (label==12){ // delete kink before tail
+                    delete_kink_before_tail(paths[0],num_kinks[0],
+                               head_idx[0],tail_idx[0],
+                               M,N,U,mu,t,adjacency_matrix,total_nn,
+                               beta,eta,canonical,N_tracker[0],
+                               N_zero[0],N_beta[0],last_kinks[0],
+                               dummy_counter,dummy_counter,rng);
+                }
+                else if (label==13){ // insert kink after tail
+                     insert_kink_after_tail(paths[0],num_kinks[0],
+                                head_idx[0],tail_idx[0],
+                                M,N,U,mu,t,adjacency_matrix,total_nn,
+                                beta,eta,canonical,N_tracker[0],
+                                N_zero[0],N_beta[0],last_kinks[0],
+                                dummy_counter,dummy_counter,rng);
+                 }
+                 else if (label==14){ // delete kink after tail
+                     delete_kink_after_tail(paths[0],num_kinks[0],
+                                head_idx[0],tail_idx[0],
+                                M,N,U,mu,t,adjacency_matrix,total_nn,
+                                beta,eta,canonical,N_tracker[0],
+                                N_zero[0],N_beta[0],last_kinks[0],
+                                dummy_counter,dummy_counter,rng);
+                 }
+                else{
+                    // lol
+                }
+
+              // Measure the total number of particles
+              if (m%(sweep*measurement_frequency)==0 && m>=0.25*sweeps_pre){
+                  measurement_attempts[0]+=1;
+                  if (head_idx[0]==-1 and tail_idx[0]==-1){Z_frac += 1;}
+              }
+          }
+
+          Z_frac/=measurement_attempts[0];
+          cout << setw(16) << eta;
+          cout << "| " << Z_frac*100.0 << endl;
+
+
+          // Modify eta if necessary
+          if (Z_frac > 0.13 &&
+              Z_frac < 0.17){break;}
+          else{
+              if (Z_frac < 0.17){eta *= 0.5;}
+              else{eta *= 1.5;}
+          }
+      }
     
 /*---------------------------- Open files ------------------------------------*/
     
@@ -728,7 +748,7 @@ int main(){
         paths.push_back(create_kinks_vector(initial_fock_state,M));
     }
 
-    std::fill(Z_frac.begin(),Z_frac.end(),0);
+//    std::fill(Z_frac.begin(),Z_frac.end(),0);
     std::fill(measurement_attempts.begin(),measurement_attempts.end(),0);
     
     if (beta>=1.0){sweeps*=(beta*M);}
