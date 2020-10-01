@@ -47,7 +47,8 @@ Kink::Kink (double time,int particles,int source_site,int destination_site,
     dest = destination_site;
     prev = prev_kink_idx;
     next = next_kink_idx;
-//    pair = kink_pair_idx;
+    // bool swap_kink -> Add this
+    // int replica_idx
 }
 
 // Overload "<<" operator
