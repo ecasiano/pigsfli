@@ -44,7 +44,7 @@ int main(){
     int total_nn;
     
     // Declare the data structure
-    vector<Kink> kinks_vector;
+//    vector<Kink> kinks_vector;
     vector<vector<Kink>> paths;
         
     // Replicated trackers
@@ -123,7 +123,7 @@ int main(){
     num_replicas=1;
     
     // Bose-Hubbard parameters
-    L=64;
+    L=4;
     D=1;
     M=pow(L,D);
     N=M;
@@ -139,8 +139,8 @@ int main(){
     eta=1/sqrt(M);
     beta=1.0;
     canonical=true;
-    sweeps=100000000;
-    sweeps_pre=10000000;
+    sweeps=10000000;
+    sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;}
     
@@ -165,7 +165,7 @@ int main(){
         for (int i=0;i<M;i++){last_kinks[r][i]=i;}
         
         // Worldlines data structure
-        paths.push_back(create_kinks_vector(initial_fock_state,M));
+        paths.push_back(create_paths(initial_fock_state,M));
         
         // Observables and other measurents
         N_sum.push_back(0);
@@ -254,7 +254,7 @@ int main(){
             last_kinks.push_back(vector<int> (M,-1));
             for (int i=0;i<M;i++){last_kinks[r][i]=i;}
             
-            paths.push_back(create_kinks_vector(initial_fock_state,M));
+            paths.push_back(create_paths(initial_fock_state,M));
         }
         
         N_data.clear();
@@ -545,7 +545,7 @@ int main(){
 //              last_kinks.push_back(vector<int> (M,-1));
 //              for (int i=0;i<M;i++){last_kinks[r][i]=i;}
 //
-//              paths.push_back(create_kinks_vector(initial_fock_state,M));
+//              paths.push_back(create_paths(initial_fock_state,M));
 //          }
 //
 //          N_data.clear();
@@ -783,7 +783,7 @@ int main(){
         last_kinks.push_back(vector<int> (M,-1));
         for (int i=0;i<M;i++){last_kinks[r][i]=i;}
         
-        paths.push_back(create_kinks_vector(initial_fock_state,M));
+        paths.push_back(create_paths(initial_fock_state,M));
     }
 
     Z_frac=0.0;
