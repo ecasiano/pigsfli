@@ -81,16 +81,16 @@ vector<int> random_boson_config(int M,int N,boost::random::mt19937 &rng){
 
 /*----------------------------------------------------------------------------*/
 
-vector<Kink> create_kinks_vector(vector<int> &fock_state, int M){
+vector<Kink> create_paths(vector<int> &fock_state, int M){
 
     // Pre-allocate kinks. Recall: (tau,n,src,dest,prev,next)
-    vector<Kink> kinks_vector(10000000,Kink(-1.0,-1,-1,-1,-1,-1));
+    vector<Kink> paths(10000000,Kink(-1.0,-1,-1,-1,-1,-1));
 
     // Initialize the first M=L^D kinks
     for (int site=0; site<M; site++){
-        kinks_vector[site] = Kink(0.0,fock_state[site],site,site,-1,-1);
+        paths[site] = Kink(0.0,fock_state[site],site,site,-1,-1);
     }
-    return kinks_vector;
+    return paths;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -2994,6 +2994,36 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     else // Reject
         return;
     }
+
+/*----------------------------------------------------------------------------*/
+
+void insert_swap_kink(vector<Kink> &kinks_vector, int &num_kinks,
+                int &head_idx,int &tail_idx,
+                int M, int N, double U, double mu, double t,
+                vector<vector<int>> &adjacency_matrix, int total_nn,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &insert_swap_kink_attempts,
+                unsigned long long int &insert_swap_kink_accepts,
+                boost::random::mt19937 &rng){
+    // swap kink update
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+
+void delete_swap_kink(vector<Kink> &kinks_vector, int &num_kinks,
+                int &head_idx,int &tail_idx,
+                int M, int N, double U, double mu, double t,
+                vector<vector<int>> &adjacency_matrix, int total_nn,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &delete_swap_kink_attempts,
+                unsigned long long int &delete_swap_kink_accepts,
+                boost::random::mt19937 &rng){
+    // swap kink update
+    return;
+}
 
 /*------------------------------- Estimators ---------------------------------*/
 
