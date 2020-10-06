@@ -44,7 +44,7 @@ int main(){
     int total_nn;
     
     // Declare the data structure
-//    vector<Kink> kinks_vector;
+//    vector<Kink> paths;
     vector<vector<Kink>> paths;
         
     // Replicated trackers
@@ -463,8 +463,7 @@ int main(){
             cout<<endl;
             N_mean_pre+=N_bins[i]*P_N[i];
         }
-        cout << "<N>: " << N_mean_pre << endl;
-        cout << endl << endl;
+        cout << "<N>: " << N_mean_pre << endl << endl;
         
         // Get average number of flats (relevant for eta-equilibration)
         N_flats_mean/=N_flats_samples;
@@ -943,7 +942,7 @@ int main(){
 //
 //        // Unit test #2: src and dest of worm tail kink should be the same
 //        if (tail_idx!=-1){
-//            if (kinks_vector[tail_idx].src!=kinks_vector[tail_idx].dest){
+//            if (paths[tail_idx].src!=paths[tail_idx].dest){
 //                cout << "ERROR: src,dest of worm tail not the same ";
 //                cout << "label: " << label << " m " << m <<
 //                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
@@ -951,7 +950,7 @@ int main(){
 //                // Print out the indices of each sites last kink
 //                cout << "Structure after worm end idx error: " << endl;
 //                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << kinks_vector[i] << endl;
+//                    cout << i << " " << paths[i] << endl;
 //                }
 //                cout << endl;
 //                break;
@@ -960,7 +959,7 @@ int main(){
 //
 //        // Unit test 3: src and dest of worm head kink should be the same
 //        if (head_idx!=-1){
-//            if (kinks_vector[head_idx].src!=kinks_vector[head_idx].dest){
+//            if (paths[head_idx].src!=paths[head_idx].dest){
 //                cout << "ERROR: src,dest of worm head not the same ";
 //                cout << "label: " << label << " m " << m <<
 //                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
@@ -968,7 +967,7 @@ int main(){
 //                // Print out the indices of each sites last kink
 //                cout << "Structure after worm end idx error: " << endl;
 //                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << kinks_vector[i] << endl;
+//                    cout << i << " " << paths[i] << endl;
 //                }
 //                cout << endl;
 //                break;
@@ -976,10 +975,10 @@ int main(){
 //        }
 //
 //        // Unit test 4: Last indices should have .next equal to -1
-//        if (kinks_vector[last_kinks[0]].next!=-1
-//            || kinks_vector[last_kinks[1]].next!=-1
-//            || kinks_vector[last_kinks[2]].next!=-1
-//            || kinks_vector[last_kinks[3]].next!=-1){
+//        if (paths[last_kinks[0]].next!=-1
+//            || paths[last_kinks[1]].next!=-1
+//            || paths[last_kinks[2]].next!=-1
+//            || paths[last_kinks[3]].next!=-1){
 //            cout << "ERROR: Last indices should have .next equal to -1 ";
 //            cout << "label: " << label << " m " << m <<
 //             " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
@@ -992,12 +991,12 @@ int main(){
 //            cout << endl;
 //            cout << ".next of each of the last kinks:"<<endl;
 //            for (int i=0; i<M; i++){
-//                cout << kinks_vector[last_kinks[i]].next << " ";
+//                cout << paths[last_kinks[i]].next << " ";
 //            }
 //            cout << endl;
 //            cout << "Structure after worm end idx error: " << endl;
 //            for (int i=0; i<num_kinks+5 ; i++){
-//                cout << i << " " << kinks_vector[i] << endl;
+//                cout << i << " " << paths[i] << endl;
 //            }
 //            cout << endl;
 //            break;
@@ -1013,7 +1012,7 @@ int main(){
 //                // Print out the indices of each sites last kink
 //                cout << "Structure after worm end idx error: " << endl;
 //                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << kinks_vector[i] << endl;
+//                    cout << i << " " << paths[i] << endl;
 //                }
 //                break;
 //            }
@@ -1023,7 +1022,7 @@ int main(){
 //        if (head_idx==-1 && tail_idx==-1 && canonical){
 //            int N_total_sum_zero=0;
 //            for (int i=0; i<M; i++){
-//                N_total_sum_zero+=kinks_vector[i].n;
+//                N_total_sum_zero+=paths[i].n;
 //            }
 //            if (N_total_sum_zero < N-1 || N_total_sum_zero > N+1){
 //                cout << "ERROR: Total particle number N at zero not conserved" << endl;
@@ -1034,7 +1033,7 @@ int main(){
 //                // Print out the indices of each sites last kink
 //                cout << "Structure after worm end idx error: " << endl;
 //                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << kinks_vector[i] << endl;
+//                    cout << i << " " << paths[i] << endl;
 //                }
 //                break;
 //            }
@@ -1044,7 +1043,7 @@ int main(){
 //        if (head_idx==-1 && tail_idx==-1 && canonical){
 //            int N_total_sum_beta=0;
 //            for (int i=0; i<M; i++){
-//                N_total_sum_beta+=kinks_vector[last_kinks[i]].n;
+//                N_total_sum_beta+=paths[last_kinks[i]].n;
 //            }
 //            if (N_total_sum_beta < N-1 || N_total_sum_beta > N+1){
 //                cout << "ERROR: Total particle number at beta not conserved" << endl;
@@ -1055,7 +1054,7 @@ int main(){
 //                // Print out the indices of each sites last kink
 //                cout << "Structure after worm end idx error: " << endl;
 //                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << kinks_vector[i] << endl;
+//                    cout << i << " " << paths[i] << endl;
 //                }
 //                break;
 //            }
@@ -1063,8 +1062,8 @@ int main(){
 
 //        // Unit test 8: Check that the prev,next attributes are different to kink index
 //        for (int i=0; i<num_kinks; i++){
-//            if (i==kinks_vector[i].prev
-//                || i==kinks_vector[i].next){
+//            if (i==paths[i].prev
+//                || i==paths[i].next){
 //                cout << "ERROR: the kink with index " <<
 //                i << " has the same prev or next" << endl;
 //                break;}

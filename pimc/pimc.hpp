@@ -1639,7 +1639,7 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
 /*----------------------------------------------------------------------------*/
 
-void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
+void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
@@ -1664,7 +1664,7 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     ikbh_attempts += 1;
     
     // Extract the worm head site
-    i = kinks_vector[head_idx].src;
+    i = paths[head_idx].src;
     
     // Randomly choose a nearest neighbor site
     boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
@@ -1672,11 +1672,11 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     p_site = 1.0/total_nn;
     
     // Retrieve the time of the worm head
-    tau_h = kinks_vector[head_idx].tau;
+    tau_h = paths[head_idx].tau;
     
     // Determine index of lower/upper kinks of flat where head is (site i)
-    prev_i = kinks_vector[head_idx].prev;
-    next_i = kinks_vector[head_idx].next;
+    prev_i = paths[head_idx].prev;
+    next_i = paths[head_idx].next;
     
     // Determine index of lower/upper kinks of flat where head jumps to (site j)
     tau = 0.0;            // tau_prev_j candidate
@@ -1687,15 +1687,15 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         prev_j = prev;
         
         // Update lower bound index and tau candidates for next iteration
-        prev = kinks_vector[prev].next;
+        prev = paths[prev].next;
         if (prev==-1){break;}
-        tau = kinks_vector[prev].tau;
+        tau = paths[prev].tau;
     }
     next_j=prev;
     
     // Determine upper,lower bound times on both sites (upper time not needed)
-    tau_prev_i = kinks_vector[prev_i].tau;
-    tau_prev_j = kinks_vector[prev_j].tau;
+    tau_prev_i = paths[prev_i].tau;
+    tau_prev_j = paths[prev_j].tau;
     
     // Determine lowest time at which kink could've been inserted
     if (tau_prev_i>tau_prev_j){tau_min=tau_prev_i;}
@@ -1707,9 +1707,9 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     if (tau_kink == tau_min){return;}
     
     // Extract no. of particles in the flats adjacent to the new kink
-    n_wi = kinks_vector[prev_i].n;
+    n_wi = paths[prev_i].n;
     n_i = n_wi-1;
-    n_j = kinks_vector[prev_j].n;
+    n_j = paths[prev_j].n;
     n_wj = n_j+1;                   // "w": segment with the extra particle
         
     // Calculate the diagonal energy difference on both sites
@@ -1731,25 +1731,25 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         ikbh_accepts += 1;
                 
         // Change kink that stored head information to a regular kink
-        kinks_vector[head_idx].tau = tau_kink;
-        kinks_vector[head_idx].n = n_i;
-        kinks_vector[head_idx].src = i;  // more like site
-        kinks_vector[head_idx].dest = j; // more like connecting site
-        kinks_vector[head_idx].prev = prev_i;
-        kinks_vector[head_idx].next = next_i;
+        paths[head_idx].tau = tau_kink;
+        paths[head_idx].n = n_i;
+        paths[head_idx].src = i;  // more like site
+        paths[head_idx].dest = j; // more like connecting site
+        paths[head_idx].prev = prev_i;
+        paths[head_idx].next = next_i;
         
         // Create the kinks on the destination site
-        kinks_vector[num_kinks]=Kink(tau_kink,n_wj,j,i,prev_j,num_kinks+1);
-        kinks_vector[num_kinks+1]=Kink(tau_h,n_j,j,j,num_kinks,next_j);
+        paths[num_kinks]=Kink(tau_kink,n_wj,j,i,prev_j,num_kinks+1);
+        paths[num_kinks+1]=Kink(tau_h,n_j,j,j,num_kinks,next_j);
         
         // Set new worm head index
         head_idx = num_kinks+1;
                 
         // "Connect" next of lower bound kink to new kink
-        kinks_vector[prev_j].next = num_kinks;
+        paths[prev_j].next = num_kinks;
         
         // "Connect" prev of next kink to worm head
-        if(next_j!=-1){kinks_vector[next_j].prev = head_idx;}
+        if(next_j!=-1){paths[next_j].prev = head_idx;}
                 
         // Update number of kinks tracker
         num_kinks += 2;
@@ -1766,7 +1766,7 @@ void insert_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
+void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
@@ -1786,28 +1786,28 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     if (head_idx==-1){return;}
 
     // There has to be a regular kink before the worm head
-    if (kinks_vector[kinks_vector[head_idx].prev].src
-    ==kinks_vector[kinks_vector[head_idx].prev].dest){return;}
+    if (paths[paths[head_idx].prev].src
+    ==paths[paths[head_idx].prev].dest){return;}
 
     // Need at least two sites to perform a spaceshift
     if (M<2){return;}
 
     // Indices of: upper bound kink, kink before head, lower bound kink ; site j
-    next_j = kinks_vector[head_idx].next;
-    kink_idx_j = kinks_vector[head_idx].prev;
-    prev_j = kinks_vector[kink_idx_j].prev;
+    next_j = paths[head_idx].next;
+    kink_idx_j = paths[head_idx].prev;
+    prev_j = paths[kink_idx_j].prev;
 
     // Times of: worm head, kink before head, lower bound kink; site j
-    tau_h = kinks_vector[head_idx].tau;
-    tau_kink = kinks_vector[kink_idx_j].tau;
-    tau_prev_j = kinks_vector[prev_j].tau;
+    tau_h = paths[head_idx].tau;
+    tau_kink = paths[kink_idx_j].tau;
+    tau_prev_j = paths[prev_j].tau;
 
     // Only kinks in which the particle hops from i TO j can be deleted
-    if (kinks_vector[kink_idx_j].n-kinks_vector[prev_j].n<0){return;}
+    if (paths[kink_idx_j].n-paths[prev_j].n<0){return;}
 
     // Retrieve worm head site (j) and connecting site (i)
-    j = kinks_vector[kink_idx_j].src;
-    i = kinks_vector[kink_idx_j].dest;
+    j = paths[kink_idx_j].src;
+    i = paths[kink_idx_j].dest;
     
     // Determine index of lower/upper bounds of flat where kink connects to (i)
     tau = 0.0;            // tau_prev_i candidate
@@ -1818,16 +1818,16 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         prev_i = prev;
 
         // Update lower bound index and tau candidates for next iteration
-        prev = kinks_vector[prev].next;
+        prev = paths[prev].next;
         if (prev==-1){break;}
-        tau = kinks_vector[prev].tau;
+        tau = paths[prev].tau;
     }
     kink_idx_i = prev;
-    next_i=kinks_vector[kink_idx_i].next;
+    next_i=paths[kink_idx_i].next;
 
     // Retrieve time of lower,upper bounds on connecting site (i)
-    tau_prev_i = kinks_vector[prev_i].tau;
-    if (next_i!=-1){tau_next_i = kinks_vector[next_i].tau;}
+    tau_prev_i = paths[prev_i].tau;
+    if (next_i!=-1){tau_next_i = paths[next_i].tau;}
     else{tau_next_i=beta;}
 
     // Deletion cannot interfere w/ kinks on other site
@@ -1844,9 +1844,9 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
     p_site = 1.0/total_nn;
 
     // Extract no. of particles in the flats adjacent to the new kink
-    n_wi = kinks_vector[prev_i].n;
+    n_wi = paths[prev_i].n;
     n_i = n_wi-1;
-    n_j = kinks_vector[prev_j].n;
+    n_j = paths[prev_j].n;
     n_wj = n_j+1;                   // "w": segment with the extra particle
 
     // Calculate the diagonal energy difference on both sites
@@ -1870,11 +1870,11 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
         dkbh_accepts += 1;
 
         // Stage 1: Delete kink on i
-        if (kinks_vector[num_kinks-1].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-1].next].prev = kink_idx_i;
-        kinks_vector[kinks_vector[num_kinks-1].prev].next = kink_idx_i;
+        if (paths[num_kinks-1].next!=-1)
+            paths[paths[num_kinks-1].next].prev = kink_idx_i;
+        paths[paths[num_kinks-1].prev].next = kink_idx_i;
 
-        swap(kinks_vector[kink_idx_i],kinks_vector[num_kinks-1]);
+        swap(paths[kink_idx_i],paths[num_kinks-1]);
 
         if (prev_i==num_kinks-1){prev_i=kink_idx_i;}
         else if (next_i==num_kinks-1){next_i=kink_idx_i;}
@@ -1886,22 +1886,22 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
 
         if (tail_idx==num_kinks-1){tail_idx=kink_idx_i;}
 
-        if (kinks_vector[kink_idx_i].next==-1){
-            last_kinks[kinks_vector[kink_idx_i].src]=kink_idx_i;
+        if (paths[kink_idx_i].next==-1){
+            last_kinks[paths[kink_idx_i].src]=kink_idx_i;
         }
 
         if (next_i!=-1)
-            kinks_vector[next_i].prev = prev_i;
-        kinks_vector[prev_i].next = next_i;
+            paths[next_i].prev = prev_i;
+        paths[prev_i].next = next_i;
 
         if (next_i==-1){last_kinks[i]=prev_i;}
 
         // Stage 2: Delete worm head on j
-        if (kinks_vector[num_kinks-2].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-2].next].prev = head_idx;
-        kinks_vector[kinks_vector[num_kinks-2].prev].next = head_idx;
+        if (paths[num_kinks-2].next!=-1)
+            paths[paths[num_kinks-2].next].prev = head_idx;
+        paths[paths[num_kinks-2].prev].next = head_idx;
 
-        swap(kinks_vector[head_idx],kinks_vector[num_kinks-2]);
+        swap(paths[head_idx],paths[num_kinks-2]);
 
         if (prev_i==num_kinks-2){prev_i=head_idx;}
         else if (next_i==num_kinks-2){next_i=head_idx;}
@@ -1912,22 +1912,22 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
 
         if (tail_idx==num_kinks-2){tail_idx=head_idx;}
 
-        if (kinks_vector[head_idx].next==-1){
-            last_kinks[kinks_vector[head_idx].src]=head_idx;
+        if (paths[head_idx].next==-1){
+            last_kinks[paths[head_idx].src]=head_idx;
         }
 
         if (next_j!=-1)
-            kinks_vector[next_j].prev = kink_idx_j;
-        kinks_vector[kink_idx_j].next = next_j;
+            paths[next_j].prev = kink_idx_j;
+        paths[kink_idx_j].next = next_j;
 
         if (next_j==-1){last_kinks[j]=kink_idx_j;}
 
         // Stage 3: Delete kink on j
-        if (kinks_vector[num_kinks-3].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-3].next].prev = kink_idx_j;
-        kinks_vector[kinks_vector[num_kinks-3].prev].next = kink_idx_j;
+        if (paths[num_kinks-3].next!=-1)
+            paths[paths[num_kinks-3].next].prev = kink_idx_j;
+        paths[paths[num_kinks-3].prev].next = kink_idx_j;
 
-        swap(kinks_vector[kink_idx_j],kinks_vector[num_kinks-3]);
+        swap(paths[kink_idx_j],paths[num_kinks-3]);
 
         if (prev_i==num_kinks-3){prev_i=kink_idx_j;}
         else if (next_i==num_kinks-3){next_i=kink_idx_j;}
@@ -1937,23 +1937,23 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
 
         if (tail_idx==num_kinks-3){tail_idx=kink_idx_j;}
 
-        if (kinks_vector[kink_idx_j].next==-1){
-            last_kinks[kinks_vector[kink_idx_j].src]=kink_idx_j;
+        if (paths[kink_idx_j].next==-1){
+            last_kinks[paths[kink_idx_j].src]=kink_idx_j;
         }
 
         if (next_j!=-1)
-            kinks_vector[next_j].prev = prev_j;
-        kinks_vector[prev_j].next = next_j;
+            paths[next_j].prev = prev_j;
+        paths[prev_j].next = next_j;
 
         if (next_j==-1){last_kinks[j]=prev_j;}
 
         // Stage 4: Insert worm head on i
-        kinks_vector[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i);
+        paths[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i);
 
         head_idx = num_kinks-3;
 
-        kinks_vector[prev_i].next = head_idx;
-        if(next_i!=-1){kinks_vector[next_i].prev = head_idx;}
+        paths[prev_i].next = head_idx;
+        if(next_i!=-1){paths[next_i].prev = head_idx;}
 
         if (next_i==-1){last_kinks[i]=head_idx;}
 
@@ -1969,7 +1969,7 @@ void delete_kink_before_head(vector<Kink> &kinks_vector, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
+void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
@@ -1994,7 +1994,7 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
     ikah_attempts += 1;
     
     // Extract the worm head site
-    i = kinks_vector[head_idx].src;
+    i = paths[head_idx].src;
     
     // Randomly choose a nearest neighbor site
     boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
@@ -2002,11 +2002,11 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
     p_site = 1.0/total_nn;
     
     // Retrieve the time of the worm head
-    tau_h = kinks_vector[head_idx].tau;
+    tau_h = paths[head_idx].tau;
     
     // Determine index of lower/upper kinks of flat where head is (site i)
-    prev_i = kinks_vector[head_idx].prev;
-    next_i = kinks_vector[head_idx].next;
+    prev_i = paths[head_idx].prev;
+    next_i = paths[head_idx].next;
     
     // Determine index of lower/upper kinks of flat where head jumps to (site j)
     tau = 0.0;            // tau_prev_j candidate
@@ -2018,21 +2018,21 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         prev_j = prev;
         
         // Update lower bound index and tau candidates for next iteration
-        prev = kinks_vector[prev].next;
+        prev = paths[prev].next;
         if (prev==-1){break;}
-        tau = kinks_vector[prev].tau;
+        tau = paths[prev].tau;
     }
     next_j=prev;
     
     // Determine upper,lower bound times on both sites
-    tau_prev_i = kinks_vector[prev_i].tau;
-    tau_prev_j = kinks_vector[prev_j].tau;
+    tau_prev_i = paths[prev_i].tau;
+    tau_prev_j = paths[prev_j].tau;
     if (next_i!=-1)
-        tau_next_i = kinks_vector[next_i].tau;
+        tau_next_i = paths[next_i].tau;
     else
         tau_next_i = beta;
     if (next_j!=-1)
-        tau_next_j = kinks_vector[next_j].tau;
+        tau_next_j = paths[next_j].tau;
     else
         tau_next_j = beta;
     
@@ -2046,9 +2046,9 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
     if (tau_kink==tau_h){return;}
     
      // Extract no. of particles in the flats adjacent to the new kink
-     n_wi = kinks_vector[prev_i].n;
+     n_wi = paths[prev_i].n;
      n_i = n_wi-1;
-     n_wj = kinks_vector[prev_j].n;
+     n_wj = paths[prev_j].n;
      n_j = n_wj-1;                   // "w": segment with the extra particle
     
     // Update not possible if no particles on destinaton site (j)
@@ -2073,25 +2073,25 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         ikah_accepts += 1;
                 
         // Change kink that stored head information to a regular kink
-        kinks_vector[head_idx].tau = tau_kink;
-        kinks_vector[head_idx].n = n_i;
-        kinks_vector[head_idx].src = i;
-        kinks_vector[head_idx].dest = j;
-        kinks_vector[head_idx].prev = prev_i;
-        kinks_vector[head_idx].next = next_i;
+        paths[head_idx].tau = tau_kink;
+        paths[head_idx].n = n_i;
+        paths[head_idx].src = i;
+        paths[head_idx].dest = j;
+        paths[head_idx].prev = prev_i;
+        paths[head_idx].next = next_i;
         
         // Create the kinks on the destination site
-        kinks_vector[num_kinks]=Kink(tau_h,n_j,j,j,prev_j,num_kinks+1);
-        kinks_vector[num_kinks+1]=Kink(tau_kink,n_wj,j,i,num_kinks,next_j);
+        paths[num_kinks]=Kink(tau_h,n_j,j,j,prev_j,num_kinks+1);
+        paths[num_kinks+1]=Kink(tau_kink,n_wj,j,i,num_kinks,next_j);
         
         // Set new worm head index
         head_idx = num_kinks;
                 
         // "Connect" next of lower bound kink to worm head
-        kinks_vector[prev_j].next = head_idx;
+        paths[prev_j].next = head_idx;
         
         // "Connect" prev of next kink to new kink
-        if(next_j!=-1){kinks_vector[next_j].prev = num_kinks+1;}
+        if(next_j!=-1){paths[next_j].prev = num_kinks+1;}
         
         // If new kink is last kink on site j, update last kinks tracker vector
         if (next_j==-1){last_kinks[j]=num_kinks+1;}
@@ -2107,7 +2107,7 @@ void insert_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
+void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
@@ -2127,32 +2127,32 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
     if (head_idx==-1){return;}
     
     // There has to be a regular kink after the worm head
-    if (kinks_vector[head_idx].next==tail_idx ||
-        kinks_vector[head_idx].next==-1){return;}
+    if (paths[head_idx].next==tail_idx ||
+        paths[head_idx].next==-1){return;}
 
     // Need at least two sites to perform a spaceshift
     if (M<2){return;}
 
     // Indices of: upper bound kink, kink before head, lower bound kink ; site j
-    kink_idx_j = kinks_vector[head_idx].next;
-    next_j = kinks_vector[kink_idx_j].next;
-    prev_j = kinks_vector[head_idx].prev;
+    kink_idx_j = paths[head_idx].next;
+    next_j = paths[kink_idx_j].next;
+    prev_j = paths[head_idx].prev;
 
     // Times of: worm head, kink before head, lower bound kink; site j
     if (next_j!=-1)
-        tau_next_j = kinks_vector[next_j].tau;
+        tau_next_j = paths[next_j].tau;
     else
         tau_next_j = beta;
-    tau_kink = kinks_vector[kink_idx_j].tau;
-    tau_h = kinks_vector[head_idx].tau;
-    tau_prev_j = kinks_vector[prev_j].tau;
+    tau_kink = paths[kink_idx_j].tau;
+    tau_h = paths[head_idx].tau;
+    tau_prev_j = paths[prev_j].tau;
     
     // Only kinks in which the particle hops from i TO j can be deleted
-    if (kinks_vector[kink_idx_j].n-kinks_vector[head_idx].n<0){return;}
+    if (paths[kink_idx_j].n-paths[head_idx].n<0){return;}
     
     // Retrieve worm head site (j) and connecting site (i)
-    j = kinks_vector[head_idx].src;
-    i = kinks_vector[kink_idx_j].dest;
+    j = paths[head_idx].src;
+    i = paths[kink_idx_j].dest;
 
     // Determine index of lower/upper bounds of flat where kink connects to (i)
     tau = 0.0;            // tau_prev_i candidate
@@ -2163,16 +2163,16 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         prev_i = prev;
 
         // Update lower bound index and tau candidates for next iteration
-        prev = kinks_vector[prev].next;
+        prev = paths[prev].next;
         if (prev==-1){break;}
-        tau = kinks_vector[prev].tau;
+        tau = paths[prev].tau;
     }
     kink_idx_i = prev;
-    next_i=kinks_vector[kink_idx_i].next;
+    next_i=paths[kink_idx_i].next;
 
     // Retrieve time of lower,upper bounds on connecting site (i)
-    tau_prev_i = kinks_vector[prev_i].tau;
-    if (next_i!=-1){tau_next_i = kinks_vector[next_i].tau;}
+    tau_prev_i = paths[prev_i].tau;
+    if (next_i!=-1){tau_next_i = paths[next_i].tau;}
     else{tau_next_i=beta;}
     
     // Deletion cannot interfere w/ kinks on other site
@@ -2189,9 +2189,9 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
     p_site = 1.0/total_nn;
 
     // Extract no. of particles in the flats adjacent to the new kink
-    n_wi = kinks_vector[prev_i].n;
+    n_wi = paths[prev_i].n;
     n_i = n_wi-1;
-    n_wj = kinks_vector[prev_j].n;
+    n_wj = paths[prev_j].n;
     n_j = n_wj-1;                   // "w": segment with the extra particle
 
     // Calculate the diagonal energy difference on both sites
@@ -2215,11 +2215,11 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         dkah_accepts += 1;
         
         // Stage 1: Delete kink on i
-        if (kinks_vector[num_kinks-1].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-1].next].prev = kink_idx_i;
-        kinks_vector[kinks_vector[num_kinks-1].prev].next = kink_idx_i;
+        if (paths[num_kinks-1].next!=-1)
+            paths[paths[num_kinks-1].next].prev = kink_idx_i;
+        paths[paths[num_kinks-1].prev].next = kink_idx_i;
         
-        swap(kinks_vector[kink_idx_i],kinks_vector[num_kinks-1]);
+        swap(paths[kink_idx_i],paths[num_kinks-1]);
         
         if (prev_i==num_kinks-1){prev_i=kink_idx_i;}
         else if (next_i==num_kinks-1){next_i=kink_idx_i;}
@@ -2231,22 +2231,22 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         
         if (tail_idx==num_kinks-1){tail_idx=kink_idx_i;}
         
-        if (kinks_vector[kink_idx_i].next==-1){
-            last_kinks[kinks_vector[kink_idx_i].src]=kink_idx_i;
+        if (paths[kink_idx_i].next==-1){
+            last_kinks[paths[kink_idx_i].src]=kink_idx_i;
         }
         
         if (next_i!=-1)
-            kinks_vector[next_i].prev = prev_i;
-        kinks_vector[prev_i].next = next_i;
+            paths[next_i].prev = prev_i;
+        paths[prev_i].next = next_i;
         
         if (next_i==-1){last_kinks[i]=prev_i;}
 
         // Stage 2: Delete kink on j
-        if (kinks_vector[num_kinks-2].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-2].next].prev = kink_idx_j;
-        kinks_vector[kinks_vector[num_kinks-2].prev].next = kink_idx_j;
+        if (paths[num_kinks-2].next!=-1)
+            paths[paths[num_kinks-2].next].prev = kink_idx_j;
+        paths[paths[num_kinks-2].prev].next = kink_idx_j;
         
-        swap(kinks_vector[kink_idx_j],kinks_vector[num_kinks-2]);
+        swap(paths[kink_idx_j],paths[num_kinks-2]);
         
         if (prev_i==num_kinks-2){prev_i=kink_idx_j;}
         else if (next_i==num_kinks-2){next_i=kink_idx_j;}
@@ -2257,22 +2257,22 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         
         if (tail_idx==num_kinks-2){tail_idx=kink_idx_j;}
         
-        if (kinks_vector[kink_idx_j].next==-1){
-            last_kinks[kinks_vector[kink_idx_j].src]=kink_idx_j;
+        if (paths[kink_idx_j].next==-1){
+            last_kinks[paths[kink_idx_j].src]=kink_idx_j;
         }
         
         if (next_j!=-1)
-            kinks_vector[next_j].prev = head_idx;
-        kinks_vector[head_idx].next = next_j;
+            paths[next_j].prev = head_idx;
+        paths[head_idx].next = next_j;
         
         if (next_j==-1){last_kinks[j]=head_idx;}
         
         // Stage 3: Delete worm head on j
-        if (kinks_vector[num_kinks-3].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-3].next].prev = head_idx;
-        kinks_vector[kinks_vector[num_kinks-3].prev].next = head_idx;
+        if (paths[num_kinks-3].next!=-1)
+            paths[paths[num_kinks-3].next].prev = head_idx;
+        paths[paths[num_kinks-3].prev].next = head_idx;
         
-        swap(kinks_vector[head_idx],kinks_vector[num_kinks-3]);
+        swap(paths[head_idx],paths[num_kinks-3]);
         
         if (prev_i==num_kinks-3){prev_i=head_idx;}
         else if (next_i==num_kinks-3){next_i=head_idx;}
@@ -2282,23 +2282,23 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
         
         if (tail_idx==num_kinks-3){tail_idx=head_idx;}
         
-        if (kinks_vector[head_idx].next==-1){
-            last_kinks[kinks_vector[head_idx].src]=head_idx;
+        if (paths[head_idx].next==-1){
+            last_kinks[paths[head_idx].src]=head_idx;
         }
         
         if (next_j!=-1)
-            kinks_vector[next_j].prev = prev_j;
-        kinks_vector[prev_j].next = next_j;
+            paths[next_j].prev = prev_j;
+        paths[prev_j].next = next_j;
         
         if (next_j==-1){last_kinks[j]=prev_j;}
         
         // Stage 4: Insert worm head on i
-        kinks_vector[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i);
+        paths[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i);
         
         head_idx = num_kinks-3;
         
-        kinks_vector[prev_i].next = head_idx;
-        if(next_i!=-1){kinks_vector[next_i].prev = head_idx;}
+        paths[prev_i].next = head_idx;
+        if(next_i!=-1){paths[next_i].prev = head_idx;}
         
         if (next_i==-1){last_kinks[i]=head_idx;}
         
@@ -2314,7 +2314,7 @@ void delete_kink_after_head(vector<Kink> &kinks_vector, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
+void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
@@ -2336,7 +2336,7 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     if (M<2){return;}
     
     // Extract the worm tail site
-    i = kinks_vector[tail_idx].src;
+    i = paths[tail_idx].src;
     
     // Randomly choose a nearest neighbor site
     boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
@@ -2344,11 +2344,11 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     p_site = 1.0/total_nn;
     
     // Retrieve the time of the worm tail
-    tau_t = kinks_vector[tail_idx].tau;
+    tau_t = paths[tail_idx].tau;
     
     // Determine index of lower/upper kinks of flat where tail is (site i)
-    prev_i = kinks_vector[tail_idx].prev;
-    next_i = kinks_vector[tail_idx].next;
+    prev_i = paths[tail_idx].prev;
+    next_i = paths[tail_idx].next;
     
     // Determine index of lower/upper kinks of flat where tail jumps to (site j)
     tau = 0.0;            // tau_prev_j candidate
@@ -2359,21 +2359,21 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         prev_j = prev;
         
         // Update lower bound index and tau candidates for next iteration
-        prev = kinks_vector[prev].next;
+        prev = paths[prev].next;
         if (prev==-1){break;}
-        tau = kinks_vector[prev].tau;
+        tau = paths[prev].tau;
     }
     next_j=prev;
     
     // Determine upper,lower bound times on both sites
-    tau_prev_i = kinks_vector[prev_i].tau;
-    tau_prev_j = kinks_vector[prev_j].tau;
+    tau_prev_i = paths[prev_i].tau;
+    tau_prev_j = paths[prev_j].tau;
     if (next_i!=-1)
-        tau_next_i = kinks_vector[next_i].tau;
+        tau_next_i = paths[next_i].tau;
     else
         tau_next_i = beta;
     if (next_j!=-1)
-        tau_next_j = kinks_vector[next_j].tau;
+        tau_next_j = paths[next_j].tau;
     else
         tau_next_j = beta;
     
@@ -2387,9 +2387,9 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     if (tau_kink == tau_min){return;}
     
      // Extract no. of particles in the flats adjacent to the new kink
-     n_i = kinks_vector[prev_i].n;
+     n_i = paths[prev_i].n;
      n_wi = n_i+1;
-     n_wj = kinks_vector[prev_j].n;
+     n_wj = paths[prev_j].n;
      n_j = n_wj-1;                   // "w": segment with the extra particle
     
     // Update not possible if no particles on destinaton site (j)
@@ -2417,25 +2417,25 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         ikbt_accepts += 1;
                 
         // Change kink that stored tail information to a regular kink
-        kinks_vector[tail_idx].tau = tau_kink;
-        kinks_vector[tail_idx].n = n_wi;
-        kinks_vector[tail_idx].src = i;
-        kinks_vector[tail_idx].dest = j;
-        kinks_vector[tail_idx].prev = prev_i;
-        kinks_vector[tail_idx].next = next_i;
+        paths[tail_idx].tau = tau_kink;
+        paths[tail_idx].n = n_wi;
+        paths[tail_idx].src = i;
+        paths[tail_idx].dest = j;
+        paths[tail_idx].prev = prev_i;
+        paths[tail_idx].next = next_i;
         
         // Create the kinks on the destination site
-        kinks_vector[num_kinks]=Kink(tau_kink,n_j,j,i,prev_j,num_kinks+1);
-        kinks_vector[num_kinks+1]=Kink(tau_t,n_wj,j,j,num_kinks,next_j);
+        paths[num_kinks]=Kink(tau_kink,n_j,j,i,prev_j,num_kinks+1);
+        paths[num_kinks+1]=Kink(tau_t,n_wj,j,j,num_kinks,next_j);
         
         // Set new worm tail index
         tail_idx = num_kinks+1;
                 
         // "Connect" next of lower bound kink to new kink
-        kinks_vector[prev_j].next = num_kinks;
+        paths[prev_j].next = num_kinks;
         
         // "Connect" prev of next kink to worm tail
-        if(next_j!=-1){kinks_vector[next_j].prev = tail_idx;}
+        if(next_j!=-1){paths[next_j].prev = tail_idx;}
                 
         // Update number of kinks tracker
         num_kinks += 2;
@@ -2452,7 +2452,7 @@ void insert_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
+void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
@@ -2472,28 +2472,28 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     if (tail_idx==-1){return;}
     
     // There has to be a regular kink after the worm tail
-    if (kinks_vector[tail_idx].prev==head_idx ||
-        kinks_vector[kinks_vector[tail_idx].prev].tau==0){return;}
+    if (paths[tail_idx].prev==head_idx ||
+        paths[paths[tail_idx].prev].tau==0){return;}
 
     // Need at least two sites to perform a spaceshift
     if (M<2){return;}
     
     // Indices of: upper bound kink, kink before tail, lower bound kink ; site j
-    next_j = kinks_vector[tail_idx].next;
-    kink_idx_j = kinks_vector[tail_idx].prev;
-    prev_j = kinks_vector[kink_idx_j].prev;
+    next_j = paths[tail_idx].next;
+    kink_idx_j = paths[tail_idx].prev;
+    prev_j = paths[kink_idx_j].prev;
 
     // Times of: worm tail, kink before tail, lower bound kink; site j
-    tau_t = kinks_vector[tail_idx].tau;
-    tau_kink = kinks_vector[kink_idx_j].tau;
-    tau_prev_j = kinks_vector[prev_j].tau;
+    tau_t = paths[tail_idx].tau;
+    tau_kink = paths[kink_idx_j].tau;
+    tau_prev_j = paths[prev_j].tau;
     
     // Only kinks in which the particle hops from j TO i can be deleted
-    if (kinks_vector[kink_idx_j].n-kinks_vector[prev_j].n>0){return;}
+    if (paths[kink_idx_j].n-paths[prev_j].n>0){return;}
     
     // Retrieve worm tail site (j) and connecting site (i)
-    j = kinks_vector[kink_idx_j].src;
-    i = kinks_vector[kink_idx_j].dest;
+    j = paths[kink_idx_j].src;
+    i = paths[kink_idx_j].dest;
 
     // Determine index of lower/upper bounds of flat where kink connects to (i)
     tau = 0.0;            // tau_prev_i candidate
@@ -2504,17 +2504,17 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         prev_i = prev;
 
         // Update lower bound index and tau candidates for next iteration
-        prev = kinks_vector[prev].next;
+        prev = paths[prev].next;
         if (prev==-1){break;}
-        tau = kinks_vector[prev].tau;
+        tau = paths[prev].tau;
     }
     kink_idx_i = prev;
-    next_i=kinks_vector[kink_idx_i].next;
+    next_i=paths[kink_idx_i].next;
 
     // Retrieve time of lower,upper bounds on connecting site (i)
-    tau_prev_i = kinks_vector[prev_i].tau;
+    tau_prev_i = paths[prev_i].tau;
     if (next_i==-1){tau_next_i=beta;}
-    else {tau_next_i=kinks_vector[next_i].tau;};
+    else {tau_next_i=paths[next_i].tau;};
     
     // Deletion cannot interfere w/ kinks on other site
     if (tau_t>=tau_next_i){return;}
@@ -2530,9 +2530,9 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
     p_site = 1.0/total_nn;
 
     // Extract no. of particles in the flats adjacent to the new kink
-    n_i = kinks_vector[prev_i].n;
+    n_i = paths[prev_i].n;
     n_wi = n_i+1;
-    n_wj = kinks_vector[prev_j].n;
+    n_wj = paths[prev_j].n;
     n_j = n_wj-1;                   // "w": segment with the extra particle
 
     // Calculate the diagonal energy difference on both sites
@@ -2556,11 +2556,11 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         dkbt_accepts += 1;
         
         // Stage 1: Delete kink on i
-        if (kinks_vector[num_kinks-1].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-1].next].prev = kink_idx_i;
-        kinks_vector[kinks_vector[num_kinks-1].prev].next = kink_idx_i;
+        if (paths[num_kinks-1].next!=-1)
+            paths[paths[num_kinks-1].next].prev = kink_idx_i;
+        paths[paths[num_kinks-1].prev].next = kink_idx_i;
         
-        swap(kinks_vector[kink_idx_i],kinks_vector[num_kinks-1]);
+        swap(paths[kink_idx_i],paths[num_kinks-1]);
         
         if (prev_i==num_kinks-1){prev_i=kink_idx_i;}
         else if (next_i==num_kinks-1){next_i=kink_idx_i;}
@@ -2572,22 +2572,22 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         
         if (head_idx==num_kinks-1){head_idx=kink_idx_i;}
         
-        if (kinks_vector[kink_idx_i].next==-1){
-            last_kinks[kinks_vector[kink_idx_i].src]=kink_idx_i;
+        if (paths[kink_idx_i].next==-1){
+            last_kinks[paths[kink_idx_i].src]=kink_idx_i;
         }
         
         if (next_i!=-1)
-            kinks_vector[next_i].prev = prev_i;
-        kinks_vector[prev_i].next = next_i;
+            paths[next_i].prev = prev_i;
+        paths[prev_i].next = next_i;
         
         if (next_i==-1){last_kinks[i]=prev_i;}
 
         // Stage 2: Delete worm tail on j
-        if (kinks_vector[num_kinks-2].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-2].next].prev = tail_idx;
-        kinks_vector[kinks_vector[num_kinks-2].prev].next = tail_idx;
+        if (paths[num_kinks-2].next!=-1)
+            paths[paths[num_kinks-2].next].prev = tail_idx;
+        paths[paths[num_kinks-2].prev].next = tail_idx;
         
-        swap(kinks_vector[tail_idx],kinks_vector[num_kinks-2]);
+        swap(paths[tail_idx],paths[num_kinks-2]);
         
         if (prev_i==num_kinks-2){prev_i=tail_idx;}
         else if (next_i==num_kinks-2){next_i=tail_idx;}
@@ -2598,22 +2598,22 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         
         if (head_idx==num_kinks-2){head_idx=tail_idx;}
         
-        if (kinks_vector[tail_idx].next==-1){
-            last_kinks[kinks_vector[tail_idx].src]=tail_idx;
+        if (paths[tail_idx].next==-1){
+            last_kinks[paths[tail_idx].src]=tail_idx;
         }
         
         if (next_j!=-1)
-            kinks_vector[next_j].prev = kink_idx_j;
-        kinks_vector[kink_idx_j].next = next_j;
+            paths[next_j].prev = kink_idx_j;
+        paths[kink_idx_j].next = next_j;
         
         if (next_j==-1){last_kinks[j]=kink_idx_j;}
                 
         // Stage 3: Delete kink on j
-        if (kinks_vector[num_kinks-3].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-3].next].prev = kink_idx_j;
-        kinks_vector[kinks_vector[num_kinks-3].prev].next = kink_idx_j;
+        if (paths[num_kinks-3].next!=-1)
+            paths[paths[num_kinks-3].next].prev = kink_idx_j;
+        paths[paths[num_kinks-3].prev].next = kink_idx_j;
         
-        swap(kinks_vector[kink_idx_j],kinks_vector[num_kinks-3]);
+        swap(paths[kink_idx_j],paths[num_kinks-3]);
         
         if (prev_i==num_kinks-3){prev_i=kink_idx_j;}
         else if (next_i==num_kinks-3){next_i=kink_idx_j;}
@@ -2623,23 +2623,23 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
         
         if (head_idx==num_kinks-3){head_idx=kink_idx_j;}
         
-        if (kinks_vector[kink_idx_j].next==-1){
-            last_kinks[kinks_vector[kink_idx_j].src]=kink_idx_j;
+        if (paths[kink_idx_j].next==-1){
+            last_kinks[paths[kink_idx_j].src]=kink_idx_j;
         }
         
         if (next_j!=-1)
-            kinks_vector[next_j].prev = prev_j;
-        kinks_vector[prev_j].next = next_j;
+            paths[next_j].prev = prev_j;
+        paths[prev_j].next = next_j;
         
         if (next_j==-1){last_kinks[j]=prev_j;}
 
         // Stage 4: Insert worm tail on i
-        kinks_vector[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i);
+        paths[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i);
 
         tail_idx = num_kinks-3;
 
-        kinks_vector[prev_i].next = tail_idx;
-        if(next_i!=-1){kinks_vector[next_i].prev = tail_idx;}
+        paths[prev_i].next = tail_idx;
+        if(next_i!=-1){paths[next_i].prev = tail_idx;}
 
         if (next_i==-1){last_kinks[i]=tail_idx;}
 
@@ -2655,7 +2655,7 @@ void delete_kink_before_tail(vector<Kink> &kinks_vector, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
+void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
@@ -2680,7 +2680,7 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     ikat_attempts += 1;
     
     // Extract the worm tail site
-    i = kinks_vector[tail_idx].src;
+    i = paths[tail_idx].src;
     
     // Randomly choose a nearest neighbor site
     boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
@@ -2688,11 +2688,11 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     p_site = 1.0/total_nn;
     
     // Retrieve the time of the worm tail
-    tau_t = kinks_vector[tail_idx].tau;
+    tau_t = paths[tail_idx].tau;
     
     // Determine index of lower/upper kinks of flat where tail is (site i)
-    prev_i = kinks_vector[tail_idx].prev;
-    next_i = kinks_vector[tail_idx].next;
+    prev_i = paths[tail_idx].prev;
+    next_i = paths[tail_idx].next;
     
     // Determine index of lower/upper kinks of flat where tail jumps to (site j)
     tau = 0.0;            // tau_prev_j candidate
@@ -2703,21 +2703,21 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         prev_j = prev;
         
         // Update lower bound index and tau candidates for next iteration
-        prev = kinks_vector[prev].next;
+        prev = paths[prev].next;
         if (prev==-1){break;}
-        tau = kinks_vector[prev].tau;
+        tau = paths[prev].tau;
     }
     next_j=prev;
     
     // Determine upper,lower bound times on both sites
-    tau_prev_i = kinks_vector[prev_i].tau;
-    tau_prev_j = kinks_vector[prev_j].tau;
+    tau_prev_i = paths[prev_i].tau;
+    tau_prev_j = paths[prev_j].tau;
     if (next_i!=-1)
-        tau_next_i = kinks_vector[next_i].tau;
+        tau_next_i = paths[next_i].tau;
     else
         tau_next_i = beta;
     if (next_j!=-1)
-        tau_next_j = kinks_vector[next_j].tau;
+        tau_next_j = paths[next_j].tau;
     else
         tau_next_j = beta;
     
@@ -2731,9 +2731,9 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     if (tau_kink==tau_t){return;}
     
      // Extract no. of particles in the flats adjacent to the new kink
-     n_i = kinks_vector[prev_i].n;
+     n_i = paths[prev_i].n;
      n_wi = n_i+1;
-     n_j = kinks_vector[prev_j].n;
+     n_j = paths[prev_j].n;
      n_wj = n_j+1;                   // "w": segment with the extra particle
     
     // Calculate the diagonal energy difference on both sites
@@ -2755,25 +2755,25 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         ikat_accepts += 1;
                 
         // Change kink that stored tail information to a regular kink
-        kinks_vector[tail_idx].tau = tau_kink;
-        kinks_vector[tail_idx].n = n_wi;
-        kinks_vector[tail_idx].src = i;
-        kinks_vector[tail_idx].dest = j;
-        kinks_vector[tail_idx].prev = prev_i;
-        kinks_vector[tail_idx].next = next_i;
+        paths[tail_idx].tau = tau_kink;
+        paths[tail_idx].n = n_wi;
+        paths[tail_idx].src = i;
+        paths[tail_idx].dest = j;
+        paths[tail_idx].prev = prev_i;
+        paths[tail_idx].next = next_i;
         
         // Create the kinks on the destination site
-        kinks_vector[num_kinks]=Kink(tau_t,n_wj,j,j,prev_j,num_kinks+1);
-        kinks_vector[num_kinks+1]=Kink(tau_kink,n_j,j,i,num_kinks,next_j);
+        paths[num_kinks]=Kink(tau_t,n_wj,j,j,prev_j,num_kinks+1);
+        paths[num_kinks+1]=Kink(tau_kink,n_j,j,i,num_kinks,next_j);
         
         // Set new worm tail index
         tail_idx = num_kinks;
                 
         // "Connect" next of lower bound kink to worm tail
-        kinks_vector[prev_j].next = num_kinks;
+        paths[prev_j].next = num_kinks;
         
         // "Connect" prev of next kink to new kink
-        if(next_j!=-1){kinks_vector[next_j].prev = num_kinks+1;}
+        if(next_j!=-1){paths[next_j].prev = num_kinks+1;}
         
         // If new kink is last kink on site j, update last kinks tracker vector
         if (next_j==-1){last_kinks[j]=num_kinks+1;}
@@ -2790,7 +2790,7 @@ void insert_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
+void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
@@ -2810,32 +2810,32 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     if (tail_idx==-1){return;}
     
     // There has to be a regular kink after the worm tail
-    if (kinks_vector[tail_idx].next==head_idx ||
-        kinks_vector[tail_idx].next==-1){return;}
+    if (paths[tail_idx].next==head_idx ||
+        paths[tail_idx].next==-1){return;}
 
     // Need at least two sites to perform a spaceshift
     if (M<2){return;}
 
     // Indices of: upper bound kink, kink before tail, lower bound kink ; site j
-    kink_idx_j = kinks_vector[tail_idx].next;
-    next_j = kinks_vector[kink_idx_j].next;
-    prev_j = kinks_vector[tail_idx].prev;
+    kink_idx_j = paths[tail_idx].next;
+    next_j = paths[kink_idx_j].next;
+    prev_j = paths[tail_idx].prev;
 
     // Times of: worm tail, kink before tail, lower bound kink; site j
     if (next_j!=-1)
-        tau_next_j = kinks_vector[next_j].tau;
+        tau_next_j = paths[next_j].tau;
     else
         tau_next_j = beta;
-    tau_kink = kinks_vector[kink_idx_j].tau;
-    tau_t = kinks_vector[tail_idx].tau;
-    tau_prev_j = kinks_vector[prev_j].tau;
+    tau_kink = paths[kink_idx_j].tau;
+    tau_t = paths[tail_idx].tau;
+    tau_prev_j = paths[prev_j].tau;
     
     // Only kinks in which the particle hops from j TO i can be deleted
-    if ((kinks_vector[kink_idx_j].n-kinks_vector[tail_idx].n)>0){return;}
+    if ((paths[kink_idx_j].n-paths[tail_idx].n)>0){return;}
     
     // Retrieve worm tail site (j) and connecting site (i)
-    j = kinks_vector[kink_idx_j].src;
-    i = kinks_vector[kink_idx_j].dest;
+    j = paths[kink_idx_j].src;
+    i = paths[kink_idx_j].dest;
 
     // Determine index of lower/upper bounds of flat where kink connects to (i)
     tau = 0.0;            // tau_prev_i candidate
@@ -2846,17 +2846,17 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         prev_i = prev;
 
         // Update lower bound index and tau candidates for next iteration
-        prev = kinks_vector[prev].next;
+        prev = paths[prev].next;
         if (prev==-1){break;}
-        tau = kinks_vector[prev].tau;
+        tau = paths[prev].tau;
     }
     kink_idx_i = prev;
-    next_i=kinks_vector[kink_idx_i].next;
+    next_i=paths[kink_idx_i].next;
 
     // Retrieve time of lower,upper bounds on connecting site (i)
-    tau_prev_i = kinks_vector[prev_i].tau;
+    tau_prev_i = paths[prev_i].tau;
     if (next_i==-1){tau_next_i=beta;}
-    else {tau_next_i = kinks_vector[next_i].tau;};
+    else {tau_next_i = paths[next_i].tau;};
     
     // Deletion cannot interfere w/ kinks on other site
     if (tau_t <= tau_prev_i){return;}
@@ -2872,9 +2872,9 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
     p_site = 1.0/total_nn;
 
     // Extract no. of particles in the flats adjacent to the new kink
-    n_i = kinks_vector[prev_i].n;
+    n_i = paths[prev_i].n;
     n_wi = n_i+1;
-    n_j = kinks_vector[prev_j].n;
+    n_j = paths[prev_j].n;
     n_wj = n_j+1;                   // "w": segment with the extra particle
 
     // Calculate the diagonal energy difference on both sites
@@ -2898,11 +2898,11 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         dkat_accepts += 1;
         
         // Stage 1: Delete kink on i
-        if (kinks_vector[num_kinks-1].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-1].next].prev = kink_idx_i;
-        kinks_vector[kinks_vector[num_kinks-1].prev].next = kink_idx_i;
+        if (paths[num_kinks-1].next!=-1)
+            paths[paths[num_kinks-1].next].prev = kink_idx_i;
+        paths[paths[num_kinks-1].prev].next = kink_idx_i;
         
-        swap(kinks_vector[kink_idx_i],kinks_vector[num_kinks-1]);
+        swap(paths[kink_idx_i],paths[num_kinks-1]);
         
         if (prev_i==num_kinks-1){prev_i=kink_idx_i;}
         else if (next_i==num_kinks-1){next_i=kink_idx_i;}
@@ -2914,22 +2914,22 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         
         if (head_idx==num_kinks-1){head_idx=kink_idx_i;}
         
-        if (kinks_vector[kink_idx_i].next==-1){
-            last_kinks[kinks_vector[kink_idx_i].src]=kink_idx_i;
+        if (paths[kink_idx_i].next==-1){
+            last_kinks[paths[kink_idx_i].src]=kink_idx_i;
         }
         
         if (next_i!=-1)
-            kinks_vector[next_i].prev = prev_i;
-        kinks_vector[prev_i].next = next_i;
+            paths[next_i].prev = prev_i;
+        paths[prev_i].next = next_i;
         
         if (next_i==-1){last_kinks[i]=prev_i;}
 
         // Stage 2: Delete kink on j
-        if (kinks_vector[num_kinks-2].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-2].next].prev = kink_idx_j;
-        kinks_vector[kinks_vector[num_kinks-2].prev].next = kink_idx_j;
+        if (paths[num_kinks-2].next!=-1)
+            paths[paths[num_kinks-2].next].prev = kink_idx_j;
+        paths[paths[num_kinks-2].prev].next = kink_idx_j;
         
-        swap(kinks_vector[kink_idx_j],kinks_vector[num_kinks-2]);
+        swap(paths[kink_idx_j],paths[num_kinks-2]);
         
         if (prev_i==num_kinks-2){prev_i=kink_idx_j;}
         else if (next_i==num_kinks-2){next_i=kink_idx_j;}
@@ -2940,22 +2940,22 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         
         if (head_idx==num_kinks-2){head_idx=kink_idx_j;}
         
-        if (kinks_vector[kink_idx_j].next==-1){
-            last_kinks[kinks_vector[kink_idx_j].src]=kink_idx_j;
+        if (paths[kink_idx_j].next==-1){
+            last_kinks[paths[kink_idx_j].src]=kink_idx_j;
         }
         
         if (next_j!=-1)
-            kinks_vector[next_j].prev = tail_idx;
-        kinks_vector[tail_idx].next = next_j;
+            paths[next_j].prev = tail_idx;
+        paths[tail_idx].next = next_j;
         
         if (next_j==-1){last_kinks[j]=tail_idx;}
         
         // Stage 3: Delete worm head on j
-        if (kinks_vector[num_kinks-3].next!=-1)
-            kinks_vector[kinks_vector[num_kinks-3].next].prev = tail_idx;
-        kinks_vector[kinks_vector[num_kinks-3].prev].next = tail_idx;
+        if (paths[num_kinks-3].next!=-1)
+            paths[paths[num_kinks-3].next].prev = tail_idx;
+        paths[paths[num_kinks-3].prev].next = tail_idx;
         
-        swap(kinks_vector[tail_idx],kinks_vector[num_kinks-3]);
+        swap(paths[tail_idx],paths[num_kinks-3]);
         
         if (prev_i==num_kinks-3){prev_i=tail_idx;}
         else if (next_i==num_kinks-3){next_i=tail_idx;}
@@ -2965,23 +2965,23 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
         
         if (head_idx==num_kinks-3){head_idx=tail_idx;}
         
-        if (kinks_vector[tail_idx].next==-1){
-            last_kinks[kinks_vector[tail_idx].src]=tail_idx;
+        if (paths[tail_idx].next==-1){
+            last_kinks[paths[tail_idx].src]=tail_idx;
         }
         
         if (next_j!=-1)
-            kinks_vector[next_j].prev = prev_j;
-        kinks_vector[prev_j].next = next_j;
+            paths[next_j].prev = prev_j;
+        paths[prev_j].next = next_j;
         
         if (next_j==-1){last_kinks[j]=prev_j;}
         
         // Stage 4: Insert worm tail on i
-        kinks_vector[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i);
+        paths[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i);
         
         tail_idx = num_kinks-3;
         
-        kinks_vector[prev_i].next = tail_idx;
-        if(next_i!=-1){kinks_vector[next_i].prev = tail_idx;}
+        paths[prev_i].next = tail_idx;
+        if(next_i!=-1){paths[next_i].prev = tail_idx;}
         
         if (next_i==-1){last_kinks[i]=tail_idx;}
         
@@ -2997,7 +2997,7 @@ void delete_kink_after_tail(vector<Kink> &kinks_vector, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void insert_swap_kink(vector<Kink> &kinks_vector, int &num_kinks,
+void insert_swap_kink(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
@@ -3012,7 +3012,7 @@ void insert_swap_kink(vector<Kink> &kinks_vector, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void delete_swap_kink(vector<Kink> &kinks_vector, int &num_kinks,
+void delete_swap_kink(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
@@ -3030,21 +3030,21 @@ void delete_swap_kink(vector<Kink> &kinks_vector, int &num_kinks,
 // For diagonal estimators around a time slice, Fock State will be needed
 void get_fock_state(double measurement_center, int M,
                     vector<int> &fock_state_at_slice,
-                    vector<Kink> &kinks_vector){
+                    vector<Kink> &paths){
     
     double tau;
     int current,n_i;
     
     for (int i=0; i<M; i++){
         current=i;
-        tau = kinks_vector[current].tau;
+        tau = paths[current].tau;
         while (tau<=measurement_center && current!=-1){
-            n_i=kinks_vector[current].n;
+            n_i=paths[current].n;
             fock_state_at_slice[i]=n_i;
             
-            current=kinks_vector[current].next;
+            current=paths[current].next;
             if (current!=-1)
-                tau=kinks_vector[current].tau;
+                tau=paths[current].tau;
         }
     }
     return;
@@ -3088,7 +3088,7 @@ double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
 
 /*----------------------------------------------------------------------------*/
 
-void tau_resolved_diagonal_energy(vector<Kink> &kinks_vector,
+void tau_resolved_diagonal_energy(vector<Kink> &paths,
                                            int num_kinks, int M, bool canonical,
                                            double U, double mu, double beta,
                                            vector<double> &measurement_centers,
@@ -3098,16 +3098,16 @@ void tau_resolved_diagonal_energy(vector<Kink> &kinks_vector,
     
     for (int i=0; i<M; i++){
         current=i;
-        tau=kinks_vector[current].tau;
-        n_i=kinks_vector[current].n;
+        tau=paths[current].tau;
+        n_i=paths[current].n;
         for (int j=0; j<measurement_centers.size(); j++){
             measurement_center=measurement_centers[j];
             while (tau<=measurement_center && current!=-1){
-                n_i=kinks_vector[current].n;
+                n_i=paths[current].n;
                 
-                current=kinks_vector[current].next;
+                current=paths[current].next;
                 if (current!=-1)
-                    tau=kinks_vector[current].tau;
+                    tau=paths[current].tau;
             }
             if (canonical)
                 tr_diagonal_energy[j]+=(U/2.0*n_i*(n_i-1.0));
@@ -3121,15 +3121,15 @@ void tau_resolved_diagonal_energy(vector<Kink> &kinks_vector,
 
 /*------------------------------ Off-Diagonal --------------------------------*/
 
-double pimc_kinetic_energy(vector<Kink> &kinks_vector, int num_kinks,
+double pimc_kinetic_energy(vector<Kink> &paths, int num_kinks,
                       double measurement_center,double measurement_plus_minus,
                       int M, double t, double beta){
     
     int kinks_in_window=0;
     
     for (int k=0; k<num_kinks; k++){
-        if (kinks_vector[k].tau>=measurement_center-measurement_plus_minus
-            && kinks_vector[k].tau<=measurement_center+measurement_plus_minus){
+        if (paths[k].tau>=measurement_center-measurement_plus_minus
+            && paths[k].tau<=measurement_center+measurement_plus_minus){
             kinks_in_window+=1;
         }
     }
@@ -3139,7 +3139,7 @@ double pimc_kinetic_energy(vector<Kink> &kinks_vector, int num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void tau_resolved_kinetic_energy(vector<Kink> &kinks_vector,
+void tau_resolved_kinetic_energy(vector<Kink> &paths,
                                            int num_kinks, int M,
                                            double t, double beta,
                                            vector<double> &measurement_centers,
@@ -3149,7 +3149,7 @@ void tau_resolved_kinetic_energy(vector<Kink> &kinks_vector,
     window_width = measurement_centers[2]-measurement_centers[1];
     
     for (int i=M; i<num_kinks; i++){ // Note: the tau=0 kinks not counted
-        tau = kinks_vector[i].tau;
+        tau = paths[i].tau;
 
         for (int j=0; j<measurement_centers.size(); j++){
             measurement_center=measurement_centers[j];
