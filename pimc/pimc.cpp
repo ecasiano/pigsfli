@@ -802,7 +802,7 @@ int main(){
         }
     
     
-    cout << endl << "Stage (2/3): Equilibrating..." << endl << endl;
+    cout << "Stage (2/3): Equilibrating..." << endl << endl;
     for (int r=0;r<num_replicas;r++){
     for (unsigned long long int m=0; m < sweeps; m++){
         label = updates(rng);
