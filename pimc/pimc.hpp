@@ -29,10 +29,10 @@ class Kink
     public:
     // Attribute declarations
     double tau;
-    int n,src,dest,prev,next;
+    int n,src,dest,prev,next,src_replica,dest_replica;
     
     // Member function declarations (prototypes)
-    Kink (double,int,int,int,int,int); // Kink constructor
+    Kink (double,int,int,int,int,int,int,int); // Kink constructor
     
     // Make "<<" a friend of the Kink class
     friend ostream& operator<<(ostream& os, const Kink& dt);
@@ -40,13 +40,16 @@ class Kink
 
 // Member function definitions
 Kink::Kink (double time,int particles,int source_site,int destination_site,
-            int prev_kink_idx,int next_kink_idx){
+            int prev_kink_idx,int next_kink_idx,
+            int source_replica,int destination_replica){
     tau = time;
     n = particles;
     src = source_site;
     dest = destination_site;
     prev = prev_kink_idx;
     next = next_kink_idx;
+    src_replica = source_replica;
+    dest_replica = destination_replica;
     // bool swap_kink -> Add this
     // int replica_idx
 }
@@ -55,8 +58,9 @@ Kink::Kink (double time,int particles,int source_site,int destination_site,
 ostream& operator<<(ostream& os, const Kink& dt)
 {
     os << '<' << dt.tau << ',' << dt.n << ',' << dt.src << ','
-    << dt.dest << ',' << dt.prev << ',' << dt.next << '>';
-    
+    << dt.dest << ',' << dt.prev << ',' << dt.next <<'>'
+    << dt.src_replica << dt.dest_replica;
+
     return os;
 }
 
@@ -81,14 +85,15 @@ vector<int> random_boson_config(int M,int N,boost::random::mt19937 &rng){
 
 /*----------------------------------------------------------------------------*/
 
-vector<Kink> create_paths(vector<int> &fock_state, int M){
+vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
 
     // Pre-allocate kinks. Recall: (tau,n,src,dest,prev,next)
-    vector<Kink> paths(10000000,Kink(-1.0,-1,-1,-1,-1,-1));
+    vector<Kink> paths(10000000,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1));
 
     // Initialize the first M=L^D kinks
     for (int site=0; site<M; site++){
-        paths[site] = Kink(0.0,fock_state[site],site,site,-1,-1);
+        paths[site] = Kink(0.0,fock_state[site],site,site,-1,-1,
+                           replica_idx,replica_idx);
     }
     return paths;
 }
@@ -273,7 +278,7 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
                  boost::random::mt19937 &rng){
     
     // Variable declarations
-    int k,n,src,dest,prev,next,n_head,n_tail;
+    int k,n,src,dest,prev,next,n_head,n_tail,src_replica,dest_replica;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R;
     bool is_worm;
     
@@ -291,6 +296,8 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     dest = paths[k].dest;
     prev = paths[k].prev;
     next = paths[k].next;
+    src_replica = paths[k].src_replica;
+    dest_replica = paths[k].dest_replica;
     
     // Calculate the length of the flat interval
     tau_prev = tau;
@@ -352,10 +359,10 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
         // Activate the first two available kinks
         if (is_worm){
-            paths[num_kinks]=Kink(tau_t,n_tail,src,src,
-                                         k,num_kinks+1);
-            paths[num_kinks+1]=Kink(tau_h,n_head,src,src,
-                                           num_kinks,next);
+            paths[num_kinks]=Kink(tau_t,n_tail,src,src,k,num_kinks+1,
+                                  src_replica,dest_replica);
+            paths[num_kinks+1]=Kink(tau_h,n_head,src,src,num_kinks,next,
+                                    src_replica,dest_replica);
             
             // Save indices of head & tail kinks
             head_idx = num_kinks + 1;
@@ -365,10 +372,10 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
             insert_worm_accepts += 1;
         }
         else{ // Antiworm
-            paths[num_kinks]=Kink(tau_h,n_head,src,src,
-                                         k,num_kinks+1);
-            paths[num_kinks+1]=Kink(tau_t,n_tail,src,src,
-                                           num_kinks,next);
+            paths[num_kinks]=Kink(tau_h,n_head,src,src,k,num_kinks+1,
+                                  src_replica,dest_replica);
+            paths[num_kinks+1]=Kink(tau_t,n_tail,src,src,num_kinks,next,
+                                    src_replica,dest_replica);
             
             // Save indices of head & tail kinks
             head_idx = num_kinks;
@@ -590,7 +597,7 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 boost::random::mt19937 &rng){
     
     // Variable declarations
-    int n,src,dest,prev,next,n_head,n_tail,i,N_b;
+    int n,src,dest,prev,next,n_head,n_tail,i,N_b,src_replica,dest_replica;
     double tau_prev,tau_flat,l_path,dN,dV,R,p_type,tau_new,p_wormend,C,W,
     p_dz,p_iz;
     bool is_worm;
@@ -609,6 +616,8 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     dest = paths[i].dest;
     prev = paths[i].prev;
     next = paths[i].next;
+    src_replica = paths[i].src;
+    dest_replica = paths[i].dest_replica;
     
     // Determine the length of insertion flat interval
     if (next != -1)
@@ -723,7 +732,8 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
         
         // Activate the first available kink
         if (is_worm){
-            paths[num_kinks] = Kink(tau_new,n_head,src,src,src,next);
+            paths[num_kinks] = Kink(tau_new,n_head,src,src,src,next,
+                                    src_replica,dest_replica);
             
             // Save head index
             head_idx = num_kinks;
@@ -738,7 +748,8 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
             N_zero += 1;
         }
         else{ // antiworm
-            paths[num_kinks] = Kink(tau_new,n_tail,src,src,src,next);
+            paths[num_kinks] = Kink(tau_new,n_tail,src,src,src,next,
+                                    src_replica,dest_replica);
             
             // Save head index
             tail_idx = num_kinks;
@@ -998,7 +1009,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 boost::random::mt19937 &rng){
     
     // Variable declarations
-    int n,src,dest,prev,next,n_head,n_tail,i,N_b;
+    int n,src,dest,prev,next,n_head,n_tail,i,N_b,src_replica,dest_replica;
     double tau_prev,tau_flat,
     l_path,dN,dV,R,p_type,tau_new,p_wormend,C,W,p_db,p_ib;
     bool is_worm;
@@ -1017,6 +1028,8 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     dest = paths[last_kinks[i]].dest;
     prev = paths[last_kinks[i]].prev;
     next = paths[last_kinks[i]].next;
+    src_replica = paths[last_kinks[i]].src_replica;
+    dest_replica = paths[last_kinks[i]].dest_replica;
     
     // Determine the length of insertion flat interval
     tau_flat = beta - tau_prev;
@@ -1129,7 +1142,8 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
         // Activate the first available kink
         if (is_worm){
             paths[num_kinks] = Kink (tau_new,n_tail,src,src,
-                                            last_kinks[src],next);
+                                            last_kinks[src],next,
+                                            src_replica,dest_replica);
             
             // Save tail index
             tail_idx = num_kinks;
@@ -1142,7 +1156,8 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
         }
         else{ // antiworm
             paths[num_kinks] = Kink (tau_new,n_head,src,src,
-                                            last_kinks[src],next);
+                                            last_kinks[src],next,
+                                            src_replica,dest_replica);
             
             // Save head index
             head_idx = num_kinks;
@@ -1650,7 +1665,8 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 boost::random::mt19937 &rng){
     
     // Variable declarations
-    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    src_replica,dest_replica;
     double tau,tau_h,p_site,W,R,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,
     tau_kink,tau_min,dV_i,dV_j;
         
@@ -1663,8 +1679,10 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
     // Add to proposal counter
     ikbh_attempts += 1;
     
-    // Extract the worm head site
+    // Extract the worm head site and replica
     i = paths[head_idx].src;
+    src_replica = paths[head_idx].src_replica;
+    dest_replica = paths[head_idx].dest_replica;
     
     // Randomly choose a nearest neighbor site
     boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
@@ -1739,8 +1757,10 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
         paths[head_idx].next = next_i;
         
         // Create the kinks on the destination site
-        paths[num_kinks]=Kink(tau_kink,n_wj,j,i,prev_j,num_kinks+1);
-        paths[num_kinks+1]=Kink(tau_h,n_j,j,j,num_kinks,next_j);
+        paths[num_kinks]=Kink(tau_kink,n_wj,j,i,prev_j,num_kinks+1,
+                              src_replica,dest_replica);
+        paths[num_kinks+1]=Kink(tau_h,n_j,j,j,num_kinks,next_j,
+                                src_replica,dest_replica);
         
         // Set new worm head index
         head_idx = num_kinks+1;
@@ -1778,7 +1798,7 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
-    kink_idx_i,kink_idx_j;
+    kink_idx_i,kink_idx_j,src_replica,dest_replica;
     double tau,tau_h,p_site,W,R,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,
     tau_kink,tau_min,dV_i,dV_j,tau_next_i;
 
@@ -1808,6 +1828,8 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
     // Retrieve worm head site (j) and connecting site (i)
     j = paths[kink_idx_j].src;
     i = paths[kink_idx_j].dest;
+    src_replica = paths[kink_idx_j].src_replica;
+    dest_replica = paths[kink_idx_j].dest_replica;
     
     // Determine index of lower/upper bounds of flat where kink connects to (i)
     tau = 0.0;            // tau_prev_i candidate
@@ -1948,7 +1970,8 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
         if (next_j==-1){last_kinks[j]=prev_j;}
 
         // Stage 4: Insert worm head on i
-        paths[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i);
+        paths[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i,
+                                src_replica,dest_replica);
 
         head_idx = num_kinks-3;
 
@@ -1980,7 +2003,8 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 boost::random::mt19937 &rng){
     
     // Variable declarations
-    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    src_replica,dest_replica;
     double tau,tau_h,p_site,W,R,p_dkah,p_ikah,tau_prev_i,tau_prev_j,
     tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j;
     
@@ -1995,7 +2019,9 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
     
     // Extract the worm head site
     i = paths[head_idx].src;
-    
+    src_replica = paths[head_idx].src_replica;
+    dest_replica = paths[head_idx].dest_replica;
+
     // Randomly choose a nearest neighbor site
     boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
     j = adjacency_matrix[i][random_nn(rng)];
@@ -2081,8 +2107,10 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
         paths[head_idx].next = next_i;
         
         // Create the kinks on the destination site
-        paths[num_kinks]=Kink(tau_h,n_j,j,j,prev_j,num_kinks+1);
-        paths[num_kinks+1]=Kink(tau_kink,n_wj,j,i,num_kinks,next_j);
+        paths[num_kinks]=Kink(tau_h,n_j,j,j,prev_j,num_kinks+1,
+                              src_replica,dest_replica);
+        paths[num_kinks+1]=Kink(tau_kink,n_wj,j,i,num_kinks,next_j,
+                                src_replica,dest_replica);
         
         // Set new worm head index
         head_idx = num_kinks;
@@ -2119,7 +2147,7 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
-    kink_idx_i,kink_idx_j;
+    kink_idx_i,kink_idx_j,src_replica,dest_replica;
     double tau,tau_h,p_site,W,R,p_dkah,p_ikah,tau_prev_i,tau_prev_j,
     tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j;
     
@@ -2153,6 +2181,8 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
     // Retrieve worm head site (j) and connecting site (i)
     j = paths[head_idx].src;
     i = paths[kink_idx_j].dest;
+    src_replica = paths[kink_idx_j].src_replica;
+    dest_replica = paths[kink_idx_j].dest_replica;
 
     // Determine index of lower/upper bounds of flat where kink connects to (i)
     tau = 0.0;            // tau_prev_i candidate
@@ -2293,7 +2323,8 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
         if (next_j==-1){last_kinks[j]=prev_j;}
         
         // Stage 4: Insert worm head on i
-        paths[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i);
+        paths[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i,
+                                src_replica,dest_replica);
         
         head_idx = num_kinks-3;
         
@@ -2325,7 +2356,8 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 boost::random::mt19937 &rng){
     
     // Variable declarations
-    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    src_replica,dest_replica;
     double tau,tau_t,p_site,W,R,p_dkbt,p_ikbt,tau_prev_i,tau_prev_j,
     tau_kink,tau_min,dV_i,dV_j,tau_next_i,tau_next_j;
     
@@ -2337,6 +2369,8 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
     
     // Extract the worm tail site
     i = paths[tail_idx].src;
+    src_replica = paths[tail_idx].src_replica;
+    dest_replica = paths[tail_idx].dest_replica;
     
     // Randomly choose a nearest neighbor site
     boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
@@ -2425,8 +2459,10 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
         paths[tail_idx].next = next_i;
         
         // Create the kinks on the destination site
-        paths[num_kinks]=Kink(tau_kink,n_j,j,i,prev_j,num_kinks+1);
-        paths[num_kinks+1]=Kink(tau_t,n_wj,j,j,num_kinks,next_j);
+        paths[num_kinks]=Kink(tau_kink,n_j,j,i,prev_j,num_kinks+1,
+                              src_replica,dest_replica);
+        paths[num_kinks+1]=Kink(tau_t,n_wj,j,j,num_kinks,next_j,
+                              src_replica,dest_replica);
         
         // Set new worm tail index
         tail_idx = num_kinks+1;
@@ -2464,7 +2500,7 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
-    kink_idx_i,kink_idx_j;
+    kink_idx_i,kink_idx_j,src_replica,dest_replica;
     double tau,tau_t,p_site,W,R,p_dkbt,p_ikbt,tau_prev_i,tau_prev_j,
     tau_kink,tau_min,dV_i,dV_j,tau_next_i;
     
@@ -2494,7 +2530,9 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
     // Retrieve worm tail site (j) and connecting site (i)
     j = paths[kink_idx_j].src;
     i = paths[kink_idx_j].dest;
-
+    src_replica = paths[kink_idx_j].src_replica;
+    dest_replica = paths[kink_idx_j].dest_replica;
+    
     // Determine index of lower/upper bounds of flat where kink connects to (i)
     tau = 0.0;            // tau_prev_i candidate
     prev = i;           // prev_i candidate
@@ -2634,7 +2672,8 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
         if (next_j==-1){last_kinks[j]=prev_j;}
 
         // Stage 4: Insert worm tail on i
-        paths[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i);
+        paths[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i,
+                                src_replica,dest_replica);
 
         tail_idx = num_kinks-3;
 
@@ -2666,7 +2705,8 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 boost::random::mt19937 &rng){
     
     // Variable declarations
-    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j;
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    src_replica,dest_replica;
     double tau,tau_t,p_site,W,R,p_dkat,p_ikat,tau_prev_i,tau_prev_j,
     tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j;
     
@@ -2681,6 +2721,8 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
     
     // Extract the worm tail site
     i = paths[tail_idx].src;
+    src_replica = paths[tail_idx].src_replica;
+    dest_replica = paths[tail_idx].dest_replica;
     
     // Randomly choose a nearest neighbor site
     boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
@@ -2763,8 +2805,10 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
         paths[tail_idx].next = next_i;
         
         // Create the kinks on the destination site
-        paths[num_kinks]=Kink(tau_t,n_wj,j,j,prev_j,num_kinks+1);
-        paths[num_kinks+1]=Kink(tau_kink,n_j,j,i,num_kinks,next_j);
+        paths[num_kinks]=Kink(tau_t,n_wj,j,j,prev_j,num_kinks+1,
+                              src_replica,dest_replica);
+        paths[num_kinks+1]=Kink(tau_kink,n_j,j,i,num_kinks,next_j,
+                              src_replica,dest_replica);
         
         // Set new worm tail index
         tail_idx = num_kinks;
@@ -2802,7 +2846,7 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
-    kink_idx_i,kink_idx_j;
+    kink_idx_i,kink_idx_j,src_replica,dest_replica;
     double tau,tau_t,p_site,W,R,p_dkat,p_ikat,tau_prev_i,tau_prev_j,
     tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j;
     
@@ -2836,6 +2880,8 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
     // Retrieve worm tail site (j) and connecting site (i)
     j = paths[kink_idx_j].src;
     i = paths[kink_idx_j].dest;
+    src_replica = paths[kink_idx_j].src_replica;
+    dest_replica = paths[kink_idx_j].dest_replica;
 
     // Determine index of lower/upper bounds of flat where kink connects to (i)
     tau = 0.0;            // tau_prev_i candidate
@@ -2976,7 +3022,8 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
         if (next_j==-1){last_kinks[j]=prev_j;}
         
         // Stage 4: Insert worm tail on i
-        paths[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i);
+        paths[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i,
+                                src_replica,dest_replica);
         
         tail_idx = num_kinks-3;
         
