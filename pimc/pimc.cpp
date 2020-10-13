@@ -120,7 +120,7 @@ int main(){
 /*------------------------- Initialize variables -----------------------------*/
 
     // SWAP
-    num_replicas=1;
+    num_replicas=2;
     
     // Bose-Hubbard parameters
     L=4;
@@ -139,8 +139,8 @@ int main(){
     eta=1/sqrt(M);
     beta=1.0;
     canonical=true;
-    sweeps=10000000;
-    sweeps_pre=1000000;
+    sweeps=1000000;
+    sweeps_pre=100000;
     sweep=beta*M;
     if (sweep==0){sweep=M;}
     
@@ -165,7 +165,7 @@ int main(){
         for (int i=0;i<M;i++){last_kinks[r][i]=i;}
         
         // Worldlines data structure
-        paths.push_back(create_paths(initial_fock_state,M));
+        paths.push_back(create_paths(initial_fock_state,M,r));
         
         // Observables and other measurents
         N_sum.push_back(0);
@@ -254,7 +254,7 @@ int main(){
             last_kinks.push_back(vector<int> (M,-1));
             for (int i=0;i<M;i++){last_kinks[r][i]=i;}
             
-            paths.push_back(create_paths(initial_fock_state,M));
+            paths.push_back(create_paths(initial_fock_state,M,r));
         }
         
         N_data.clear();
@@ -782,7 +782,7 @@ int main(){
         last_kinks.push_back(vector<int> (M,-1));
         for (int i=0;i<M;i++){last_kinks[r][i]=i;}
         
-        paths.push_back(create_paths(initial_fock_state,M));
+        paths.push_back(create_paths(initial_fock_state,M,r));
     }
 
     Z_frac=0.0;
