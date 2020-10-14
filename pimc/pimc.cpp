@@ -44,11 +44,10 @@ int main(){
     int total_nn;
     
     // Declare the data structure
-//    vector<Kink> paths;
     vector<vector<Kink>> paths;
         
     // Replicated trackers
-    vector<int> num_kinks,head_idx,tail_idx,N_zero,N_beta,bin_ctr;
+    vector<int> num_kinks,head_idx,tail_idx,N_zero,N_beta,bin_ctr,swap_kinks;
     vector<double> N_tracker;
     vector<vector<int>> last_kinks;
     vector<unsigned long long int> Z_ctr,measurement_attempts;
@@ -175,6 +174,9 @@ int main(){
         measurement_attempts.push_back(0);
     }
     
+    // Fill out swap kinks tracker
+    for (int i=0;i<M;i++){swap_kinks.push_back(-1);}
+
     // Measurement settings
     measurement_center=beta/2.0;
     measurement_plus_minus=0.10*beta;
