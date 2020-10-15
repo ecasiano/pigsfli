@@ -47,15 +47,20 @@ int main(){
     vector<vector<Kink>> paths;
         
     // Replicated trackers
-    vector<int> num_kinks,head_idx,tail_idx,N_zero,N_beta,bin_ctr,swap_kinks;
+    vector<int> num_kinks,head_idx,tail_idx,N_zero,N_beta,bin_ctr;
     vector<double> N_tracker;
-    vector<vector<int>> last_kinks;
+    vector<vector<int>> last_kinks,swap_kinks;
     vector<unsigned long long int> Z_ctr,measurement_attempts;
     
     // Replicated observables
     vector<double> N_sum,diagonal_energy,kinetic_energy;
     vector<vector<double>> tr_kinetic_energy,tr_diagonal_energy;
-
+    
+    // Subregion sites
+    int l_A; // subregion linear size
+    int m_A; // subregion total size
+    vector<int> sub_sites;
+    
     // Measurement settings
     double measurement_center,measurement_plus_minus;
     int measurement_frequency,bin_size;
@@ -122,8 +127,8 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=4;
-    D=1;
+    L=5;
+    D=2;
     M=pow(L,D);
     N=M;
     t=1.0;
@@ -148,6 +153,15 @@ int main(){
     total_nn=0;
     for (int i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
     
+    // Subsystem
+    l_A = 3; // subsystem linear size
+    m_A = pow(l_A,D);
+    create_sub_sites(sub_sites,l_A,L,D,M);
+    for (int i=0; i<sub_sites.size(); i++){
+        cout << sub_sites[i] << " ";
+    }
+    cout << endl;
+    
     // Replicated trackers
     for (int r=0;r<num_replicas;r++){
         num_kinks.push_back(M);
@@ -163,6 +177,9 @@ int main(){
         last_kinks.push_back(vector<int> (M,-1));
         for (int i=0;i<M;i++){last_kinks[r][i]=i;}
         
+        // Initialize vector containing indices of swap kinks at each replica
+        swap_kinks.push_back(vector<int> (M,-1));
+        
         // Worldlines data structure
         paths.push_back(create_paths(initial_fock_state,M,r));
         
@@ -175,7 +192,8 @@ int main(){
     }
     
     // Fill out swap kinks tracker
-    for (int i=0;i<M;i++){swap_kinks.push_back(-1);}
+//    for (int i=0;i<M;i++){swap_kinks.push_back(-1);}
+//    cout << "cebolla: " << swap_kinks.size() << endl;
 
     // Measurement settings
     measurement_center=beta/2.0;
@@ -187,7 +205,7 @@ int main(){
     
     N_flats_mean=0.0;
     N_flats_samples=0;
-    
+        
 /*------------------- Try drawing a pretty welcome message -------------------*/
 
     cout << R"(
