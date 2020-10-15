@@ -49,17 +49,19 @@ int main(){
     // Replicated trackers
     vector<int> num_kinks,head_idx,tail_idx,N_zero,N_beta,bin_ctr;
     vector<double> N_tracker;
-    vector<vector<int>> last_kinks,swap_kinks;
+    vector<vector<int>> last_kinks;
     vector<unsigned long long int> Z_ctr,measurement_attempts;
     
     // Replicated observables
     vector<double> N_sum,diagonal_energy,kinetic_energy;
     vector<vector<double>> tr_kinetic_energy,tr_diagonal_energy;
     
-    // Subregion sites
+    // <SWAP> estimator settings and trackers
     int l_A; // subregion linear size
     int m_A; // subregion total size
-    vector<int> sub_sites;
+    vector<int> sub_sites, swapped_sites;
+    vector<vector<int>> swap_kinks;
+    int num_swaps; 
     
     // Measurement settings
     double measurement_center,measurement_plus_minus;
@@ -127,7 +129,7 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=5;
+    L=3;
     D=2;
     M=pow(L,D);
     N=M;
@@ -154,7 +156,7 @@ int main(){
     for (int i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
     
     // Subsystem
-    l_A = 3; // subsystem linear size
+    l_A = 2; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     for (int i=0; i<sub_sites.size(); i++){
@@ -178,7 +180,7 @@ int main(){
         for (int i=0;i<M;i++){last_kinks[r][i]=i;}
         
         // Initialize vector containing indices of swap kinks at each replica
-        swap_kinks.push_back(vector<int> (M,-1));
+        swap_kinks.push_back(vector<int> (m_A,-1));
         
         // Worldlines data structure
         paths.push_back(create_paths(initial_fock_state,M,r));
