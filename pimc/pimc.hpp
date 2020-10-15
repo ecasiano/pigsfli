@@ -267,6 +267,40 @@ void build_adjacency_matrix(int L,int D,string boundary_condition,
 
 /*----------------------------------------------------------------------------*/
 
+void create_sub_sites(vector<int> &sub_sites,int l_A,int L,int D,int M){
+    // Hard coded to cluster of sites in 1D and to SQUARE region in 2D, for now.
+    // Doesn't work for 3D yet.
+    
+    int m_A,ctr;
+    
+    m_A = pow(l_A,D); // total subsystem sites
+    ctr = 0;
+    
+    if (L>2 && l_A>=L){cout << "ERROR: L needs to be larger than l_A" << endl;}
+    
+    if (D==1 || L==2){ // cluster
+        for (int i=0; i<l_A; i++){sub_sites.push_back(i);}
+    }
+    else if (D==2){
+        for (int i=0; i<M; i++){
+            if (sub_sites.size()==m_A){break;}
+            sub_sites.push_back(i);
+            ctr+=1;
+            if (ctr==l_A){ctr=0;i+=(L-l_A);}
+        }
+    }
+    else if (D==3){
+        cout << "ERROR: create_sub_sites does not support 3D yet" << endl;
+    }
+    else{
+        // lol
+    }
+    cout << endl;
+    
+    return;
+}
+/*----------------------------------------------------------------------------*/
+
 void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, double U, double mu, double t,
                  double beta, double eta, bool canonical, double &N_tracker,
@@ -3044,7 +3078,8 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void insert_swap_kink(vector<Kink> &paths, int &num_kinks,
+void insert_swap_kink(vector<vector<Kink>> &paths, int &num_kinks,
+                vector<vector<int>> &swap_kinks, int partition_size,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
@@ -3053,7 +3088,30 @@ void insert_swap_kink(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &insert_swap_kink_attempts,
                 unsigned long long int &insert_swap_kink_accepts,
                 boost::random::mt19937 &rng){
-    // swap kink update
+    
+    // ONE DIMENSIONAL FOR NOW
+
+    // Variable declarations
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    src_replica,dest_replica;
+    double tau,tau_t,p_site,W,R,p_dkat,p_ikat,tau_prev_i,tau_prev_j,
+    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j;
+    
+    // Need at least two replicas to perform a spaceshift
+    if (paths.size()<2){return;}
+    
+    // Swapped sites will form contiguous cluster, sample a cluster edge site
+    if (swap_kinks.size()==0){
+        boost::random::uniform_int_distribution<> sites(0, M-1);
+        i = sites(rng);
+        p_site = 1/M;
+    }
+//    else {
+//        boost::random::uniform_int_distribution<> sites(0, total_nn-1);
+//        i = adjacency_matrix[edge_site]
+//        if total
+//    }
+    
     return;
 }
 
