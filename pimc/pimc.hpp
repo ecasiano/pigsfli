@@ -3092,14 +3092,15 @@ void insert_swap_kink(vector<vector<Kink>> &paths,int &num_kinks,
                 unsigned long long int &insert_swap_kink_accepts,
                 boost::random::mt19937 &rng){
     
-    // ONE DIMENSIONAL FOR NOW
+    // ONE AND TWO DIMENSIONAL FOR NOW
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     src_replica,dest_replica,site_R1,site_R2,site,swapped_site,n_src,n_dest,
-    next;
+    next,num_swappables,site_to_swap;
     double tau,tau_t,p_site,W,R,p_dkat,p_ikat,tau_prev_i,tau_prev_j,
-    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,p_replica,p_swapped_site;
+    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,p_replica,p_swapped_site,
+    p_site_to_swap;
     int num_swaps;
     bool in_subsystem,is_unswapped,same_particles,is_swappable;
     vector<int> swappable_sites,nearest_neighbors;
@@ -3117,78 +3118,85 @@ void insert_swap_kink(vector<vector<Kink>> &paths,int &num_kinks,
         p_replica = 1.0;
     }
     else{ // more than two replica
-        boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-        if (rnum(rng)<0.5){dest_replica = src_replica+1;}
-        else {dest_replica = src_replica-1;}
-        p_replica = 0.5;
-        // Replica boundary conditions (periodic??)
-        if (dest_replica!=-1 && dest_replica!=num_replicas){
-            // nothing
-        }
-        else if (dest_replica==-1){dest_replica=num_replicas-1;}
-        else {dest_replica=0;}
+        cout<<"ERROR: Only one or two replicas are valid at the moment."<<endl;
+        exit(1);
     }
     
     // Randomly choose a swapped lattice site in the subsystem
     if (num_swaps>0){
         boost::random::uniform_int_distribution<> sites(0, num_swaps-1);
         swapped_site = swapped_sites[sites(rng)];
-        p_swapped_site = 1/num_swaps;
-    }
-    else { // no previously swapped sites. propose anywhere
-//        boost::random::uniform_int_distribution<> sites(0, m_A-1);
-//        swapped_site = sub_sites[sites(rng)];
-//        p_site = 1/m_A;
-    }
+        p_swapped_site = 1.0/num_swaps;
+        
+        // Extract the nearest neighbors of the chosen swapped site
+        nearest_neighbors = adjacency_matrix[swapped_site];
 
-    // Extract the nearest neighbors of the chosen swapped site
-    nearest_neighbors = adjacency_matrix[swapped_site];
-    
-    // Check which nearest neighbors satisfy swappable conditions
-    for (int i=0; i<total_nn; i++){
-        
-        in_subsystem = false;
-        if (std::find(sub_sites.begin(), sub_sites.end(), nearest_neighbors[i])
-            != sub_sites.end()){in_subsystem=true;}
-        
-        is_unswapped = true;
-        if  (std::find(swapped_sites.begin(),swapped_sites.end(),
-                       nearest_neighbors[i])
-             != swapped_sites.end()){is_unswapped=false;}
-        
-        // THIS PART COULD BE OMITTED BY KEEPING TRACK OF PARTICLE NUMBER AT
-        // THE CENTRAL TIME SLICE AFTER EVERY UPDATE
-        same_particles = false;
-        // Source Replica
-        tau = 0.0;
-        next = nearest_neighbors[i];
-        while (tau<0.5*beta){
-            n_src = paths[src_replica][next].n;
+        // Check what nearest neighbors of swapped site are swappable
+        for (int i=0; i<total_nn; i++){
             
-            next = paths[src_replica][next].next;
-            if (next==-1){break;}
-            tau = paths[src_replica][next].tau;
-        }
-        // Destination Replica
-        tau = 0.0;
-        next = nearest_neighbors[i];
-        while (tau<0.5*beta){
-            n_dest = paths[dest_replica][next].n;
+            in_subsystem = false;
+            if (std::find(sub_sites.begin(), sub_sites.end(),
+                          nearest_neighbors[i])
+                != sub_sites.end()){in_subsystem=true;}
             
-            next = paths[dest_replica][next].next;
-            if (next==-1){break;}
-            tau = paths[dest_replica][next].tau;
+            is_unswapped = true;
+            if  (std::find(swapped_sites.begin(),swapped_sites.end(),
+                           nearest_neighbors[i])
+                 != swapped_sites.end()){is_unswapped=false;}
+            
+            // THIS PART COULD BE OMITTED BY KEEPING TRACK OF PARTICLE NUMBER AT
+            // THE CENTRAL TIME SLICE AFTER EVERY UPDATE
+            same_particles = false;
+            // Source Replica
+            tau = 0.0;
+            next = nearest_neighbors[i];
+            n_src=-1;
+            while (tau<0.5*beta){
+                n_src = paths[src_replica][next].n;
+                next = paths[src_replica][next].next;
+                
+                if (next==-1){break;}
+                tau = paths[src_replica][next].tau;
+            }
+            // Destination Replica
+            tau = 0.0;
+            next = nearest_neighbors[i];
+            n_dest=-1;
+            while (tau<0.5*beta){
+                n_dest = paths[dest_replica][next].n;
+                next = paths[dest_replica][next].next;
+                
+                if (next==-1){break;}
+                tau = paths[dest_replica][next].tau;
+            }
+            
+            if (n_src==n_dest){same_particles=true;}
+            
+            // If tests passed, add nearest neighbor to swappable sites vector
+            if (in_subsystem && is_unswapped && same_particles){
+                swappable_sites.push_back(nearest_neighbors[i]);
+            }
         }
         
-        if (n_src==n_dest){same_particles=true;}
-        
-        // If tests passed. Add nearest neighbor to vector of swappable sites
-        if (in_subsystem && is_unswapped && same_particles){
-            swappable_sites.push_back(nearest_neighbors[i]);
-        }
-        
-        
+        // Randomly choose a swappable site
+        num_swappables = static_cast<int>(swappable_sites.size());
+        if (num_swappables==0){return;}
+        boost::random::uniform_int_distribution<>
+            swappable_sites_dist(0,num_swappables-1);
+        site_to_swap = swappable_sites[swappable_sites_dist(rng)];
     }
+    else{ // no swapped sites. choose any site to swap.
+        
+        p_swapped_site = 1.0; // just initializing. Need for Metropolis.
+        
+        num_swappables = m_A;
+        boost::random::uniform_int_distribution<>
+            swappable_sites_dist(0,num_swappables-1);
+        site_to_swap = sub_sites[swappable_sites_dist(rng)];
+    }
+    p_site_to_swap = 1.0/num_swappables;
+
+    
     
     return;
 }
