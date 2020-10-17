@@ -129,7 +129,7 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=3;
+    L=5;
     D=2;
     M=pow(L,D);
     N=M;
@@ -156,7 +156,7 @@ int main(){
     for (int i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
     
     // Subsystem
-    l_A = 2; // subsystem linear size
+    l_A = 3; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     for (int i=0; i<sub_sites.size(); i++){

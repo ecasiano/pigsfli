@@ -271,29 +271,54 @@ void create_sub_sites(vector<int> &sub_sites,int l_A,int L,int D,int M){
     // Hard coded to cluster of sites in 1D and to SQUARE region in 2D, for now.
     // Doesn't work for 3D yet.
     
-    int m_A,ctr;
+    int m_A,ctr,next_sub_site,current_sub_site,
+    horizontal_direction,vertical_direction,horizontal_direction_old;
     
     m_A = pow(l_A,D); // total subsystem sites
-    ctr = 0;
     
-    if (L>=2 && l_A>=L){cout << "ERROR: L needs to be larger than l_A" << endl;}
+    if (L>=2 && l_A>=L){cout<<"ERROR: l_A needs to be smaller than L"<<endl;}
     
     if (D==1 || L==2){ // cluster
         for (int i=0; i<l_A; i++){sub_sites.push_back(i);}
     }
     else if (D==2){
-        for (int i=0; i<M; i++){
-            if (sub_sites.size()==m_A){break;}
-            sub_sites.push_back(i);
-            ctr+=1;
-            if (ctr==l_A){ctr=0;i+=(L-l_A);}
+//        for (int i=0; i<M; i++){
+//            if (sub_sites.size()==m_A){break;}
+//            sub_sites.push_back(i);
+//            ctr+=1;
+//            if (ctr==l_A){ctr=0;i+=(L-l_A);}
+        next_sub_site = -1;
+        horizontal_direction = +1;
+        horizontal_direction_old = +1;
+        vertical_direction = 0;
+        ctr = 0;
+        while (sub_sites.size()!=m_A){
+            if (ctr==l_A){
+                vertical_direction = +L;
+                horizontal_direction = 0;
+                ctr=0;
+            }
+            else if (sub_sites.size()>2 && ctr==1){
+                vertical_direction = 0;
+                horizontal_direction = (-1)*horizontal_direction_old;
+                horizontal_direction_old = horizontal_direction;
+            }
+            else {
+                // nothing
+            }
+            next_sub_site += (horizontal_direction+vertical_direction);
+            sub_sites.push_back(next_sub_site);
+            ctr++;
         }
     }
     else if (D==3){
         cout << "ERROR: create_sub_sites does not support 3D yet" << endl;
+        exit(1);
     }
     else{
         // lol
+        cout << "ERROR: Please choose either  D=1,D=2, or D=3" << endl;
+        exit(1);
     }
     cout << endl;
     
@@ -3196,7 +3221,9 @@ void insert_swap_kink(vector<vector<Kink>> &paths,int &num_kinks,
     }
     p_site_to_swap = 1.0/num_swappables;
 
-    
+    // Probability of inverse move to delete that kink
+    // delete_swap_kink decision process:
+    // 1. Choose a swapped kink that has only ONE or FOUR swapped neighbor... I think
     
     return;
 }
