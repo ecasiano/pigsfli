@@ -271,8 +271,8 @@ void create_sub_sites(vector<int> &sub_sites,int l_A,int L,int D,int M){
     // Hard coded to cluster of sites in 1D and to SQUARE region in 2D, for now.
     // Doesn't work for 3D yet.
     
-    int m_A,ctr,next_sub_site,current_sub_site,
-    horizontal_direction,vertical_direction,horizontal_direction_old;
+    int m_A,ctr,next_sub_site,horizontal_direction,vertical_direction,
+    horizontal_direction_old;
     
     m_A = pow(l_A,D); // total subsystem sites
     
@@ -3103,16 +3103,17 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void insert_swap_kink(vector<vector<Kink>> &paths,int &num_kinks,
+void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
                 int num_replicas, int replica_idx,
                 vector<int> &sub_sites, vector <int> &swapped_sites,
                 vector<vector<int>> &swap_kinks,
                 int l_A, int m_A,
-                int &head_idx,int &tail_idx,
+                vector<int> &head_idx,vector<int> &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
-                double beta, double eta, bool canonical, double &N_tracker,
-                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                double beta,double eta,bool canonical,vector<double> &N_tracker,
+                vector<int> &N_zero,vector<int> &N_beta,
+                vector<vector<int>> &last_kinks,
                 unsigned long long int &insert_swap_kink_attempts,
                 unsigned long long int &insert_swap_kink_accepts,
                 boost::random::mt19937 &rng){
@@ -3122,7 +3123,8 @@ void insert_swap_kink(vector<vector<Kink>> &paths,int &num_kinks,
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     src_replica,dest_replica,site_R1,site_R2,site,swapped_site,n_src,n_dest,
-    next,num_swappables,site_to_swap;
+    next,num_swappables,site_to_swap,next_swap_site,prev_src,prev_dest,
+    next_src,next_dest,num_kinks_src,num_kinks_dest;
     double tau,tau_t,p_site,W,R,p_dkat,p_ikat,tau_prev_i,tau_prev_j,
     tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,p_replica,p_swapped_site,
     p_site_to_swap;
@@ -3132,9 +3134,7 @@ void insert_swap_kink(vector<vector<Kink>> &paths,int &num_kinks,
     
     // Need at least two replicas to perform a spaceshift
     if (paths.size()<2){return;}
-    
-    num_swaps = static_cast<int>(swapped_sites.size());
-    
+        
     // Retrieve source replica index and randomly choose destination replica
     src_replica = replica_idx;
     if (num_replicas==2){
@@ -3147,83 +3147,73 @@ void insert_swap_kink(vector<vector<Kink>> &paths,int &num_kinks,
         exit(1);
     }
     
-    // Randomly choose a swapped lattice site in the subsystem
-    if (num_swaps>0){
-        boost::random::uniform_int_distribution<> sites(0, num_swaps-1);
-        swapped_site = swapped_sites[sites(rng)];
-        p_swapped_site = 1.0/num_swaps;
-        
-        // Extract the nearest neighbors of the chosen swapped site
-        nearest_neighbors = adjacency_matrix[swapped_site];
+    // Propose the next site to swap
+    num_swaps = static_cast<int>(swapped_sites.size());
+    next_swap_site = sub_sites[num_swaps];
+    
+    // Check if no. of particles at beta/2 is the same on both replicas
+    // Source Replica
+    tau = 0.0;
+    next = next_swap_site; // next variable refers to "next kink" in worldline
+    n_src = -1;
+    prev_src = next;
+    while (tau<0.5*beta){
+        n_src = paths[src_replica][next].n;
+        prev_src = next;
+        next = paths[src_replica][next].next;
 
-        // Check what nearest neighbors of swapped site are swappable
-        for (int i=0; i<total_nn; i++){
-            
-            in_subsystem = false;
-            if (std::find(sub_sites.begin(), sub_sites.end(),
-                          nearest_neighbors[i])
-                != sub_sites.end()){in_subsystem=true;}
-            
-            is_unswapped = true;
-            if  (std::find(swapped_sites.begin(),swapped_sites.end(),
-                           nearest_neighbors[i])
-                 != swapped_sites.end()){is_unswapped=false;}
-            
-            // THIS PART COULD BE OMITTED BY KEEPING TRACK OF PARTICLE NUMBER AT
-            // THE CENTRAL TIME SLICE AFTER EVERY UPDATE
-            same_particles = false;
-            // Source Replica
-            tau = 0.0;
-            next = nearest_neighbors[i];
-            n_src=-1;
-            while (tau<0.5*beta){
-                n_src = paths[src_replica][next].n;
-                next = paths[src_replica][next].next;
-                
-                if (next==-1){break;}
-                tau = paths[src_replica][next].tau;
-            }
-            // Destination Replica
-            tau = 0.0;
-            next = nearest_neighbors[i];
-            n_dest=-1;
-            while (tau<0.5*beta){
-                n_dest = paths[dest_replica][next].n;
-                next = paths[dest_replica][next].next;
-                
-                if (next==-1){break;}
-                tau = paths[dest_replica][next].tau;
-            }
-            
-            if (n_src==n_dest){same_particles=true;}
-            
-            // If tests passed, add nearest neighbor to swappable sites vector
-            if (in_subsystem && is_unswapped && same_particles){
-                swappable_sites.push_back(nearest_neighbors[i]);
-            }
-        }
-        
-        // Randomly choose a swappable site
-        num_swappables = static_cast<int>(swappable_sites.size());
-        if (num_swappables==0){return;}
-        boost::random::uniform_int_distribution<>
-            swappable_sites_dist(0,num_swappables-1);
-        site_to_swap = swappable_sites[swappable_sites_dist(rng)];
+        if (next==-1){break;}
+        tau = paths[src_replica][next].tau;
     }
-    else{ // no swapped sites. choose any site to swap.
-        
-        p_swapped_site = 1.0; // just initializing. Need for Metropolis.
-        
-        num_swappables = m_A;
-        boost::random::uniform_int_distribution<>
-            swappable_sites_dist(0,num_swappables-1);
-        site_to_swap = sub_sites[swappable_sites_dist(rng)];
-    }
-    p_site_to_swap = 1.0/num_swappables;
+    next_src = next;
+    // Destination Replica
+    tau = 0.0;
+    next = next_swap_site;
+    n_dest=-1;
+    prev_dest = next;
+    while (tau<0.5*beta){
+        n_dest = paths[dest_replica][next].n;
+        prev_dest = next;
+        next = paths[dest_replica][next].next;
 
-    // Probability of inverse move to delete that kink
-    // delete_swap_kink decision process:
-    // 1. Choose a swapped kink that has only ONE or FOUR swapped neighbor... I think
+        if (next==-1){break;}
+        tau = paths[dest_replica][next].tau;
+    }
+    if (n_src!=n_dest){return;}
+    next_dest = next;
+    
+    // Metropolis Sampling (not really, the ratio is unity!)
+    R = 1.0;
+    
+    swapped_sites.push_back(next_swap_site);
+    
+    // Build and insert kinks to the paths of the src and the dest replica
+    num_kinks_src = num_kinks[src_replica];
+    num_kinks_dest = num_kinks[dest_replica];
+    paths[src_replica][num_kinks_src] =
+                              Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
+                              prev_src,num_kinks_dest,
+                              src_replica,dest_replica);
+    paths[dest_replica][num_kinks_dest] =
+                              Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
+                              num_kinks_src,next_dest,
+                              dest_replica,src_replica);
+    paths[dest_replica][num_kinks_dest+1] =
+                              Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
+                              prev_dest,num_kinks_src+1,
+                              dest_replica,src_replica);
+    paths[src_replica][num_kinks_src+1] =
+                              Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
+                              num_kinks_dest+1,next_src,
+                              src_replica,dest_replica);
+    
+    // Edit the last kinks vector of each replica if necessary
+    if (paths[src_replica][num_kinks_src+1].next==-1){
+        last_kinks[src_replica][next_swap_site] = num_kinks_src+1;
+    }
+    if (paths[dest_replica][num_kinks_dest].next==-1){
+        last_kinks[dest_replica][next_swap_site] = num_kinks_dest;
+    }
     
     return;
 }
