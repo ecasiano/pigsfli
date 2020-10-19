@@ -3106,7 +3106,7 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
 void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
                 int num_replicas, int replica_idx,
                 vector<int> &sub_sites, vector <int> &swapped_sites,
-                vector<vector<int>> &swap_kinks,
+                vector<vector<int>> &swap_kinks, int &num_swaps,
                 int l_A, int m_A,
                 vector<int> &head_idx,vector<int> &tail_idx,
                 int M, int N, double U, double mu, double t,
@@ -3118,19 +3118,14 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
                 unsigned long long int &insert_swap_kink_accepts,
                 boost::random::mt19937 &rng){
     
-    // ONE AND TWO DIMENSIONAL FOR NOW
+    // Note: ONE AND TWO DIMENSIONAL FOR NOW
 
     // Variable declarations
-    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
-    src_replica,dest_replica,site_R1,site_R2,site,swapped_site,n_src,n_dest,
-    next,num_swappables,site_to_swap,next_swap_site,prev_src,prev_dest,
-    next_src,next_dest,num_kinks_src,num_kinks_dest;
-    double tau,tau_t,p_site,W,R,p_dkat,p_ikat,tau_prev_i,tau_prev_j,
-    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,p_replica,p_swapped_site,
-    p_site_to_swap;
-    int num_swaps;
-    bool in_subsystem,is_unswapped,same_particles,is_swappable;
-    vector<int> swappable_sites,nearest_neighbors;
+    int src_replica,dest_replica,n_src,n_dest,next,next_swap_site,prev_src,
+    prev_dest,next_src,next_dest,num_kinks_src,
+    num_kinks_dest;
+    double tau,R,p_replica;
+//    int num_swaps;
     
     // Need at least two replicas to perform a spaceshift
     if (paths.size()<2){return;}
@@ -3142,13 +3137,13 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         else {dest_replica=0;}
         p_replica = 1.0;
     }
-    else{ // more than two replica
+    else{ // more than two replicas
         cout<<"ERROR: Only one or two replicas are valid at the moment."<<endl;
         exit(1);
     }
     
     // Propose the next site to swap
-    num_swaps = static_cast<int>(swapped_sites.size());
+//    num_swaps = static_cast<int>(swapped_sites.size());
     next_swap_site = sub_sites[num_swaps];
     
     // Check if no. of particles at beta/2 is the same on both replicas
@@ -3179,13 +3174,13 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         if (next==-1){break;}
         tau = paths[dest_replica][next].tau;
     }
-    if (n_src!=n_dest){return;}
     next_dest = next;
+    if (n_src!=n_dest){return;}
     
-    // Metropolis Sampling (not really, the ratio is unity!)
+    // Metropolis Sampling (not actually, the ratio is unity!)
     R = 1.0;
     
-    swapped_sites.push_back(next_swap_site);
+    num_swaps+=1;
     
     // Build and insert kinks to the paths of the src and the dest replica
     num_kinks_src = num_kinks[src_replica];
@@ -3206,7 +3201,21 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
                               Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
                               num_kinks_dest+1,next_src,
                               src_replica,dest_replica);
+        
+    // Connect next of prev_src to swap_kink
+    paths[src_replica][prev_src].next = num_kinks_src;
     
+    // Connect prev of next_dest to swap_kink
+    if (next_dest!=-1)
+    paths[dest_replica][next_dest].prev = num_kinks_dest;
+    
+    // Connect next of prev_dest to swap_kink
+    paths[dest_replica][prev_dest].next = num_kinks_dest+1;
+    
+    // Connect prev of next_src to swap_kink
+    if (next_src!=-1)
+    paths[src_replica][next_src].next = num_kinks_src+1;
+            
     // Edit the last kinks vector of each replica if necessary
     if (paths[src_replica][num_kinks_src+1].next==-1){
         last_kinks[src_replica][next_swap_site] = num_kinks_src+1;
@@ -3214,6 +3223,13 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     if (paths[dest_replica][num_kinks_dest].next==-1){
         last_kinks[dest_replica][next_swap_site] = num_kinks_dest;
     }
+    
+    // Update number of kinks tracker of each replica
+    num_kinks[src_replica] += 2;
+    num_kinks[dest_replica] += 2;
+    
+    // Chris suggested keeping track of swap kinks in helper array.
+    // Still need to modify it (swap_kinks)
     
     return;
 }
