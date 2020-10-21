@@ -129,7 +129,7 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=5;
+    L=4;
     D=2;
     M=pow(L,D);
     N=M;
