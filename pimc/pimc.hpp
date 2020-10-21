@@ -1957,6 +1957,7 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
 
         swap(paths[kink_idx_i],paths[num_kinks-1]);
 
+        // Important kinks might've been at end of paths vector
         if (prev_i==num_kinks-1){prev_i=kink_idx_i;}
         else if (next_i==num_kinks-1){next_i=kink_idx_i;}
         else if (prev_j==num_kinks-1){prev_j=kink_idx_i;}
@@ -1965,12 +1966,15 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
         else if (head_idx==num_kinks-1){head_idx=kink_idx_i;}
         else {;}
 
+        // I don't remember why I left this statement out of the block above :(
         if (tail_idx==num_kinks-1){tail_idx=kink_idx_i;}
 
+        // The kink sent to where deleted kink was might be last on it's site
         if (paths[kink_idx_i].next==-1){
             last_kinks[paths[kink_idx_i].src]=kink_idx_i;
         }
-
+        
+        // Reconnect upper and lower bounds of the flat
         if (next_i!=-1)
             paths[next_i].prev = prev_i;
         paths[prev_i].next = next_i;
@@ -3236,17 +3240,162 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void delete_swap_kink(vector<Kink> &paths, int &num_kinks,
-                int &head_idx,int &tail_idx,
+void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
+                int num_replicas, int replica_idx,
+                vector<int> &sub_sites, vector <int> &swapped_sites,
+                vector<vector<int>> &swap_kinks, int &num_swaps,
+                int l_A, int m_A,
+                vector<int> &head_idx,vector<int> &tail_idx,
                 int M, int N, double U, double mu, double t,
                 vector<vector<int>> &adjacency_matrix, int total_nn,
-                double beta, double eta, bool canonical, double &N_tracker,
-                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                double beta,double eta,bool canonical,vector<double> &N_tracker,
+                vector<int> &N_zero,vector<int> &N_beta,
+                vector<vector<int>> &last_kinks,
                 unsigned long long int &delete_swap_kink_attempts,
                 unsigned long long int &delete_swap_kink_accepts,
                 boost::random::mt19937 &rng){
-    // swap kink update
+    
+    // Note: ONE AND TWO DIMENSIONAL FOR NOW
+
+    // Variable declarations
+    int src_replica,dest_replica,n_src,n_dest,next,next_swap_site,prev_src,
+    prev_dest,next_src,next_dest,num_kinks_src,
+    num_kinks_dest,site_to_unswap,
+    kink_out_of_src,kink_in_to_dest,kink_out_of_dest,kink_in_to_src;
+    double tau,R,p_replica;
+//    int num_swaps;
+    
+    // Need at least two replicas to perform delete_swap_kink
+    if (paths.size()<2){return;}
+    
+    // Need at least one swapped site to perform delete_swap_kink
+    if (num_swaps==0){return;}
+        
+    // Retrieve source replica index and randomly choose destination replica
+    src_replica = replica_idx;
+    if (num_replicas==2){
+        if (src_replica==0){dest_replica=1;}
+        else {dest_replica=0;}
+        p_replica = 1.0;
+    }
+    else{ // more than two replicas
+        cout<<"ERROR: Only one or two replicas are valid at the moment."<<endl;
+        exit(1);
+    }
+    
+    // Get the number of kinks on each replica
+    num_kinks_src = num_kinks[src_replica];
+    num_kinks_dest = num_kinks[dest_replica];
+    
+    // Choose the last site of the swapped sites cluster as the deletion site
+    site_to_unswap = sub_sites[num_swaps-1];
+    
+    // Get swap kink indices (can just use src_replica!=dest_replica to help)
+    // source replica
+    kink_out_of_src = -0;
+    kink_in_to_dest = -0; // get from next of kink_out_of_src
+    next = site_to_unswap;
+    while (paths[src_replica][next].src_replica==
+           paths[src_replica][next].dest_replica){
+        next = paths[src_replica][next].next;
+    }
+    kink_out_of_src = next;
+    kink_in_to_dest = paths[src_replica][kink_out_of_src].next;
+
+    // destination replica
+    kink_out_of_dest = -0;
+    kink_in_to_src = -0; // get from next of kink_out_of_dest
+    next = site_to_unswap;
+    while (paths[dest_replica][next].src_replica==
+           paths[dest_replica][next].dest_replica){
+        next = paths[dest_replica][next].next;
+    }
+    kink_out_of_dest = next;
+    kink_in_to_src = paths[dest_replica][kink_out_of_dest].next;
+    
+    // Get lower and upper bounds of the flat interval on each replica
+    prev_src = paths[src_replica][kink_out_of_src].prev;
+    next_src = paths[src_replica][kink_in_to_src].next;
+    prev_dest = paths[dest_replica][kink_out_of_dest].prev;
+    next_dest = paths[dest_replica][kink_in_to_dest].next;
+    
+    // "Metropolis Sampling" (Actually unity acceptance probability)
+    R = 1.0;
+    
+    // Stage 1: delete kink coming out of source replica
+    if (paths[src_replica][num_kinks_src-1].next!=-1)
+     paths[src_replica][paths[src_replica][num_kinks_src-1].next].prev=
+                                                                kink_out_of_src;
+    paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=
+                                                                kink_out_of_src;
+    
+    swap(paths[src_replica][kink_out_of_src],
+         paths[src_replica][num_kinks_src-1]);
+    
+    if (head_idx[src_replica]==num_kinks_src-1)
+        head_idx[src_replica]=kink_out_of_src;
+    else if (prev_src==num_kinks_src-1)
+        prev_src=kink_out_of_src;
+    else if (next_src==num_kinks_src-1)
+        next_src=kink_out_of_src;
+    else if (kink_in_to_src==num_kinks_src-1)
+        kink_in_to_src=kink_out_of_src;
+    else{;}
+
+    // I don't remember why I left this statement out of the block above :(
+    if (tail_idx[src_replica]==num_kinks_src-1)
+        tail_idx[src_replica]=kink_out_of_src;
+    
+    // The kink sent to where deleted kink was might be last on it's site
+    if (paths[src_replica][kink_out_of_src].next==-1){
+        last_kinks[src_replica][paths[src_replica][kink_out_of_src].src]=
+                                                                kink_out_of_src;
+    }
+
+    // Stage 2:
+    // Modify connection to kinks that will be swapped in paths array via swap()
+    if (paths[src_replica][num_kinks_src-2].next!=-1)
+     paths[src_replica][paths[src_replica][num_kinks_src-2].next].prev=
+                                                                kink_in_to_src;
+    paths[src_replica][paths[src_replica][num_kinks_src-2].prev].next=
+                                                                kink_in_to_src;
+    
+    swap(paths[src_replica][kink_in_to_src],
+         paths[src_replica][num_kinks_src-2]);
+    
+    if (head_idx[src_replica]==num_kinks_src-2)
+        head_idx[src_replica]=kink_in_to_src;
+    else if (prev_src==num_kinks_src-2)
+        prev_src=kink_in_to_src;
+    else if (next_src==num_kinks_src-2)
+        next_src=kink_in_to_src;
+    else{;}
+
+    // I don't remember why I left this statement out of the block above :(
+    if (tail_idx[src_replica]==num_kinks_src-2)
+        tail_idx[src_replica]=kink_in_to_src;
+    
+    // The kink sent to where deleted kink was might be last on it's site
+    if (paths[src_replica][kink_in_to_src].next==-1){
+        last_kinks[src_replica][paths[src_replica][kink_in_to_src].src]=
+                                                                kink_in_to_src;
+    }
+    
+    // Reconnect upper and lower bounds of the flat
+    if (next_src!=-1)
+        paths[src_replica][next_src].prev = prev_src;
+    paths[src_replica][prev_src].next = next_src;
+    
+    // Lower bound of flat could be the last kink in the site
+    if (next_src==-1){last_kinks[src_replica][site_to_unswap]=prev_src;}
+    
+    // Stage 3
+    
+    // Stage 4
+    
     return;
+    
+
 }
 
 /*------------------------------- Estimators ---------------------------------*/
