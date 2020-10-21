@@ -24,8 +24,8 @@ int main(){
     // Create a uniform distribution with support: [0.0,1.0)
     boost::random::uniform_real_distribution<double> rnum(0.0,1.0);
     
-    // Create integer distribution with support: [0,14]
-    boost::random::uniform_int_distribution<> updates(0,14);
+    // Create integer distribution with support: [0,16]
+    boost::random::uniform_int_distribution<> updates(0,16);
     
     // Bose-Hubbard parameters
     int L,D,M,N;
@@ -61,7 +61,8 @@ int main(){
     int m_A; // subregion total size
     vector<int> sub_sites, swapped_sites;
     vector<vector<int>> swap_kinks;
-    int num_swaps; 
+    int num_swaps;
+    vector<int> SWAP_histogram; // one histogram per row
     
     // Measurement settings
     double measurement_center,measurement_plus_minus;
@@ -72,6 +73,8 @@ int main(){
     // Declare data files
     vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,
     tr_kinetic_energy_file,tr_diagonal_energy_file;
+    ofstream SWAP_histogram_file;
+//    ofstream SWAP_histogram_file;
     
     // mu-calibration variables
     bool not_equilibrated;
@@ -87,41 +90,44 @@ int main(){
     int num_replicas;
     
     // Attempt/Acceptance counters
-    unsigned long long int  insert_worm_attempts=0,insert_worm_accepts=0;
-    unsigned long long int  delete_worm_attempts=0,delete_worm_accepts=0;
+    unsigned long long int insert_worm_attempts=0,insert_worm_accepts=0;
+    unsigned long long int delete_worm_attempts=0,delete_worm_accepts=0;
 
-    unsigned long long int  insert_anti_attempts=0,insert_anti_accepts=0;
-    unsigned long long int  delete_anti_attempts=0,delete_anti_accepts=0;
+    unsigned long long int insert_anti_attempts=0,insert_anti_accepts=0;
+    unsigned long long int delete_anti_attempts=0,delete_anti_accepts=0;
     
-    unsigned long long int  insertZero_worm_attempts=0,insertZero_worm_accepts=0;
-    unsigned long long int  deleteZero_worm_attempts=0,deleteZero_worm_accepts=0;
+    unsigned long long int insertZero_worm_attempts=0,insertZero_worm_accepts=0;
+    unsigned long long int deleteZero_worm_attempts=0,deleteZero_worm_accepts=0;
 
-    unsigned long long int  insertZero_anti_attempts=0,insertZero_anti_accepts=0;
-    unsigned long long int  deleteZero_anti_attempts=0,deleteZero_anti_accepts=0;
+    unsigned long long int insertZero_anti_attempts=0,insertZero_anti_accepts=0;
+    unsigned long long int deleteZero_anti_attempts=0,deleteZero_anti_accepts=0;
     
-    unsigned long long int  insertBeta_worm_attempts=0,insertBeta_worm_accepts=0;
-    unsigned long long int  deleteBeta_worm_attempts=0,deleteBeta_worm_accepts=0;
+    unsigned long long int insertBeta_worm_attempts=0,insertBeta_worm_accepts=0;
+    unsigned long long int deleteBeta_worm_attempts=0,deleteBeta_worm_accepts=0;
 
-    unsigned long long int  insertBeta_anti_attempts=0,insertBeta_anti_accepts=0;
-    unsigned long long int  deleteBeta_anti_attempts=0,deleteBeta_anti_accepts=0;
+    unsigned long long int insertBeta_anti_attempts=0,insertBeta_anti_accepts=0;
+    unsigned long long int deleteBeta_anti_attempts=0,deleteBeta_anti_accepts=0;
     
-    unsigned long long int  advance_head_attempts=0,advance_head_accepts=0;
-    unsigned long long int  recede_head_attempts=0,recede_head_accepts=0;
+    unsigned long long int advance_head_attempts=0,advance_head_accepts=0;
+    unsigned long long int recede_head_attempts=0,recede_head_accepts=0;
     
-    unsigned long long int  advance_tail_attempts=0,advance_tail_accepts=0;
-    unsigned long long int  recede_tail_attempts=0,recede_tail_accepts=0;
+    unsigned long long int advance_tail_attempts=0,advance_tail_accepts=0;
+    unsigned long long int recede_tail_attempts=0,recede_tail_accepts=0;
     
-    unsigned long long int  ikbh_attempts=0,ikbh_accepts=0;
-    unsigned long long int  dkbh_attempts=0,dkbh_accepts=0;
+    unsigned long long int ikbh_attempts=0,ikbh_accepts=0;
+    unsigned long long int dkbh_attempts=0,dkbh_accepts=0;
     
-    unsigned long long int  ikah_attempts=0,ikah_accepts=0;
-    unsigned long long int  dkah_attempts=0,dkah_accepts=0;
+    unsigned long long int ikah_attempts=0,ikah_accepts=0;
+    unsigned long long int dkah_attempts=0,dkah_accepts=0;
     
-    unsigned long long int  ikbt_attempts=0,ikbt_accepts=0;
-    unsigned long long int  dkbt_attempts=0,dkbt_accepts=0;
+    unsigned long long int ikbt_attempts=0,ikbt_accepts=0;
+    unsigned long long int dkbt_attempts=0,dkbt_accepts=0;
     
-    unsigned long long int  ikat_attempts=0,ikat_accepts=0;
-    unsigned long long int  dkat_attempts=0,dkat_accepts=0;
+    unsigned long long int ikat_attempts=0,ikat_accepts=0;
+    unsigned long long int dkat_attempts=0,dkat_accepts=0;
+    
+    unsigned long long int insert_swap_kink_attempts=0,insert_swap_kink_accepts=0;
+    unsigned long long int delete_swap_kink_attempts=0,delete_swap_kink_accepts=0;
         
 /*------------------------- Initialize variables -----------------------------*/
 
@@ -129,11 +135,11 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=4;
-    D=2;
+    L=2;
+    D=1;
     M=pow(L,D);
     N=M;
-    t=1.0;
+    t=0.0;
     U=1.0;
     mu=1.13596;
     boundary_condition="pbc";
@@ -148,17 +154,19 @@ int main(){
     sweeps=1000000;
     sweeps_pre=100000;
     sweep=beta*M;
-    if (sweep==0){sweep=M;}
+    if (sweep==0){sweep=M;} // in case beta<1.0
     
     // Adjacency matrix
     build_hypercube_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
     total_nn=0;
     for (int i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
     
-    // Subsystem
-    l_A = 3; // subsystem linear size
+    // Subsystem settings
+    l_A = 1; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
+    num_swaps=0;
+    cout << "sub_system sites: ";
     for (int i=0; i<sub_sites.size(); i++){
         cout << sub_sites[i] << " ";
     }
@@ -192,10 +200,6 @@ int main(){
         Z_ctr.push_back(0);
         measurement_attempts.push_back(0);
     }
-    
-    // Fill out swap kinks tracker
-//    for (int i=0;i<M;i++){swap_kinks.push_back(-1);}
-//    cout << "cebolla: " << swap_kinks.size() << endl;
 
     // Measurement settings
     measurement_center=beta/2.0;
@@ -737,46 +741,70 @@ int main(){
     
 /*---------------------------- Open files ------------------------------------*/
     
-    for (int r=0;r<num_replicas;r++){
+    // Declare conventional estimator files
+    if (num_replicas<2){
         
-        ofstream K_out,V_out,tr_K_out,tr_V_out;
-        string K_name,V_name,tr_K_name,tr_V_name,rep;
+        for (int r=0;r<num_replicas;r++){
+            
+            ofstream K_out,V_out,tr_K_out,tr_V_out;
+            string K_name,V_name,tr_K_name,tr_V_name,rep;
+            
+            rep=r+65; // rep=65='A'...rep=66='B'...rep=67='C'...
+            
+            K_name=to_string(L)+"_"+to_string(M)+"_"+
+            to_string(U)+"_"+to_string(mu)+"_"+
+            to_string(t)+"_"+to_string(beta)+"_"+
+            to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+            "can_"+"K_"+"rep"+rep+"_.dat";
+            
+            V_name=to_string(L)+"_"+to_string(M)+"_"+
+            to_string(U)+"_"+to_string(mu)+"_"+
+            to_string(t)+"_"+to_string(beta)+"_"+
+            to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+            "can_"+"V_"+"rep"+rep+"_.dat";
+            
+            tr_K_name=to_string(L)+"_"+to_string(M)+"_"+
+            to_string(U)+"_"+to_string(mu)+"_"+
+            to_string(t)+"_"+to_string(beta)+"_"+
+            to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+            "can_"+"tauResolvedK_"+"rep"+rep+".dat";
+            
+            tr_V_name=to_string(L)+"_"+to_string(M)+"_"+
+            to_string(U)+"_"+to_string(mu)+"_"+
+            to_string(t)+"_"+to_string(beta)+"_"+
+            to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+            "can_"+"tauResolvedV_"+"rep"+rep+".dat";
+            
+            K_out.open(K_name);
+            V_out.open(V_name);
+            tr_K_out.open(tr_K_name);
+            tr_V_out.open(tr_V_name);
+            
+            kinetic_energy_file.push_back(std::move(K_out));
+            diagonal_energy_file.push_back(std::move(V_out));
+            tr_kinetic_energy_file.push_back(std::move(tr_K_out));
+            tr_diagonal_energy_file.push_back(std::move(tr_V_out));
+        }
+    }
+    
+    // Estimators in replicated configuration space
+    else {
+//        ofstream SWAP_histogram_file;
+        string SWAP_histogram_name;
         
-        rep=r+65; // rep=65='A'...rep=66='B'...rep=67='C'...
-        
-        K_name=to_string(L)+"_"+to_string(M)+"_"+
+        SWAP_histogram_name=to_string(L)+"_"+to_string(M)+"_"+
         to_string(U)+"_"+to_string(mu)+"_"+
         to_string(t)+"_"+to_string(beta)+"_"+
         to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-        "can_"+"K_"+"rep"+rep+"_.dat";
+        "can_"+"SWAP_"+"_.dat";
         
-        V_name=to_string(L)+"_"+to_string(M)+"_"+
-        to_string(U)+"_"+to_string(mu)+"_"+
-        to_string(t)+"_"+to_string(beta)+"_"+
-        to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-        "can_"+"V_"+"rep"+rep+"_.dat";
+        SWAP_histogram_file.open(SWAP_histogram_name);
         
-        tr_K_name=to_string(L)+"_"+to_string(M)+"_"+
-        to_string(U)+"_"+to_string(mu)+"_"+
-        to_string(t)+"_"+to_string(beta)+"_"+
-        to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-        "can_"+"tauResolvedK_"+"rep"+rep+".dat";
+        if( !SWAP_histogram_file ) { // file couldn't be opened
+           cerr << "Error: SWAP histogram file could not be opened" << endl;
+           exit(1);
+        }
         
-        tr_V_name=to_string(L)+"_"+to_string(M)+"_"+
-        to_string(U)+"_"+to_string(mu)+"_"+
-        to_string(t)+"_"+to_string(beta)+"_"+
-        to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-        "can_"+"tauResolvedV_"+"rep"+rep+".dat";
-        
-        K_out.open(K_name);
-        V_out.open(V_name);
-        tr_K_out.open(tr_K_name);
-        tr_V_out.open(tr_V_name);
-        
-        kinetic_energy_file.push_back(std::move(K_out));
-        diagonal_energy_file.push_back(std::move(V_out));
-        tr_kinetic_energy_file.push_back(std::move(tr_K_out));
-        tr_diagonal_energy_file.push_back(std::move(tr_V_out));
     }
     
 /*---------------------------- Monte Carlo -----------------------------------*/
@@ -814,18 +842,26 @@ int main(){
     if (beta>=1.0){sweeps*=(beta*M);}
     else {sweeps*=M;}
     
-        // Initialize tau resolved estimators
+    // Initialize vector estimators (conventional or SWAP)
+    if (num_replicas<2) { // conventional
         for (int r=0;r<num_replicas;r++){
             tr_kinetic_energy.push_back(vector<double>
                                         (measurement_centers.size(),0.0));
             tr_diagonal_energy.push_back(vector<double>
                                          (measurement_centers.size(),0.0));
         }
-    
-    
+    }
+    else { // SWAP
+        // note that no push_back used since only one histogram for 2 replicas
+        for (int i=0; i<m_A+1; i++){
+            SWAP_histogram.push_back(0); // just initializing
+        }
+    }
+
     cout << "Stage (2/3): Equilibrating..." << endl << endl;
-    for (int r=0;r<num_replicas;r++){
     for (unsigned long long int m=0; m < sweeps; m++){
+    for (int r=0;r<num_replicas;r++){
+
         label = updates(rng);
         
         if (label==0){     // worm_insert
@@ -935,6 +971,38 @@ int main(){
                         beta,eta,canonical,N_tracker[r],
                         N_zero[r],N_beta[r],last_kinks[r],
                         dkat_attempts,dkat_accepts,rng);
+         }
+         else if (label==15){ // insert_swap_kink
+             insert_swap_kink(paths, num_kinks,
+                             num_replicas, r,
+                             sub_sites, swapped_sites,
+                             swap_kinks, num_swaps,
+                             l_A, m_A,
+                             head_idx,tail_idx,
+                             M, N, U, mu, t,
+                             adjacency_matrix, total_nn,
+                             beta, eta, canonical, N_tracker,
+                             N_zero, N_beta,
+                             last_kinks,
+                             insert_swap_kink_attempts,
+                             insert_swap_kink_accepts,
+                             rng);
+         }
+         else if (label==16){ // delete_swap_kink
+             delete_swap_kink(paths, num_kinks,
+                             num_replicas, r,
+                             sub_sites, swapped_sites,
+                             swap_kinks, num_swaps,
+                             l_A, m_A,
+                             head_idx,tail_idx,
+                             M, N, U, mu, t,
+                             adjacency_matrix, total_nn,
+                             beta, eta, canonical, N_tracker,
+                             N_zero, N_beta,
+                             last_kinks,
+                             delete_swap_kink_attempts,
+                             delete_swap_kink_accepts,
+                             rng);
          }
         else{
             // lol
@@ -1093,13 +1161,15 @@ int main(){
         
 /*----------------------------- Measurements ---------------------------------*/
 
-        if (m%(sweep*measurement_frequency)==0 && m>=sweeps*0.25){
+        if (m%(sweep*measurement_frequency*num_replicas)==0 && m>=sweeps*0.25){
             
             if (not_equilibrated){
                 not_equilibrated=false;
                 cout << "Stage (3/3): Main Monte Carlo loop..." << endl;
             }
             
+            if (num_replicas<2){ // conventional
+                
             measurement_attempts[r]+=1;
             if (head_idx[r]==-1 and tail_idx[r]==-1){
                 N_sum[r] += N_tracker[r];
@@ -1157,16 +1227,32 @@ int main(){
                     }
                 }
             }
+        } // end of conventional measurements if statement
+        else { // more than one replica (SWAP measurements)
+            // add count to bin corresponding to number of swapped sites
+            SWAP_histogram[num_swaps]+=1;
         }
+        // Save current histogram of swapped sites to file
+        for (int i=0; i<m_A+1; i++){
+            SWAP_histogram_file<<fixed<<setprecision(17)<<
+            SWAP_histogram[i] << " ";
+        }
+        SWAP_histogram_file<<endl;
+    } // end of measurement after 25% equilibration if statement
     } // end of replica loop
-    } // end of sweep loop
+    } // end of sweeps loop
     
     // Close data files
-    for (int r=0;r<num_replicas;r++){
-        kinetic_energy_file[r].close();
-        diagonal_energy_file[r].close();
-        tr_kinetic_energy_file[r].close();
-        tr_diagonal_energy_file[r].close();
+    if (num_replicas<2){
+        for (int r=0;r<num_replicas;r++){
+            kinetic_energy_file[r].close();
+            diagonal_energy_file[r].close();
+            tr_kinetic_energy_file[r].close();
+            tr_diagonal_energy_file[r].close();
+        }
+    }
+    else {
+        SWAP_histogram_file.close();
     }
 /*--------------------------------- FIN --------------------------------------*/
 
@@ -1239,11 +1325,14 @@ int main(){
     
     cout << endl << "beta: " << beta << endl;
     cout << endl << "sweeps: " << sweeps/(beta*M) << endl;
+    
+    if (num_replicas<2){
     cout << "Z_ctr: " << Z_ctr[0] << endl;
     cout<<"Z_frac: "<<Z_ctr[0]*100.0/measurement_attempts[0]<<"% ("<<Z_ctr[0]
     <<"/"<< measurement_attempts[0]<<")"<<endl;
     
     cout << endl << "<N>: " << (N_sum[0])/Z_ctr[0] << endl;
+    }
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
 
