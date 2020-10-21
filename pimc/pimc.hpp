@@ -3132,6 +3132,9 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     // Need at least two replicas to perform a spaceshift
     if (paths.size()<2){return;}
+    
+    // Can't perform update is SWAP region is full
+    if (num_swaps==m_A){return;}
         
     // Retrieve source replica index and randomly choose destination replica
     src_replica = replica_idx;
@@ -3209,14 +3212,14 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     // Connect prev of next_dest to swap_kink
     if (next_dest!=-1)
-    paths[dest_replica][next_dest].prev = num_kinks_dest;
+        paths[dest_replica][next_dest].prev = num_kinks_dest;
     
     // Connect next of prev_dest to swap_kink
     paths[dest_replica][prev_dest].next = num_kinks_dest+1;
     
     // Connect prev of next_src to swap_kink
     if (next_src!=-1)
-    paths[src_replica][next_src].next = num_kinks_src+1;
+        paths[src_replica][next_src].prev = num_kinks_src+1;
             
     // Edit the last kinks vector of each replica if necessary
     if (paths[src_replica][num_kinks_src+1].next==-1){
@@ -3286,10 +3289,10 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Choose the last site of the swapped sites cluster as the deletion site
     site_to_unswap = sub_sites[num_swaps-1];
     
-    // Get swap kink indices (can just use src_replica!=dest_replica to help)
+    // Get swap kink indices
     // source replica
     kink_out_of_src = -0;
-    kink_in_to_dest = -0; // get from next of kink_out_of_src
+    kink_in_to_dest = -0;
     next = site_to_unswap;
     while (paths[src_replica][next].src_replica==
            paths[src_replica][next].dest_replica){
@@ -3300,7 +3303,7 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 
     // destination replica
     kink_out_of_dest = -0;
-    kink_in_to_src = -0; // get from next of kink_out_of_dest
+    kink_in_to_src = -0;
     next = site_to_unswap;
     while (paths[dest_replica][next].src_replica==
            paths[dest_replica][next].dest_replica){
@@ -3394,9 +3397,9 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Modify links to kink at end of paths vector that will be swapped
     if (paths[dest_replica][num_kinks_dest-1].next!=-1)
      paths[dest_replica][paths[dest_replica][num_kinks_dest-1].next].prev=
-                                                                kink_out_of_dest;
+                                                               kink_out_of_dest;
     paths[dest_replica][paths[dest_replica][num_kinks_dest-1].prev].next=
-                                                                kink_out_of_dest;
+                                                               kink_out_of_dest;
     
     swap(paths[dest_replica][kink_out_of_dest],
          paths[dest_replica][num_kinks_dest-1]);
@@ -3420,7 +3423,7 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // The kink sent to where deleted kink was might be last on it's site
     if (paths[dest_replica][kink_out_of_dest].next==-1){
         last_kinks[dest_replica][paths[dest_replica][kink_out_of_dest].src]=
-                                                                kink_out_of_dest;
+                                                               kink_out_of_dest;
     }
 
     // Stage 4: delete kink coming into destination replica
@@ -3469,9 +3472,10 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     num_kinks[src_replica]-=2;
     num_kinks[dest_replica]-=2;
     
-    return;
+    delete_swap_kink_attempts+=1;
+    delete_swap_kink_attempts+=1;
     
-
+    return;
 }
 
 /*------------------------------- Estimators ---------------------------------*/
