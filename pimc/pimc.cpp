@@ -66,7 +66,7 @@ int main(){
     
     // Measurement settings
     double measurement_center,measurement_plus_minus;
-    int measurement_frequency,bin_size;
+    int measurement_frequency,bin_size,writing_frequency,writing_ctr;
     vector<double> measurement_centers;
     vector<int> fock_state_at_slice;
     
@@ -141,7 +141,7 @@ int main(){
     N=M;
     t=1.0;
     U=1.0;
-    mu=1.13596;
+    mu=-1.60341;
     boundary_condition="pbc";
     
     // Initialize Fock State
@@ -151,8 +151,8 @@ int main(){
     eta=1/sqrt(M);
     beta=1.0;
     canonical=true;
-    sweeps=1000000;
-    sweeps_pre=100000;
+    sweeps=1000000000;
+    sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
@@ -204,10 +204,12 @@ int main(){
     // Measurement settings
     measurement_center=beta/2.0;
     measurement_plus_minus=0.10*beta;
-    measurement_frequency=1;
+    measurement_frequency=10;
     bin_size=500;
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){fock_state_at_slice.push_back(0);}
+    writing_frequency = 10000;
+    writing_ctr = 0;
     
     N_flats_mean=0.0;
     N_flats_samples=0;
@@ -1246,13 +1248,17 @@ int main(){
         else { // more than one replica (SWAP measurements)
             // add count to bin corresponding to number of swapped sites
             SWAP_histogram[num_swaps]+=1;
+            writing_ctr+=1;
         }
         // Save current histogram of swapped sites to file
-        for (int i=0; i<m_A+1; i++){
-            SWAP_histogram_file<<fixed<<setprecision(17)<<
-            SWAP_histogram[i] << " ";
+        if (writing_ctr==writing_frequency){
+            for (int i=0; i<m_A+1; i++){
+                SWAP_histogram_file<<fixed<<setprecision(17)<<
+                SWAP_histogram[i] << " ";
+            }
+            SWAP_histogram_file<<endl;
+            writing_ctr=0;
         }
-        SWAP_histogram_file<<endl;
     } // end of measurement after 25% equilibration if statement
     } // end of replica loop
     } // end of sweeps loop
