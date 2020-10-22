@@ -355,8 +355,7 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     dest = paths[k].dest;
     prev = paths[k].prev;
     next = paths[k].next;
-    src_replica = paths[k].src_replica;
-    dest_replica = paths[k].dest_replica;
+    dest_replica = paths[k].dest_replica; //due to way replica indices are coded
     
     // Calculate the length of the flat interval
     tau_prev = tau;
@@ -419,12 +418,12 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
         // Activate the first two available kinks
         if (is_worm){
             paths[num_kinks]=Kink(tau_t,n_tail,src,src,k,num_kinks+1,
-                                  src_replica,dest_replica);
+                                  dest_replica,dest_replica);
             paths[num_kinks+1]=Kink(tau_h,n_head,src,src,num_kinks,next,
-                                    src_replica,dest_replica);
+                                    dest_replica,dest_replica);
             
             // Save indices of head & tail kinks
-            head_idx = num_kinks + 1;
+            head_idx = num_kinks+1;
             tail_idx = num_kinks;
             
             // Add to Acceptance counter
@@ -432,9 +431,9 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
         }
         else{ // Antiworm
             paths[num_kinks]=Kink(tau_h,n_head,src,src,k,num_kinks+1,
-                                  src_replica,dest_replica);
+                                  dest_replica,dest_replica);
             paths[num_kinks+1]=Kink(tau_t,n_tail,src,src,num_kinks,next,
-                                    src_replica,dest_replica);
+                                    dest_replica,dest_replica);
             
             // Save indices of head & tail kinks
             head_idx = num_kinks;
@@ -675,7 +674,7 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     dest = paths[i].dest;
     prev = paths[i].prev;
     next = paths[i].next;
-    src_replica = paths[i].src;
+    src_replica = paths[i].src_replica;
     dest_replica = paths[i].dest_replica;
     
     // Determine the length of insertion flat interval
@@ -792,7 +791,7 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
         // Activate the first available kink
         if (is_worm){
             paths[num_kinks] = Kink(tau_new,n_head,src,src,src,next,
-                                    src_replica,dest_replica);
+                                    dest_replica,dest_replica);
             
             // Save head index
             head_idx = num_kinks;
@@ -808,7 +807,7 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
         }
         else{ // antiworm
             paths[num_kinks] = Kink(tau_new,n_tail,src,src,src,next,
-                                    src_replica,dest_replica);
+                                    dest_replica,dest_replica);
             
             // Save head index
             tail_idx = num_kinks;
@@ -838,7 +837,9 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
             if (is_worm){last_kinks[src]=head_idx;}
             else {last_kinks[src]=tail_idx;}
         }
-        
+//        cout << "move #2 accepted on site " << i << " at tau=" <<tau_new<<endl;
+//        cout << "dest_replica from move #2 is" << dest_replica << endl;
+//        cout << "inserted kink: " << paths[num_kinks-1] << endl;
         return;
     }
     else // Reject
@@ -1087,7 +1088,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     dest = paths[last_kinks[i]].dest;
     prev = paths[last_kinks[i]].prev;
     next = paths[last_kinks[i]].next;
-    src_replica = paths[last_kinks[i]].src_replica;
+//    src_replica = paths[last_kinks[i]].src_replica;
     dest_replica = paths[last_kinks[i]].dest_replica;
     
     // Determine the length of insertion flat interval
@@ -1202,7 +1203,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
         if (is_worm){
             paths[num_kinks] = Kink (tau_new,n_tail,src,src,
                                             last_kinks[src],next,
-                                            src_replica,dest_replica);
+                                            dest_replica,dest_replica);
             
             // Save tail index
             tail_idx = num_kinks;
@@ -1216,7 +1217,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
         else{ // antiworm
             paths[num_kinks] = Kink (tau_new,n_head,src,src,
                                             last_kinks[src],next,
-                                            src_replica,dest_replica);
+                                            dest_replica,dest_replica);
             
             // Save head index
             head_idx = num_kinks;
@@ -1240,7 +1241,6 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
             if (is_worm){last_kinks[src]=tail_idx;}
             else {last_kinks[src]=head_idx;}
         }
-        
         return;
     }
     else // Reject
@@ -1723,7 +1723,7 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &ikbh_accepts,
                 boost::random::mt19937 &rng){
     
-    if (t==0.0){return;}
+//    if (t==0.0){return;}
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     src_replica,dest_replica;
@@ -1856,7 +1856,7 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &dkbh_accepts,
                 boost::random::mt19937 &rng){
 
-    if (t==0.0){return;}
+//    if (t==0.0){return;}
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2068,7 +2068,7 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &ikah_accepts,
                 boost::random::mt19937 &rng){
     
-    if (t==0.0){return;}
+//    if (t==0.0){return;}
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2213,7 +2213,7 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &dkah_accepts,
                 boost::random::mt19937 &rng){
     
-    if (t==0.0){return;}
+//    if (t==0.0){return;}
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2425,7 +2425,7 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &ikbt_accepts,
                 boost::random::mt19937 &rng){
     
-    if (t==0.0){return;}
+//    if (t==0.0){return;}
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2570,7 +2570,7 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &dkbt_accepts,
                 boost::random::mt19937 &rng){
     
-    if (t==0.0){return;}
+//    if (t==0.0){return;}
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2778,7 +2778,7 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &ikat_accepts,
                 boost::random::mt19937 &rng){
     
-    if (t==0.0){return;}
+//    if (t==0.0){return;}
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2920,7 +2920,7 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &dkat_accepts,
                 boost::random::mt19937 &rng){
     
-    if (t==0.0){return;}
+//    if (t==0.0){return;}
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -3171,9 +3171,9 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     tau = 0.0;
     next = next_swap_site; // next variable refers to "next kink" in worldline
     n_src = -1;
-    prev_src = next;
+    prev_src = -1;
     while (tau<0.5*beta){
-
+//        cout << paths[src_replica][next] << endl;
         n_src = paths[src_replica][next].n;
         prev_src = next;
         next = paths[src_replica][next].next;
@@ -3186,9 +3186,8 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     tau = 0.0;
     next = next_swap_site;
     n_dest=-1;
-    prev_dest = next;
+    prev_dest = -1;
     while (tau<0.5*beta){
-
         n_dest = paths[dest_replica][next].n;
         prev_dest = next;
         next = paths[dest_replica][next].next;
@@ -3198,6 +3197,7 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     }
     next_dest = next;
     if (n_src!=n_dest){return;}
+//    cout << "move #15 accepted" << endl;
     
     // Metropolis Sampling (not actually, the ratio is unity!)
     R = 1.0;
@@ -3209,51 +3209,53 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     num_kinks_dest = num_kinks[dest_replica];
     paths[src_replica][num_kinks_src] =
                               Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
-                              prev_src,num_kinks_dest,
+                              prev_src,num_kinks_src+1,
                               src_replica,dest_replica);
+    paths[src_replica][num_kinks_src+1] =
+                              Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
+                              num_kinks_src,next_src,
+                              dest_replica,src_replica);
     paths[dest_replica][num_kinks_dest] =
                               Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
-                              num_kinks_src,next_dest,
+                              prev_dest,num_kinks_dest+1,
                               dest_replica,src_replica);
     paths[dest_replica][num_kinks_dest+1] =
                               Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
-                              prev_dest,num_kinks_src+1,
-                              dest_replica,src_replica);
-    paths[src_replica][num_kinks_src+1] =
-                              Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
-                              num_kinks_dest+1,next_src,
+                              num_kinks_dest,next_dest,
                               src_replica,dest_replica);
-        
-    cout << "kink_out_of_src: ";
-    cout << paths[src_replica][num_kinks_src] << endl;
-    cout << "kink_in_to_dest: ";
-    cout << paths[dest_replica][num_kinks_dest] << endl;
-    cout << "kink_out_of_dest: ";
-    cout << paths[dest_replica][num_kinks_dest+1] << endl;
-    cout << "kink_in_to_src: ";
-    cout << paths[src_replica][num_kinks_src+1] << endl;
-    cout << endl;
+    // Had to change the meaning of src_replica and dest_replica ATTRIBUTES
+    // The now actually have directional meaning. From origin replica to dest.
+
+//    cout << "kink_out_of_src: ";
+//    cout << paths[src_replica][num_kinks_src] << endl;
+//    cout << "kink_in_to_src: ";
+//    cout << paths[src_replica][num_kinks_src+1] << endl;
+//    cout << "kink_out_of_dest: ";
+//    cout << paths[dest_replica][num_kinks_dest] << endl;
+//    cout << "kink_in_to_dest: ";
+//    cout << paths[dest_replica][num_kinks_dest+1] << endl;
+//    cout << endl;
 
     // Connect next of prev_src to swap_kink
     paths[src_replica][prev_src].next = num_kinks_src;
     
-    // Connect prev of next_dest to swap_kink
-    if (next_dest!=-1)
-        paths[dest_replica][next_dest].prev = num_kinks_dest;
-    
-    // Connect next of prev_dest to swap_kink
-    paths[dest_replica][prev_dest].next = num_kinks_dest+1;
-    
     // Connect prev of next_src to swap_kink
     if (next_src!=-1)
         paths[src_replica][next_src].prev = num_kinks_src+1;
-            
+    
+    // Connect next of prev_dest to swap_kink
+    paths[dest_replica][prev_dest].next = num_kinks_dest;
+    
+    // Connect prev of next_dest to swap_kink
+    if (next_dest!=-1)
+        paths[dest_replica][next_dest].prev = num_kinks_dest+1;
+    
     // Edit the last kinks vector of each replica if necessary
-    if (paths[src_replica][num_kinks_src+1].next==-1){
+    if (next_src==-1){
         last_kinks[src_replica][next_swap_site] = num_kinks_src+1;
     }
-    if (paths[dest_replica][num_kinks_dest].next==-1){
-        last_kinks[dest_replica][next_swap_site] = num_kinks_dest;
+    if (next_dest==-1){
+        last_kinks[dest_replica][next_swap_site] = num_kinks_dest+1;
     }
     
     // Update number of kinks tracker of each replica
@@ -3266,17 +3268,17 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Chris suggested keeping track of swap kinks in helper array.
     // Still need to modify it (swap_kinks)
     
-    cout << "src paths" << endl;
-    for (int i=0; i<num_kinks[src_replica];i++){
-        cout << paths[src_replica][i] << endl;
-    }
-    cout << endl;
-    
-    cout << "dest paths" << endl;
-    for (int i=0; i<num_kinks[dest_replica];i++){
-        cout << paths[dest_replica][i] << endl;
-    }
-    cout << endl;
+//    cout << "src paths (" << src_replica << ")" << endl;
+//    for (int i=0; i<num_kinks[src_replica];i++){
+//        cout << i << " " << paths[src_replica][i] << endl;
+//    }
+//    cout << endl;
+//
+//    cout << "dest paths (" << dest_replica << ")" << endl;
+//    for (int i=0; i<num_kinks[dest_replica];i++){
+//        cout << i << " " << paths[dest_replica][i] << endl;
+//    }
+//    cout << endl;
 
     return;
 }
@@ -3300,8 +3302,6 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     // Note: ONE AND TWO DIMENSIONAL FOR NOW
     
-    return;
-
     // Variable declarations
     int src_replica,dest_replica,next,prev_src,prev_dest,next_src,next_dest,
     num_kinks_src,num_kinks_dest,site_to_unswap,kink_out_of_src,kink_in_to_dest,
@@ -3335,26 +3335,20 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     // Get swap kink indices
     // source replica
-    kink_out_of_src = -0;
-    kink_in_to_dest = -0;
     next = site_to_unswap;
-    while (paths[src_replica][next].src_replica==
-           paths[src_replica][next].dest_replica){
+    while (paths[src_replica][next].dest_replica==src_replica){
         next = paths[src_replica][next].next;
     }
     kink_out_of_src = next;
-    kink_in_to_dest = paths[src_replica][kink_out_of_src].next;
+    kink_in_to_src = paths[src_replica][kink_out_of_src].next;
 
     // destination replica
-    kink_out_of_dest = -0;
-    kink_in_to_src = -0;
     next = site_to_unswap;
-    while (paths[dest_replica][next].src_replica==
-           paths[dest_replica][next].dest_replica){
+    while (paths[dest_replica][next].dest_replica==dest_replica){
         next = paths[dest_replica][next].next;
     }
     kink_out_of_dest = next;
-    kink_in_to_src = paths[dest_replica][kink_out_of_dest].next;
+    kink_in_to_dest= paths[dest_replica][kink_out_of_dest].next;
     
     // Get lower and upper bounds of the flat interval on each replica
     prev_src = paths[src_replica][kink_out_of_src].prev;
@@ -3397,6 +3391,10 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         last_kinks[src_replica][paths[src_replica][kink_out_of_src].src]=
                                                                 kink_out_of_src;
     }
+    
+    // Reconnect upper and lower bounds of the flat
+    paths[src_replica][kink_in_to_src].prev = prev_src;
+    paths[src_replica][prev_src].next = kink_in_to_src;
 
     // Stage 2: delete kink coming into source replica
     // Modify connection to kinks that will be swapped in paths array via swap()
@@ -3469,6 +3467,10 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         last_kinks[dest_replica][paths[dest_replica][kink_out_of_dest].src]=
                                                                kink_out_of_dest;
     }
+    
+    // Reconnect upper and lower bounds of the flat
+    paths[dest_replica][kink_in_to_dest].prev = prev_dest;
+    paths[dest_replica][prev_dest].next = kink_in_to_dest;
 
     // Stage 4: delete kink coming into destination replica
     // Modify connection to kinks that will be swapped in paths array via swap()
@@ -3517,7 +3519,7 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     num_kinks[dest_replica]-=2;
     
     delete_swap_kink_attempts+=1;
-    delete_swap_kink_attempts+=1;
+    delete_swap_kink_accepts+=1;
     
     return;
 }
