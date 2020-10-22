@@ -139,7 +139,7 @@ int main(){
     D=1;
     M=pow(L,D);
     N=M;
-    t=0.0;
+    t=1.0;
     U=1.0;
     mu=1.13596;
     boundary_condition="pbc";
@@ -298,7 +298,7 @@ int main(){
         Z_frac=0.0; // think about making this a vector too
         std::fill(measurement_attempts.begin(),measurement_attempts.end(),0);
         
-        boost::random::uniform_int_distribution<> updates(0, 14);
+        boost::random::uniform_int_distribution<> updates(0, 16);
 
         for (unsigned long long int m=0;m<sweeps_pre;m++){
 
@@ -861,9 +861,24 @@ int main(){
     cout << "Stage (2/3): Equilibrating..." << endl << endl;
     for (unsigned long long int m=0; m < sweeps; m++){
     for (int r=0;r<num_replicas;r++){
-
-        label = updates(rng);
         
+        label = updates(rng);
+
+//        if (r!=-3){
+//        cout << "paths (" << r << "): " << endl;
+//        for (int i=0; i<num_kinks[r];i++){
+//            cout << i << " " << paths[r][i] << endl;
+//        }
+//        cout << endl;
+//        }
+//        cout << "last_kinks:" << endl;
+//        for (int i=0; i<M; i++){
+//            cout << last_kinks[r][i] << endl;
+//        }
+//        cout << "number of swaps: " << num_swaps << endl;
+//
+//        cout << "Attempt update #" << label << endl << endl;
+
         if (label==0){     // worm_insert
             insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
@@ -1317,6 +1332,11 @@ int main(){
                                ikat_attempts<<endl;
     cout <<"DKAT: "<<dkat_accepts<<"/"<<
                                dkat_attempts<<endl;
+    
+    cout<< endl <<"SWAP: "<<insert_swap_kink_accepts<<"/"<<
+                               insert_swap_kink_attempts<<endl;
+    cout <<"UNSWAP: "<<delete_swap_kink_accepts<<"/"<<
+                               delete_swap_kink_attempts<<endl;
     
     auto end = high_resolution_clock::now();
 
