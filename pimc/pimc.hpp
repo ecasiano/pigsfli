@@ -3148,7 +3148,7 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Need at least two replicas to perform a spaceshift
     if (paths.size()<2){return;}
     
-    // Can't perform update is SWAP region is full
+    // Can't perform update if SWAP region is full
     if (num_swaps==m_A){return;}
         
     // Retrieve source replica index and randomly choose destination replica
@@ -3201,9 +3201,7 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     // Metropolis Sampling (not actually, the ratio is unity!)
     R = 1.0;
-    
-    num_swaps+=1;
-    
+        
     // Build and insert kinks to the paths of the src and the dest replica
     num_kinks_src = num_kinks[src_replica];
     num_kinks_dest = num_kinks[dest_replica];
@@ -3258,6 +3256,9 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         last_kinks[dest_replica][next_swap_site] = num_kinks_dest+1;
     }
     
+    // Updtae number of swapped sites tracker
+    num_swaps+=1;
+
     // Update number of kinks tracker of each replica
     num_kinks[src_replica] += 2;
     num_kinks[dest_replica] += 2;

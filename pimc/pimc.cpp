@@ -19,6 +19,7 @@ int main(){
 //    rng.push_back(rng_A);
 //    rng.push_back(rng_B);
     
+//    boost::random::mt19937 rng(seed_A);
     boost::random::mt19937 rng(seed_A);
     
     // Create a uniform distribution with support: [0.0,1.0)
@@ -74,8 +75,7 @@ int main(){
     vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,
     tr_kinetic_energy_file,tr_diagonal_energy_file;
     ofstream SWAP_histogram_file;
-//    ofstream SWAP_histogram_file;
-    
+
     // mu-calibration variables
     bool not_equilibrated;
     double mu_initial,N_hist_sum,P_N_peak,mu_right,mu_left,N_flats_mean;
@@ -135,7 +135,7 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=2;
+    L=6;
     D=1;
     M=pow(L,D);
     N=M;
@@ -149,9 +149,9 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=1.0;
+    beta=3.0;
     canonical=true;
-    sweeps=1000000000;
+    sweeps=10000000;
     sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
@@ -162,7 +162,7 @@ int main(){
     for (int i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
     
     // Subsystem settings
-    l_A = 1; // subsystem linear size
+    l_A = 5; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -204,11 +204,11 @@ int main(){
     // Measurement settings
     measurement_center=beta/2.0;
     measurement_plus_minus=0.10*beta;
-    measurement_frequency=10;
+    measurement_frequency=1;
     bin_size=500;
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){fock_state_at_slice.push_back(0);}
-    writing_frequency = 10000;
+    writing_frequency = 1000;
     writing_ctr = 0;
     
     N_flats_mean=0.0;
@@ -225,23 +225,23 @@ int main(){
  \_____/\__,_|\__|\__|_|\___\___| \_|    \___/ \____/\____/
                                                                )";
     
-//    cout << R"(
-//                                 _
-//                                ( `.
-//                  _,--------.__  ))\`.
-//              _,-"   ,::::.    `(( (  \___
-//            ,'      .:::::'      \`-\ |   `-.
-//          ,'     ___                         \
-//         /     -'   `-.               .    ;; \
-//        :::          : \    :         ~)       )-._
-//        ;::          :: |   .      .  :       /::._)
-//       ( `:          ;  :  /: .    (  :__ .,~/_.-'
-//       /__ :        .__/_ (:' ,--.  `./o `.|'
-//      ((_\`.    `:.      `-.._    `.__`._o )
-// -hrr- `-'  `""`.____,-.___/`_\______ """"`.
-//                           `-`       `-. ,\_\
-//                                        `-')";
-//
+    cout << R"(
+                                 _
+                                ( `.
+                  _,--------.__  ))\`.
+              _,-"   ,::::.    `(( (  \___
+            ,'      .:::::'      \`-\ |   `-.
+          ,'     ___                         \
+         /     -'   `-.               .    ;; \
+        :::          : \    :         ~)       )-._
+        ;::          :: |   .      .  :       /::._)
+       ( `:          ;  :  /: .    (  :__ .,~/_.-'
+       /__ :        .__/_ (:' ,--.  `./o `.|'
+      ((_\`.    `:.      `-.._    `.__`._o )
+ -hrr- `-'  `""`.____,-.___/`_\______ """"`.
+                           `-`       `-. ,\_\
+                                        `-')";
+
     cout << endl << endl;
 
 /*------------------- Pre-equilibration 1: mu calibration --------------------*/
@@ -537,209 +537,6 @@ int main(){
         }
         at_least_one_iteration=true;
     }
-//
-/*------------------ Pre-equilibration 2: eta calibration --------------------*/
-
-//    cout << "Stage (2/4): Determining eta..." << endl << endl;
-//    cout << setw(16) <<"eta";
-//    cout << "| Z-fraction (%)" << endl;
-//    cout << "--------------------------------"<<endl;
-//
-//    eta=1/N_flats_mean;
-//
-//    // Iterate until particle distribution P(N) is peaked at target N
-//      while (true){
-//
-//          if (!canonical){break;}
-//
-//          // Restart data structure and trackers
-//          num_kinks.clear();
-//          N_tracker.clear();
-//          head_idx.clear();
-//          tail_idx.clear();
-//          N_zero.clear();
-//          N_beta.clear();
-//          last_kinks.clear();
-//          paths.clear();
-//          for (int r=0;r<num_replicas;r++){
-//              num_kinks.push_back(M);
-//              N_tracker.push_back(M);
-//              head_idx.push_back(-1);
-//              tail_idx.push_back(-1);
-//              N_zero.push_back(N);
-//              N_beta.push_back(N);
-//
-//              last_kinks.push_back(vector<int> (M,-1));
-//              for (int i=0;i<M;i++){last_kinks[r][i]=i;}
-//
-//              paths.push_back(create_paths(initial_fock_state,M));
-//          }
-//
-//          N_data.clear();
-//          N_hist.clear();
-//          P_N.clear();
-//          N_bins.clear();
-//          N_hist_sum=0.0;
-//          N_min=-1;
-//          N_max=-1;
-//
-//          Z_frac=0.0; // think about making this a vector too
-//          std::fill(measurement_attempts.begin(),measurement_attempts.end(),0);
-//
-//          boost::random::uniform_int_distribution<> updates(0, 14);
-//
-//          for (unsigned long long int m=0;m<sweeps_pre;m++){
-//
-//                label = updates(rng);
-//
-//                if (label==0){     // worm_insert
-//                    insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
-//                                M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
-//                                N_zero[0],N_beta[0],last_kinks[0],
-//                                dummy_counter,dummy_counter,
-//                                dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==1){ // worm_delete
-//                    delete_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
-//                                M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
-//                                N_zero[0],N_beta[0],last_kinks[0],
-//                                dummy_counter,dummy_counter,
-//                                dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==2){ // insertZero
-//                    insertZero(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
-//                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
-//                               N_zero[0],N_beta[0],last_kinks[0],
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,rng);
-//
-//                }
-//                else if (label==3){ // deleteZero
-//                    deleteZero(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
-//                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
-//                               N_zero[0],N_beta[0],last_kinks[0],
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==4){ // insertBeta
-//                    insertBeta(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
-//                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
-//                               N_zero[0],N_beta[0],last_kinks[0],
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==5){ // deleteBeta
-//                    deleteBeta(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
-//                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
-//                               N_zero[0],N_beta[0],last_kinks[0],
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==6){ // timeshift
-//                    timeshift(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
-//                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
-//                               N_zero[0],N_beta[0],last_kinks[0],
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==7){ // insert kink before head
-//                    insert_kink_before_head(paths[0],num_kinks[0],
-//                               head_idx[0],tail_idx[0],
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker[0],
-//                               N_zero[0],N_beta[0],last_kinks[0],
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==8){ // delete kink before head
-//                    delete_kink_before_head(paths[0],num_kinks[0],
-//                               head_idx[0],tail_idx[0],
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker[0],
-//                               N_zero[0],N_beta[0],last_kinks[0],
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==9){ // insert kink after head
-//                    insert_kink_after_head(paths[0],num_kinks[0],
-//                               head_idx[0],tail_idx[0],
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker[0],
-//                               N_zero[0],N_beta[0],last_kinks[0],
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==10){ // delete kink after head
-//                    delete_kink_after_head(paths[0],num_kinks[0],
-//                               head_idx[0],tail_idx[0],
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker[0],
-//                               N_zero[0],N_beta[0],last_kinks[0],
-//                               dummy_counter,dummy_counter,rng);
-//                        }
-//                else if (label==11){ // insert kink before tail
-//                    insert_kink_before_tail(paths[0],num_kinks[0],
-//                               head_idx[0],tail_idx[0],
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker[0],
-//                               N_zero[0],N_beta[0],last_kinks[0],
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==12){ // delete kink before tail
-//                    delete_kink_before_tail(paths[0],num_kinks[0],
-//                               head_idx[0],tail_idx[0],
-//                               M,N,U,mu,t,adjacency_matrix,total_nn,
-//                               beta,eta,canonical,N_tracker[0],
-//                               N_zero[0],N_beta[0],last_kinks[0],
-//                               dummy_counter,dummy_counter,rng);
-//                }
-//                else if (label==13){ // insert kink after tail
-//                     insert_kink_after_tail(paths[0],num_kinks[0],
-//                                head_idx[0],tail_idx[0],
-//                                M,N,U,mu,t,adjacency_matrix,total_nn,
-//                                beta,eta,canonical,N_tracker[0],
-//                                N_zero[0],N_beta[0],last_kinks[0],
-//                                dummy_counter,dummy_counter,rng);
-//                 }
-//                 else if (label==14){ // delete kink after tail
-//                     delete_kink_after_tail(paths[0],num_kinks[0],
-//                                head_idx[0],tail_idx[0],
-//                                M,N,U,mu,t,adjacency_matrix,total_nn,
-//                                beta,eta,canonical,N_tracker[0],
-//                                N_zero[0],N_beta[0],last_kinks[0],
-//                                dummy_counter,dummy_counter,rng);
-//                 }
-//                else{
-//                    // lol
-//                }
-//
-//              // Measure the total number of particles
-//              if (m%(sweep*measurement_frequency)==0 && m>=0.25*sweeps_pre){
-//                  measurement_attempts[0]+=1;
-//                  if (head_idx[0]==-1 and tail_idx[0]==-1){Z_frac += 1;}
-//              }
-//          }
-//
-//          Z_frac/=measurement_attempts[0];
-//          cout << setw(16) << eta;
-//          cout << "| " << Z_frac*100.0 << endl;
-//
-//
-//          // Modify eta if necessary
-//          if (Z_frac > 0.50 &&
-//              Z_frac < 0.70){break;}
-//          else{
-//              if (Z_frac < 0.50){eta *= 0.5;}
-//              else{eta *= 1.5;}
-//          }
-//
-//          // Modify eta if necessary
-//          if (Z_frac > 0.13 &&
-//              Z_frac < 0.17){break;}
-//          else{
-//              if (Z_frac < 0.17){eta *= 0.5;}
-//              else{eta *= 1.5;}
-//          }
-//      }
     
 /*---------------------------- Open files ------------------------------------*/
     
@@ -1025,7 +822,6 @@ int main(){
             // lol
         }
         
-        
 /*------------------------- Unit Tests (kind of) -----------------------------*/
 //
 //        // Unit test #1: No last kink indices should be repeated
@@ -1178,7 +974,7 @@ int main(){
         
 /*----------------------------- Measurements ---------------------------------*/
 
-        if (m%(sweep*measurement_frequency*num_replicas)==0 && m>=sweeps*0.25){
+        if (m%(sweep*measurement_frequency)==0 && m>=sweeps*0.25){
             
             if (not_equilibrated){
                 not_equilibrated=false;
