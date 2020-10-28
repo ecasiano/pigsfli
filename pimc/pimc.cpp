@@ -141,7 +141,6 @@ int main(){
     L=2;
     D=1;
     M=pow(L,D);
-    //N=M;
     N=2;
     t=1.0;
     U=1.0;
@@ -153,10 +152,10 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=1.0;
+    beta=1.00;
     canonical=true;
-    sweeps=100000000;
-    sweeps_pre=1000000;
+    sweeps=1000000000;
+    sweeps_pre=10000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
@@ -1253,6 +1252,24 @@ int main(){
         cout << fock_state_half_histogram[i] << " ";
     }
     cout << endl;
+    
+    /*------------ Temporary ------------*/
+    ofstream fock_state_half_histogram_file;
+    string file_name;
+    
+    file_name = to_string(L)+"_"+to_string(N)+"_"
+    +to_string(U)+"_"+to_string(beta)+".dat";
+    
+    fock_state_half_histogram_file.open(file_name);
+    
+    for (int i=0; i<fock_state_half_histogram.size();i++){
+        fock_state_half_histogram_file<<fixed<<setprecision(17)
+        <<fock_state_half_histogram[i]<< " ";
+    }
+    
+    fock_state_half_histogram_file.close();
+    /*-----------------------------------*/
+
 
     return 0;
     
