@@ -11,6 +11,8 @@
 // Main
 int main(){
     
+    vector<int> fock_state_half_histogram (9,0);
+    
     // Initialize a Mersenne Twister RNG for each replica
     int seed_A=17,seed_B=42;
 //    vector<boost::random::mt19937> rng;
@@ -34,7 +36,7 @@ int main(){
     string boundary_condition;
     vector<int> initial_fock_state;
     
-    // Simulation parameters
+    // Simulation parameterss
     double eta,beta;
     bool canonical;
     unsigned long long int sweeps_pre,sweeps,sweep;
@@ -56,6 +58,7 @@ int main(){
     // Replicated observables
     vector<double> N_sum,diagonal_energy,kinetic_energy;
     vector<vector<double>> tr_kinetic_energy,tr_diagonal_energy;
+    vector<vector<int>> fock_state_beta;
     
     // <SWAP> estimator settings and trackers
     int l_A; // subregion linear size
@@ -72,8 +75,8 @@ int main(){
     vector<int> fock_state_at_slice;
     
     // Declare data files
-    vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,
-    tr_kinetic_energy_file,tr_diagonal_energy_file;
+    vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,tr_kinetic_energy_file,tr_diagonal_energy_file,fock_state_beta_file;
+    ;
     ofstream SWAP_histogram_file;
 
     // mu-calibration variables
@@ -135,10 +138,11 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=6;
+    L=2;
     D=1;
     M=pow(L,D);
-    N=M;
+    //N=M;
+    N=2;
     t=1.0;
     U=1.0;
     mu=-1.60341;
@@ -149,9 +153,9 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=3.0;
+    beta=1.0;
     canonical=true;
-    sweeps=10000000;
+    sweeps=100000000;
     sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
@@ -162,7 +166,7 @@ int main(){
     for (int i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
     
     // Subsystem settings
-    l_A = 5; // subsystem linear size
+    l_A = L-1; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -208,7 +212,7 @@ int main(){
     bin_size=500;
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){fock_state_at_slice.push_back(0);}
-    writing_frequency = 1000;
+    writing_frequency = 200;
     writing_ctr = 0;
     
     N_flats_mean=0.0;
@@ -225,23 +229,23 @@ int main(){
  \_____/\__,_|\__|\__|_|\___\___| \_|    \___/ \____/\____/
                                                                )";
     
-    cout << R"(
-                                 _
-                                ( `.
-                  _,--------.__  ))\`.
-              _,-"   ,::::.    `(( (  \___
-            ,'      .:::::'      \`-\ |   `-.
-          ,'     ___                         \
-         /     -'   `-.               .    ;; \
-        :::          : \    :         ~)       )-._
-        ;::          :: |   .      .  :       /::._)
-       ( `:          ;  :  /: .    (  :__ .,~/_.-'
-       /__ :        .__/_ (:' ,--.  `./o `.|'
-      ((_\`.    `:.      `-.._    `.__`._o )
- -hrr- `-'  `""`.____,-.___/`_\______ """"`.
-                           `-`       `-. ,\_\
-                                        `-')";
-
+//    cout << R"(
+//                                 _
+//                                ( `.
+//                  _,--------.__  ))\`.
+//              _,-"   ,::::.    `(( (  \___
+//            ,'      .:::::'      \`-\ |   `-.
+//          ,'     ___                         \
+//         /     -'   `-.               .    ;; \
+//        :::          : \    :         ~)       )-._
+//        ;::          :: |   .      .  :       /::._)
+//       ( `:          ;  :  /: .    (  :__ .,~/_.-'
+//       /__ :        .__/_ (:' ,--.  `./o `.|'
+//      ((_\`.    `:.      `-.._    `.__`._o )
+// -hrr- `-'  `""`.____,-.___/`_\______ """"`.
+//                           `-`       `-. ,\_\
+//                                        `-')";
+//
     cout << endl << endl;
 
 /*------------------- Pre-equilibration 1: mu calibration --------------------*/
@@ -300,7 +304,7 @@ int main(){
         Z_frac=0.0; // think about making this a vector too
         std::fill(measurement_attempts.begin(),measurement_attempts.end(),0);
         
-        boost::random::uniform_int_distribution<> updates(0, 16);
+        boost::random::uniform_int_distribution<> updates(0, 14);
 
         for (unsigned long long int m=0;m<sweeps_pre;m++){
 
@@ -590,13 +594,26 @@ int main(){
     else {
 //        ofstream SWAP_histogram_file;
         string SWAP_histogram_name;
+        ofstream fock_state_beta_out;
+        string fock_state_beta_name,rep;
         
-        SWAP_histogram_name=to_string(L)+"_"+to_string(M)+"_"+
-        to_string(U)+"_"+to_string(mu)+"_"+
-        to_string(t)+"_"+to_string(beta)+"_"+
-        to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-        "can_"+"SWAP_"+"_.dat";
-        
+        if (canonical){ // name of file if canonical simulation
+            SWAP_histogram_name=to_string(M)+"_"+to_string(N)+"_"+
+            to_string(U)+"_"+to_string(beta)+"_"+
+            to_string(t)+"_"+to_string(sweeps)+"_"+
+            to_string(seed_A)+"_"+to_string(D)+"D_"+
+            "can_"+"SWAP.dat";
+        }
+        else { // name of file if grand canonical simulation
+            SWAP_histogram_name=to_string(M)+"_"+to_string(N)+"_"+
+            to_string(U)+"_"+to_string(mu)+"_"+
+            to_string(beta)+"_"+
+            to_string(t)+"_"+to_string(sweeps)+"_"+
+            to_string(seed_A)+"_"+to_string(D)+"D_"+
+            "grandcan_"+"SWAP.dat";
+        }
+            
+        // Open SWAP histograms file
         SWAP_histogram_file.open(SWAP_histogram_name);
         
         if( !SWAP_histogram_file ) { // file couldn't be opened
@@ -604,7 +621,23 @@ int main(){
            exit(1);
         }
         
-    }
+        // Temporary: Open files that save Fock states at beta
+        for (int r=0;r<num_replicas;r++){
+            fock_state_beta_name=to_string(L)+"_"+to_string(M)+"_"+
+            to_string(U)+"_"+to_string(beta)+"_"+
+            to_string(t)+"_"+to_string(sweeps)+"_"+
+            to_string(seed_A)+"_"+to_string(D)+"D_"+
+            "can_"+"fockStateBeta_"+"rep"+rep+"_.dat";
+            
+            // open the file for the current replica
+            fock_state_beta_out.open(fock_state_beta_name);
+            
+            // attach the beta fock state file to file vector
+            fock_state_beta_file.push_back(
+                std::move(fock_state_beta_out));
+        }
+        
+    } // End of replicated estimators else block
     
 /*---------------------------- Monte Carlo -----------------------------------*/
     
@@ -655,6 +688,10 @@ int main(){
         for (int i=0; i<m_A+1; i++){
             SWAP_histogram.push_back(0); // just initializing
         }
+        // For naive SWAP calculation
+        for (int r=0; r<num_replicas; r++){
+            fock_state_beta.push_back(vector<int> (M,0));
+        }
     }
 
     cout << "Stage (2/3): Equilibrating..." << endl << endl;
@@ -662,21 +699,6 @@ int main(){
     for (int r=0;r<num_replicas;r++){
         
         label = updates(rng);
-
-//        if (r!=-3){
-//        cout << "paths (" << r << "): " << endl;
-//        for (int i=0; i<num_kinks[r];i++){
-//            cout << i << " " << paths[r][i] << endl;
-//        }
-//        cout << endl;
-//        }
-//        cout << "last_kinks:" << endl;
-//        for (int i=0; i<M; i++){
-//            cout << last_kinks[r][i] << endl;
-//        }
-//        cout << "number of swaps: " << num_swaps << endl;
-//
-//        cout << "Attempt update #" << label << endl << endl;
 
         if (label==0){     // worm_insert
             insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -981,7 +1003,7 @@ int main(){
                 cout << "Stage (3/3): Main Monte Carlo loop..." << endl;
             }
             
-            if (num_replicas<2){ // conventional
+            if (num_replicas<2){ // conventional measurements
                 
             measurement_attempts[r]+=1;
             if (head_idx[r]==-1 and tail_idx[r]==-1){
@@ -1041,10 +1063,72 @@ int main(){
                 }
             }
         } // end of conventional measurements if statement
-        else { // more than one replica (SWAP measurements)
+        else { // start of non-conventional (SWAP) measurements
             // add count to bin corresponding to number of swapped sites
+            
+            if (head_idx[0]==-1 && tail_idx[0]==-1
+                && head_idx[1]==-1 && tail_idx[1]==-1){
+                
+                if (N_beta[0]==N && N_beta[1]==N){
+                vector<int> tmp (2,0);
+                get_fock_state(beta/2.0,M,fock_state_at_slice,
+                               paths[0]);
+                get_fock_state(beta/2.0,M,tmp,
+                               paths[1]);
+
+//            if (fock_state_at_slice[0]==0 && tmp[0]==0){
+//                fock_state_half_histogram[0]+=1;}
+//            if (fock_state_at_slice[0]==0 && tmp[0]==1){
+//                fock_state_half_histogram[1]+=1;}
+//            if (fock_state_at_slice[0]==1 && tmp[0]==0){
+//                fock_state_half_histogram[2]+=1;}
+//            if (fock_state_at_slice[0]==1 && tmp[0]==1){
+//                fock_state_half_histogram[3]+=1;}
+                    
+                    
+                    for (int i=0; i<=N; i++){
+                        for (int j=0; j<=N; j++){
+                            if (fock_state_at_slice[0]==i && tmp[0]==j){
+                                fock_state_half_histogram[i*(N+1)+j]+=1;}                        }
+                    }
+                    
+//                    cout << "fock_state_at_slice" << endl;
+//                    for (int i=0; i<fock_state_at_slice.size(); i++){
+//                        cout << fock_state_at_slice[i] << " ";
+//                    }
+//                    cout << endl;
+//
+//                    cout << "tmp" << endl;
+//
+//                    for (int i=0; i<tmp.size(); i++){
+//                        cout << tmp[i] << " ";
+//                    }
+//                    cout << endl;
+//
+//                    cout << "fock_state_half_histogram" << endl;
+//
+//                    for (int i=0; i<fock_state_half_histogram.size(); i++){
+//                        cout << fock_state_half_histogram[i] << " ";
+//                    }
+//                    cout << endl;
+                    
+                }
+                
+//                cout << N_tracker[0] << " " << N_tracker[1] << endl;
+                
+                
             SWAP_histogram[num_swaps]+=1;
-            writing_ctr+=1;
+                
+                // AM I SOMEHOW COUNTING DOUBLE?
+                writing_ctr+=1;
+            }
+            
+//            if (r==1){
+//                // get_fock_state at beta for both replicas
+//                for (int i=0; i<M; i++){
+//                    while
+//                    fock_state_beta[0][i]
+//                }
         }
         // Save current histogram of swapped sites to file
         if (writing_ctr==writing_frequency){
@@ -1053,6 +1137,10 @@ int main(){
                 SWAP_histogram[i] << " ";
             }
             SWAP_histogram_file<<endl;
+            
+            // Restart histogram
+            std::fill(SWAP_histogram.begin(),
+                      SWAP_histogram.end(),0);
             writing_ctr=0;
         }
     } // end of measurement after 25% equilibration if statement
@@ -1157,6 +1245,14 @@ int main(){
     }
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
+    
+    cout << endl;
+    cout << "fock_state_half_histogram" << endl;
+
+    for (int i=0; i<fock_state_half_histogram.size(); i++){
+        cout << fock_state_half_histogram[i] << " ";
+    }
+    cout << endl;
 
     return 0;
     

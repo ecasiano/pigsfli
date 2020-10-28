@@ -3166,6 +3166,7 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Propose the next site to swap
     next_swap_site = sub_sites[num_swaps];
     
+    /*---------TEST THIS!!!*----------*/
     // Check if no. of particles at beta/2 is the same on both replicas
     // Source Replica
     tau = 0.0;
@@ -3196,6 +3197,10 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         tau = paths[dest_replica][next].tau;
     }
     next_dest = next;
+    insert_swap_kink_attempts+=1;
+    
+    /*---------TEST THIS!!!*----------*/
+    
     if (n_src!=n_dest){return;}
 //    cout << "move #15 accepted" << endl;
     
@@ -3263,7 +3268,6 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     num_kinks[src_replica] += 2;
     num_kinks[dest_replica] += 2;
     
-    insert_swap_kink_attempts+=1;
     insert_swap_kink_accepts+=1;
     
     // Chris suggested keeping track of swap kinks in helper array.
@@ -3308,6 +3312,9 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     num_kinks_src,num_kinks_dest,site_to_unswap,kink_out_of_src,kink_in_to_dest,
     kink_out_of_dest,kink_in_to_src;
     double R,p_replica;
+
+    
+    delete_swap_kink_attempts+=1;
     
     // Need at least two replicas to perform delete_swap_kink
     if (paths.size()<2){return;}
@@ -3519,7 +3526,6 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     num_kinks[src_replica]-=2;
     num_kinks[dest_replica]-=2;
     
-    delete_swap_kink_attempts+=1;
     delete_swap_kink_accepts+=1;
     
     return;
@@ -3588,6 +3594,8 @@ double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
 
 /*----------------------------------------------------------------------------*/
 
+
+/*---------TEST THIS!!!*----------*/
 void tau_resolved_diagonal_energy(vector<Kink> &paths,
                                            int num_kinks, int M, bool canonical,
                                            double U, double mu, double beta,
