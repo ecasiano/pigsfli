@@ -11,7 +11,7 @@
 // Main
 int main(){
     
-    vector<int> fock_state_half_histogram (9,0);
+//    vector<int> fock_state_half_histogram (9,0);
     
     // Initialize a Mersenne Twister RNG for each replica
     int seed_A=17,seed_B=42;
@@ -58,7 +58,6 @@ int main(){
     // Replicated observables
     vector<double> N_sum,diagonal_energy,kinetic_energy;
     vector<vector<double>> tr_kinetic_energy,tr_diagonal_energy;
-    vector<vector<int>> fock_state_beta;
     
     // <SWAP> estimator settings and trackers
     int l_A; // subregion linear size
@@ -75,8 +74,7 @@ int main(){
     vector<int> fock_state_at_slice;
     
     // Declare data files
-    vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,tr_kinetic_energy_file,tr_diagonal_energy_file,fock_state_beta_file;
-    ;
+    vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,tr_kinetic_energy_file,tr_diagonal_energy_file;
     ofstream SWAP_histogram_file;
 
     // mu-calibration variables
@@ -138,34 +136,17 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=2;
+    L=4;
     D=1;
     M=pow(L,D);
-    N=2;
+    N=4;
     t=1.0;
-    U=1.0;
+    U=7.0;
     mu=-1.60341;
     boundary_condition="pbc";
     
-    // Initialize Fock State
-    initial_fock_state = random_boson_config(M,N,rng);
-    
-    // Simulation parameters
-    eta=1/sqrt(M);
-    beta=1.00;
-    canonical=true;
-    sweeps=1000000000;
-    sweeps_pre=10000000;
-    sweep=beta*M;
-    if (sweep==0){sweep=M;} // in case beta<1.0
-    
-    // Adjacency matrix
-    build_hypercube_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
-    total_nn=0;
-    for (int i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
-    
     // Subsystem settings
-    l_A = L-1; // subsystem linear size
+    l_A = 2; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -174,6 +155,25 @@ int main(){
         cout << sub_sites[i] << " ";
     }
     cout << endl;
+    
+    // Initialize Fock State
+    initial_fock_state = random_boson_config(M,N,rng);
+    
+    // Simulation parameters
+    eta=1/sqrt(M);
+    beta=3.00;
+    canonical=true;
+    sweeps=100000000;
+    sweeps_pre=1000000;
+    sweep=beta*M;
+    if (sweep==0){sweep=M;} // in case beta<1.0
+    
+    // Adjacency matrix
+    build_hypercube_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
+    total_nn=0;
+    for (int i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
+    
+
     
     // Replicated trackers
     for (int r=0;r<num_replicas;r++){
@@ -211,7 +211,7 @@ int main(){
     bin_size=500;
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){fock_state_at_slice.push_back(0);}
-    writing_frequency = 200;
+    writing_frequency = 101;
     writing_ctr = 0;
     
     N_flats_mean=0.0;
@@ -593,8 +593,6 @@ int main(){
     else {
 //        ofstream SWAP_histogram_file;
         string SWAP_histogram_name;
-        ofstream fock_state_beta_out;
-        string fock_state_beta_name,rep;
         
         if (canonical){ // name of file if canonical simulation
             SWAP_histogram_name=to_string(M)+"_"+to_string(N)+"_"+
@@ -618,22 +616,6 @@ int main(){
         if( !SWAP_histogram_file ) { // file couldn't be opened
            cerr << "Error: SWAP histogram file could not be opened" << endl;
            exit(1);
-        }
-        
-        // Temporary: Open files that save Fock states at beta
-        for (int r=0;r<num_replicas;r++){
-            fock_state_beta_name=to_string(L)+"_"+to_string(M)+"_"+
-            to_string(U)+"_"+to_string(beta)+"_"+
-            to_string(t)+"_"+to_string(sweeps)+"_"+
-            to_string(seed_A)+"_"+to_string(D)+"D_"+
-            "can_"+"fockStateBeta_"+"rep"+rep+"_.dat";
-            
-            // open the file for the current replica
-            fock_state_beta_out.open(fock_state_beta_name);
-            
-            // attach the beta fock state file to file vector
-            fock_state_beta_file.push_back(
-                std::move(fock_state_beta_out));
         }
         
     } // End of replicated estimators else block
@@ -667,7 +649,6 @@ int main(){
     }
 
     Z_frac=0.0;
-//    std::fill(Z_frac.begin(),Z_frac.end(),0);
     std::fill(measurement_attempts.begin(),measurement_attempts.end(),0);
     
     if (beta>=1.0){sweeps*=(beta*M);}
@@ -687,14 +668,13 @@ int main(){
         for (int i=0; i<m_A+1; i++){
             SWAP_histogram.push_back(0); // just initializing
         }
-        // For naive SWAP calculation
-        for (int r=0; r<num_replicas; r++){
-            fock_state_beta.push_back(vector<int> (M,0));
-        }
     }
 
     cout << "Stage (2/3): Equilibrating..." << endl << endl;
+    
+    bool not_measured_yet;
     for (unsigned long long int m=0; m < sweeps; m++){
+        not_measured_yet=true;
     for (int r=0;r<num_replicas;r++){
         
         label = updates(rng);
@@ -1067,82 +1047,29 @@ int main(){
             
             if (head_idx[0]==-1 && tail_idx[0]==-1
                 && head_idx[1]==-1 && tail_idx[1]==-1){
-                
                 if (N_beta[0]==N && N_beta[1]==N){
-                vector<int> tmp (2,0);
-                get_fock_state(beta/2.0,M,fock_state_at_slice,
-                               paths[0]);
-                get_fock_state(beta/2.0,M,tmp,
-                               paths[1]);
-
-//            if (fock_state_at_slice[0]==0 && tmp[0]==0){
-//                fock_state_half_histogram[0]+=1;}
-//            if (fock_state_at_slice[0]==0 && tmp[0]==1){
-//                fock_state_half_histogram[1]+=1;}
-//            if (fock_state_at_slice[0]==1 && tmp[0]==0){
-//                fock_state_half_histogram[2]+=1;}
-//            if (fock_state_at_slice[0]==1 && tmp[0]==1){
-//                fock_state_half_histogram[3]+=1;}
-                    
-                    
-                    for (int i=0; i<=N; i++){
-                        for (int j=0; j<=N; j++){
-                            if (fock_state_at_slice[0]==i && tmp[0]==j){
-                                fock_state_half_histogram[i*(N+1)+j]+=1;}                        }
+                    if (not_measured_yet){
+                        SWAP_histogram[num_swaps]+=1;
+                        writing_ctr+=1;
+                        not_measured_yet=false;
                     }
-                    
-//                    cout << "fock_state_at_slice" << endl;
-//                    for (int i=0; i<fock_state_at_slice.size(); i++){
-//                        cout << fock_state_at_slice[i] << " ";
-//                    }
-//                    cout << endl;
-//
-//                    cout << "tmp" << endl;
-//
-//                    for (int i=0; i<tmp.size(); i++){
-//                        cout << tmp[i] << " ";
-//                    }
-//                    cout << endl;
-//
-//                    cout << "fock_state_half_histogram" << endl;
-//
-//                    for (int i=0; i<fock_state_half_histogram.size(); i++){
-//                        cout << fock_state_half_histogram[i] << " ";
-//                    }
-//                    cout << endl;
-                    
                 }
-                
-//                cout << N_tracker[0] << " " << N_tracker[1] << endl;
-                
-                
-            SWAP_histogram[num_swaps]+=1;
-                
-                // AM I SOMEHOW COUNTING DOUBLE?
-                writing_ctr+=1;
             }
-            
-//            if (r==1){
-//                // get_fock_state at beta for both replicas
-//                for (int i=0; i<M; i++){
-//                    while
-//                    fock_state_beta[0][i]
-//                }
         }
+            
         // Save current histogram of swapped sites to file
         if (writing_ctr==writing_frequency){
-            for (int i=0; i<m_A+1; i++){
+            for (int i=0; i<=m_A; i++){
                 SWAP_histogram_file<<fixed<<setprecision(17)<<
                 SWAP_histogram[i] << " ";
             }
             SWAP_histogram_file<<endl;
-            
-            // Restart histogram
-            std::fill(SWAP_histogram.begin(),
-                      SWAP_histogram.end(),0);
+//            // Restart histogram
+//            std::fill(SWAP_histogram.begin(),
+//                      SWAP_histogram.end(),0);
             writing_ctr=0;
         }
-    } // end of measurement after 25% equilibration if statement
+        } // end of measurement after 25% equilibration if statement
     } // end of replica loop
     } // end of sweeps loop
     
@@ -1246,29 +1173,29 @@ int main(){
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
     
     cout << endl;
-    cout << "fock_state_half_histogram" << endl;
-
-    for (int i=0; i<fock_state_half_histogram.size(); i++){
-        cout << fock_state_half_histogram[i] << " ";
-    }
-    cout << endl;
+//    cout << "fock_state_half_histogram" << endl;
+//
+//    for (int i=0; i<fock_state_half_histogram.size(); i++){
+//        cout << fock_state_half_histogram[i] << " ";
+//    }
+//    cout << endl;
     
-    /*------------ Temporary ------------*/
-    ofstream fock_state_half_histogram_file;
-    string file_name;
-    
-    file_name = to_string(L)+"_"+to_string(N)+"_"
-    +to_string(U)+"_"+to_string(beta)+".dat";
-    
-    fock_state_half_histogram_file.open(file_name);
-    
-    for (int i=0; i<fock_state_half_histogram.size();i++){
-        fock_state_half_histogram_file<<fixed<<setprecision(17)
-        <<fock_state_half_histogram[i]<< " ";
-    }
-    
-    fock_state_half_histogram_file.close();
-    /*-----------------------------------*/
+//    /*------------ Temporary ------------*/
+//    ofstream fock_state_half_histogram_file;
+//    string file_name;
+//
+//    file_name = to_string(L)+"_"+to_string(N)+"_"
+//    +to_string(U)+"_"+to_string(beta)+".dat";
+//
+//    fock_state_half_histogram_file.open(file_name);
+//
+//    for (int i=0; i<fock_state_half_histogram.size();i++){
+//        fock_state_half_histogram_file<<fixed<<setprecision(17)
+//        <<fock_state_half_histogram[i]<< " ";
+//    }
+//
+//    fock_state_half_histogram_file.close();
+//    /*-----------------------------------*/
 
 
     return 0;
