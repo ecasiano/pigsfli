@@ -3148,6 +3148,8 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Need at least two replicas to perform a spaceshift
     if (paths.size()<2){return;}
     
+    insert_swap_kink_attempts+=1;
+    
     // Can't perform update if SWAP region is full
     if (num_swaps==m_A){return;}
         
@@ -3197,7 +3199,6 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         tau = paths[dest_replica][next].tau;
     }
     next_dest = next;
-    insert_swap_kink_attempts+=1;
     
     /*---------TEST THIS!!!*----------*/
     
@@ -3261,7 +3262,7 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         last_kinks[dest_replica][next_swap_site] = num_kinks_dest+1;
     }
     
-    // Updtae number of swapped sites tracker
+    // Update number of swapped sites tracker
     num_swaps+=1;
 
     // Update number of kinks tracker of each replica
