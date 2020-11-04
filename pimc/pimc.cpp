@@ -14,7 +14,7 @@ int main(){
 //    vector<int> fock_state_half_histogram (9,0);
     
     // Initialize a Mersenne Twister RNG for each replica
-    int seed_A=17,seed_B=42;
+    int seed_A=326,seed_B=42;
 //    vector<boost::random::mt19937> rng;
 //    boost::random::mt19937 rng_A(seed_A);
 //    boost::random::mt19937 rng_B(seed_B);
@@ -28,7 +28,7 @@ int main(){
     boost::random::uniform_real_distribution<double> rnum(0.0,1.0);
     
     // Create integer distribution with support: [0,16]
-    boost::random::uniform_int_distribution<> updates(0,16);
+    boost::random::uniform_int_distribution<> updates(0,14);
     
     // Bose-Hubbard parameters
     int L,D,M,N;
@@ -136,7 +136,7 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=2;
+    L=4;
     D=1;
     M=pow(L,D);
     N=1;
@@ -161,10 +161,10 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=2.00;
+    beta=3.00;
     canonical=true;
-    sweeps=1000000000;
-    sweeps_pre=10000000;
+    sweeps=1000000;
+    sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
@@ -172,8 +172,6 @@ int main(){
     build_hypercube_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
     total_nn=0;
     for (int i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
-    
-
     
     // Replicated trackers
     for (int r=0;r<num_replicas;r++){
@@ -211,7 +209,7 @@ int main(){
     bin_size=500;
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){fock_state_at_slice.push_back(0);}
-    writing_frequency = 101;
+    writing_frequency = 101; // ACTUALLY BIN-SIZE. CHANGE.
     writing_ctr = 0;
     
     N_flats_mean=0.0;
@@ -787,9 +785,13 @@ int main(){
                         N_zero[r],N_beta[r],last_kinks[r],
                         dkat_attempts,dkat_accepts,rng);
          }
-         else if (label==15){ // insert_swap_kink
+    } // end of replica loop
+
+        
+        // Should have a separate menu for replica updates
+          if (rnum(rng)<0.5){ // insert_swap_kink
              insert_swap_kink(paths, num_kinks,
-                             num_replicas, r,
+                             num_replicas, 0,
                              sub_sites, swapped_sites,
                              swap_kinks, num_swaps,
                              l_A, m_A,
@@ -803,9 +805,9 @@ int main(){
                              insert_swap_kink_accepts,
                              rng);
          }
-         else if (label==16){ // delete_swap_kink
+         else { // delete_swap_kink
              delete_swap_kink(paths, num_kinks,
-                             num_replicas, r,
+                             num_replicas, 0,
                              sub_sites, swapped_sites,
                              swap_kinks, num_swaps,
                              l_A, m_A,
@@ -819,9 +821,7 @@ int main(){
                              delete_swap_kink_accepts,
                              rng);
          }
-        else{
-            // lol
-        }
+
         
 /*------------------------- Unit Tests (kind of) -----------------------------*/
 //
@@ -977,6 +977,9 @@ int main(){
 
         if (m%(sweep*measurement_frequency)==0 && m>=sweeps*0.25){
             
+            for (int r=0;r<num_replicas;r++){
+
+            
             if (not_equilibrated){
                 not_equilibrated=false;
                 cout << "Stage (3/3): Main Monte Carlo loop..." << endl;
@@ -1042,35 +1045,39 @@ int main(){
                 }
             }
         } // end of conventional measurements if statement
-        else { // start of non-conventional (SWAP) measurements
-            // add count to bin corresponding to number of swapped sites
+            }
             
-            if (head_idx[0]==-1 && tail_idx[0]==-1
-                && head_idx[1]==-1 && tail_idx[1]==-1){
-                if (N_beta[0]==N && N_beta[1]==N){
-                    if (not_measured_yet){
-                        SWAP_histogram[num_swaps]+=1;
-                        writing_ctr+=1;
-                        not_measured_yet=false;
+            
+        if (num_replicas>1) { // start of non-conventional (SWAP) measurements
+            
+                // add count to bin corresponding to number of swapped sites
+                if (head_idx[0]==-1 && tail_idx[0]==-1
+                    && head_idx[1]==-1 && tail_idx[1]==-1){
+                    if (N_beta[0]==N && N_beta[1]==N){
+                            SWAP_histogram[num_swaps]+=1;
+                            writing_ctr+=1;
                     }
                 }
-            }
+            
+                // Save current histogram of swapped sites to file
+                if (writing_ctr==writing_frequency){
+                    for (int i=0; i<=m_A; i++){
+                        SWAP_histogram_file<<fixed<<setprecision(17)<<
+                        SWAP_histogram[i] << " ";
+                    }
+                    SWAP_histogram_file<<endl;
+                    // Restart histogram
+                    std::fill(SWAP_histogram.begin(),
+                              SWAP_histogram.end(),0);
+                    writing_ctr=0;
+                }
+            
         }
             
-        // Save current histogram of swapped sites to file
-        if (writing_ctr==writing_frequency){
-            for (int i=0; i<=m_A; i++){
-                SWAP_histogram_file<<fixed<<setprecision(17)<<
-                SWAP_histogram[i] << " ";
-            }
-            SWAP_histogram_file<<endl;
-//            // Restart histogram
-//            std::fill(SWAP_histogram.begin(),
-//                      SWAP_histogram.end(),0);
-            writing_ctr=0;
-        }
+            
+            
+
         } // end of measurement after 25% equilibration if statement
-    } // end of replica loop
     } // end of sweeps loop
     
     // Close data files
