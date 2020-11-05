@@ -343,7 +343,7 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Can only perform update if there are no worm ends
     if (head_idx != -1 || tail_idx != -1){return;}
-    
+        
     // Randomly sample a flat interval (or kink if you like)
     boost::random::uniform_int_distribution<> flats(0, num_kinks-1);
     k = flats(rng);

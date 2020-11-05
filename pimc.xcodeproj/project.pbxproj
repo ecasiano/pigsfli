@@ -23,7 +23,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		FE03BEA1249D0EC50027941E /* pimc */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = pimc; sourceTree = BUILT_PRODUCTS_DIR; };
+		FE03BEA1249D0EC50027941E /* pimc */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "compiled.mach-o.executable"; path = pimc; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEFDD5B724F0D5DA00CA423E /* pimc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pimc.cpp; sourceTree = "<group>"; };
 		FEFDD5B824F0D5DA00CA423E /* pimc.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = pimc.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
