@@ -136,12 +136,12 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=4;
+    L=3;
     D=1;
     M=pow(L,D);
     N=1;
     t=1.0;
-    U=0.0;
+    U=1.0;
     mu=-1.60341;
     boundary_condition="pbc";
     
@@ -161,10 +161,10 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=3.00;
+    beta=2.00;
     canonical=true;
-    sweeps=1000000;
-    sweeps_pre=1000000;
+    sweeps=100000000;
+    sweeps_pre=10000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
@@ -176,7 +176,7 @@ int main(){
     // Replicated trackers
     for (int r=0;r<num_replicas;r++){
         num_kinks.push_back(M);
-        N_tracker.push_back(M);
+        N_tracker.push_back(N);
         head_idx.push_back(-1);
         tail_idx.push_back(-1);
         N_zero.push_back(N);
@@ -209,7 +209,7 @@ int main(){
     bin_size=500;
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){fock_state_at_slice.push_back(0);}
-    writing_frequency = 101; // ACTUALLY BIN-SIZE. CHANGE.
+    writing_frequency = 201; // ACTUALLY BIN-SIZE. CHANGE.
     writing_ctr = 0;
     
     N_flats_mean=0.0;
@@ -274,7 +274,7 @@ int main(){
         paths.clear();
         for (int r=0;r<num_replicas;r++){
             num_kinks.push_back(M);
-            N_tracker.push_back(M);
+            N_tracker.push_back(N);
             head_idx.push_back(-1);
             tail_idx.push_back(-1);
             N_zero.push_back(N);
@@ -634,7 +634,7 @@ int main(){
     paths.clear();
     for (int r=0;r<num_replicas;r++){
         num_kinks.push_back(M);
-        N_tracker.push_back(M);
+        N_tracker.push_back(N);
         head_idx.push_back(-1);
         tail_idx.push_back(-1);
         N_zero.push_back(N);
@@ -670,9 +670,7 @@ int main(){
 
     cout << "Stage (2/3): Equilibrating..." << endl << endl;
     
-    bool not_measured_yet;
     for (unsigned long long int m=0; m < sweeps; m++){
-        not_measured_yet=true;
     for (int r=0;r<num_replicas;r++){
         
         label = updates(rng);
