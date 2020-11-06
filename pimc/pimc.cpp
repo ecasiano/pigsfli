@@ -73,7 +73,7 @@ int main(){
     int l_A; // subregion linear size
     int m_A; // subregion total size
     vector<int> sub_sites, swapped_sites;
-    vector<vector<int>> swap_kinks;
+    vector<int> swap_kinks;
     int num_swaps;
     vector<int> SWAP_histogram; // one histogram per row
     
@@ -150,14 +150,14 @@ int main(){
     L=4;
     D=1;
     M=pow(L,D);
-    N=2;
+    N=1;
     t=1.0;
     U=0.0;
     mu=-1.60341;
     boundary_condition="pbc";
     
     // Subsystem settings
-    l_A = L; // subsystem linear size
+    l_A = 3; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -174,7 +174,7 @@ int main(){
     eta=1/sqrt(M);
     beta=2.00;
     canonical=true;
-    sweeps=100000000;
+    sweeps=10000000;
     sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
@@ -199,9 +199,6 @@ int main(){
         last_kinks.push_back(vector<int> (M,-1));
         for (int i=0;i<M;i++){last_kinks[r][i]=i;}
         
-        // Initialize vector containing indices of swap kinks at each replica
-        swap_kinks.push_back(vector<int> (m_A,-1)); // unused at the moment
-        
         // Worldlines data structure
         paths.push_back(create_paths(initial_fock_state,M,r));
         
@@ -211,6 +208,11 @@ int main(){
         kinetic_energy.push_back(0);
         Z_ctr.push_back(0);
         measurement_attempts.push_back(0);
+    }
+    
+    // just initializing
+    for (int i=0; i<M; i++){
+        swap_kinks.push_back(0);
     }
 
     // Measurement settings
@@ -794,7 +796,7 @@ int main(){
          }
     } // end of replica loop
 
-        
+
         // Should have a separate menu for replica updates
           if (rnum(rng)<0.5){ // insert_swap_kink
              insert_swap_kink(paths, num_kinks,
@@ -1077,88 +1079,95 @@ int main(){
                     writing_ctr=0;
                 }
                 
-                /*-------------------TEMPORARY----------------------*/
-                
-                // Get subsystem fock state at the central time slice
-                get_fock_state(beta/2.0,M,central_fock_state_A,paths[0]);
-                get_fock_state(beta/2.0,M,central_fock_state_B,paths[1]);
-                
-                subsystem_fock_state[0]=central_fock_state_A[0];
-                subsystem_fock_state[1]=central_fock_state_A[1];
-                subsystem_fock_state[2]=central_fock_state_B[0];
-                subsystem_fock_state[3]=central_fock_state_B[1];
-                
-                // Initialize all possible susbystem replicated fock states
-                vector<int> v0  {0,0,0,0};
-                
-                vector<int> v1  {0,1,0,1};
-                vector<int> v2  {0,1,1,0};
-                vector<int> v3  {1,0,0,1};
-                vector<int> v4  {1,0,1,0};
-                
-                vector<int> v5  {0,2,0,2};
-                vector<int> v6  {0,2,2,0};
-                vector<int> v7  {0,2,1,1};
-                vector<int> v8  {2,0,0,2};
-                vector<int> v9  {2,0,2,0};
-                vector<int> v10 {2,0,1,1};
-                vector<int> v11 {1,1,0,2};
-                vector<int> v12 {1,1,2,0};
-                vector<int> v13 {1,1,1,1};
-    
-                // Add to histogram based on subsystem replicated fock state
-                if (subsystem_fock_state==v0){
-                    subsystem_fock_states_histogram[0]+=1;
-                }
-                else if (subsystem_fock_state==v1){
-                    subsystem_fock_states_histogram[1]+=1;
-                }
-                
-                else if (subsystem_fock_state==v2){
-                    subsystem_fock_states_histogram[2]+=1;
-                }
-                
-                else if (subsystem_fock_state==v3){
-                    subsystem_fock_states_histogram[3]+=1;
-                }
-                
-                else if (subsystem_fock_state==v4){
-                    subsystem_fock_states_histogram[4]+=1;
-                }
-                
-                else if (subsystem_fock_state==v5){
-                    subsystem_fock_states_histogram[5]+=1;
-                }
-                
-                else if (subsystem_fock_state==v6){
-                    subsystem_fock_states_histogram[6]+=1;
-                }
-                else if (subsystem_fock_state==v7){
-                    subsystem_fock_states_histogram[7]+=1;
-                }
-                else if (subsystem_fock_state==v8){
-                    subsystem_fock_states_histogram[8]+=1;
-                }
-                else if (subsystem_fock_state==v9){
-                    subsystem_fock_states_histogram[9]+=1;
-                }
-                else if (subsystem_fock_state==v10){
-                    subsystem_fock_states_histogram[10]+=1;
-                }
-                else if (subsystem_fock_state==v11){
-                    subsystem_fock_states_histogram[11]+=1;
-                }
-                else if (subsystem_fock_state==v12){
-                    subsystem_fock_states_histogram[12]+=1;
-                }
-                else if (subsystem_fock_state==v13){
-                    subsystem_fock_states_histogram[13]+=1;
-                }
-                else {
-                    //do nothing
-                }
-                
-                /*-------------------TEMPORARY----------------------*/
+//                /*-------------------TEMPORARY----------------------*/
+//
+//                // add count to bin corresponding to number of swapped sites
+//                if (head_idx[0]==-1 && tail_idx[0]==-1
+//                    && head_idx[1]==-1 && tail_idx[1]==-1){
+//                    if (N_beta[0]==N && N_beta[1]==N){
+//                        // Get subsystem fock state at the central time slice
+//                        get_fock_state(beta/2.0,M,central_fock_state_A,paths[0]);
+//                        get_fock_state(beta/2.0,M,central_fock_state_B,paths[1]);
+//
+//                        subsystem_fock_state[0]=central_fock_state_A[0];
+//                        subsystem_fock_state[1]=central_fock_state_A[1];
+//                        subsystem_fock_state[2]=central_fock_state_B[0];
+//                        subsystem_fock_state[3]=central_fock_state_B[1];
+//
+//                        // Initialize all possible susbystem replicated fock states
+//                        vector<int> v0  {0,0,0,0};
+//
+//                        vector<int> v1  {0,1,0,1};
+//                        vector<int> v2  {0,1,1,0};
+//                        vector<int> v3  {1,0,0,1};
+//                        vector<int> v4  {1,0,1,0};
+//
+//                        vector<int> v5  {0,2,0,2};
+//                        vector<int> v6  {0,2,2,0};
+//                        vector<int> v7  {0,2,1,1};
+//                        vector<int> v8  {2,0,0,2};
+//                        vector<int> v9  {2,0,2,0};
+//                        vector<int> v10 {2,0,1,1};
+//                        vector<int> v11 {1,1,0,2};
+//                        vector<int> v12 {1,1,2,0};
+//                        vector<int> v13 {1,1,1,1};
+//
+//                        // Add to histogram based on subsystem replicated fock state
+//                        if (subsystem_fock_state==v0){
+//                            subsystem_fock_states_histogram[0]+=1;
+//                        }
+//                        else if (subsystem_fock_state==v1){
+//                            subsystem_fock_states_histogram[1]+=1;
+//                        }
+//
+//                        else if (subsystem_fock_state==v2){
+//                            subsystem_fock_states_histogram[2]+=1;
+//                        }
+//
+//                        else if (subsystem_fock_state==v3){
+//                            subsystem_fock_states_histogram[3]+=1;
+//                        }
+//
+//                        else if (subsystem_fock_state==v4){
+//                            subsystem_fock_states_histogram[4]+=1;
+//                        }
+//
+//                        else if (subsystem_fock_state==v5){
+//                            subsystem_fock_states_histogram[5]+=1;
+//                        }
+//
+//                        else if (subsystem_fock_state==v6){
+//                            subsystem_fock_states_histogram[6]+=1;
+//                        }
+//                        else if (subsystem_fock_state==v7){
+//                            subsystem_fock_states_histogram[7]+=1;
+//                        }
+//                        else if (subsystem_fock_state==v8){
+//                            subsystem_fock_states_histogram[8]+=1;
+//                        }
+//                        else if (subsystem_fock_state==v9){
+//                            subsystem_fock_states_histogram[9]+=1;
+//                        }
+//                        else if (subsystem_fock_state==v10){
+//                            subsystem_fock_states_histogram[10]+=1;
+//                        }
+//                        else if (subsystem_fock_state==v11){
+//                            subsystem_fock_states_histogram[11]+=1;
+//                        }
+//                        else if (subsystem_fock_state==v12){
+//                            subsystem_fock_states_histogram[12]+=1;
+//                        }
+//                        else if (subsystem_fock_state==v13){
+//                            subsystem_fock_states_histogram[13]+=1;
+//                        }
+//                        else {
+//                            //do nothing
+//                        }
+//
+//                    }
+//                }
+//
+//                /*-------------------TEMPORARY----------------------*/
 
             } // end of SWAP measurements if statement
         } // end of measurement after 25% equilibration if statement
@@ -1287,20 +1296,20 @@ int main(){
 //
 //    fock_state_half_histogram_file.close();
         
-    /*-----------------TEMPORARY------------------------*/
-    ofstream subsystem_fock_state_histogram_out;
-    string file_name="subsystem_fock_state_histogram_"+
-    to_string(U)+"_withSWAP.dat";
-    
-    subsystem_fock_state_histogram_out.open(file_name);
-    /*-----------------TEMPORARY------------------------*/
-    
-    for (int i=0; i<subsystem_fock_states_histogram.size();i++){
-        subsystem_fock_state_histogram_out<<fixed<<setprecision(17)
-        <<subsystem_fock_states_histogram[i]<< " ";
-    }
-    subsystem_fock_state_histogram_out.close();
-    /*-----------------TEMPORARY------------------------*/
+//    /*-----------------TEMPORARY------------------------*/
+//    ofstream subsystem_fock_state_histogram_out;
+//    string file_name="subsystem_fock_state_histogram_"+
+//    to_string(U)+".dat";
+//
+//    subsystem_fock_state_histogram_out.open(file_name);
+//    /*-----------------TEMPORARY------------------------*/
+//
+//    for (int i=0; i<subsystem_fock_states_histogram.size();i++){
+//        subsystem_fock_state_histogram_out<<fixed<<setprecision(17)
+//        <<subsystem_fock_states_histogram[i]<< " ";
+//    }
+//    subsystem_fock_state_histogram_out.close();
+//    /*-----------------TEMPORARY------------------------*/
 
     return 0;
     
