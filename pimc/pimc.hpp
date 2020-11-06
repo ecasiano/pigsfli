@@ -3125,7 +3125,7 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
 void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
                 int num_replicas, int replica_idx,
                 vector<int> &sub_sites, vector <int> &swapped_sites,
-                vector<vector<int>> &swap_kinks, int &num_swaps,
+                vector<int> &swap_kinks, int &num_swaps,
                 int l_A, int m_A,
                 vector<int> &head_idx,vector<int> &tail_idx,
                 int M, int N, double U, double mu, double t,
@@ -3166,7 +3166,11 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     }
     
     // Propose the next site to swap
-    next_swap_site = sub_sites[num_swaps];
+//    next_swap_site = sub_sites[num_swaps];
+    boost::random::uniform_int_distribution<> sites(0, m_A-1);
+    next_swap_site = sites(rng);
+    
+    if (swap_kinks[next_swap_site]){return;}
     
     /*---------TEST THIS!!!*----------*/
     // Check if no. of particles at beta/2 is the same on both replicas
@@ -3203,6 +3207,9 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     /*---------TEST THIS!!!*----------*/
     
     if (n_src!=n_dest){return;}
+    
+    swap_kinks[next_swap_site] = 1;
+    
 //    cout << "move #15 accepted" << endl;
     
     // Metropolis Sampling (not actually, the ratio is unity!)
@@ -3294,7 +3301,7 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
                 int num_replicas, int replica_idx,
                 vector<int> &sub_sites, vector <int> &swapped_sites,
-                vector<vector<int>> &swap_kinks, int &num_swaps,
+                vector<int> &swap_kinks, int &num_swaps,
                 int l_A, int m_A,
                 vector<int> &head_idx,vector<int> &tail_idx,
                 int M, int N, double U, double mu, double t,
@@ -3340,7 +3347,12 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     num_kinks_dest = num_kinks[dest_replica];
     
     // Choose the last site of the swapped sites cluster as the deletion site
-    site_to_unswap = sub_sites[num_swaps-1];
+//    site_to_unswap = sub_sites[num_swaps-1];
+    boost::random::uniform_int_distribution<> sites(0, m_A-1);
+    site_to_unswap = sites(rng);
+    
+    if (!swap_kinks[site_to_unswap]){return;}
+    swap_kinks[site_to_unswap] = 0;
     
     // Get swap kink indices
     // source replica
