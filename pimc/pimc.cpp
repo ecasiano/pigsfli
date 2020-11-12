@@ -27,9 +27,10 @@ int main(){
      }
     
     for (int i=0; i<configs.size(); i++){
-        cout<<setw(2)<<right<<i<<":   ";
+//        cout<<setw(2)<<right<<i<<":   ";
         decToBinary(configs[i]);
-        cout<<"   ("<<configs[i]<<")"<<endl;
+        cout << endl;
+//        cout<<"   ("<<configs[i]<<")"<<endl;
     }
 
     auto max_config = *std::max_element(configs.begin(), configs.end());
@@ -38,12 +39,6 @@ int main(){
         lookup[configs[i]] = i;
     }
     cout << endl << "Max config: " << max_config << endl;
-    
-    cout << endl;
-    
-    decToBinary(547);
-    
-    cout << binaryToDecimal(vector<int> {1,0,0,0,1,0,0,0,1,1}) << endl;
     
     vector<int> histogram (configs.size(),0);
 
@@ -194,7 +189,7 @@ int main(){
     eta=1/sqrt(M);
     beta=1.00;
     canonical=true;
-    sweeps=10000000;
+    sweeps=1000000000;
     sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
@@ -1129,7 +1124,7 @@ int main(){
                             if (i<4)
                                 extended_fock_state[i]=fock_state_0[i];
                             else if (i>=4 && i<8)
-                                extended_fock_state[i]=fock_state_0[i-4];
+                                extended_fock_state[i]=fock_state_1[i-4];
                             else
                                 extended_fock_state[i]=swap_bit[i-8];
                         }
