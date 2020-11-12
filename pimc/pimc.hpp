@@ -101,13 +101,13 @@ int binaryToDecimal(vector<int> binary_word){
     int decimal=0;
     bool bit;
     
-    cout << endl;
-    for (int i=0;i<=binary_word.size();i++){
+    for (int i=0;i<binary_word.size();i++){
         bit = binary_word[i];
         if (bit){
             decimal += pow(2,binary_word.size()-(i+1));
         }
     }
+
     return decimal;
 }
 

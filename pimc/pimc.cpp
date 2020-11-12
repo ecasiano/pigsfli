@@ -12,7 +12,7 @@
 int main(){
     
     /*---------------------- TEMPORARY -----------------------*/
-    
+
     int system,replica,config;
     vector<int> configs;
     for (int i = 0; i < 4; i++) {
@@ -45,11 +45,8 @@ int main(){
     
     cout << binaryToDecimal(vector<int> {1,0,0,0,1,0,0,0,1,1}) << endl;
     
-    
+    vector<int> histogram (configs.size(),0);
 
-    // Sample a replicated configuration (in binary)
-    // Convert the binary configuration an integer
-    //
     
     /*---------------------- TEMPORARY -----------------------*/
 
@@ -180,7 +177,7 @@ int main(){
     boundary_condition="pbc";
     
     // Subsystem settings
-    l_A = 1; // subsystem linear size
+    l_A = 2; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -195,7 +192,7 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=2.00;
+    beta=1.00;
     canonical=true;
     sweeps=10000000;
     sweeps_pre=1000000;
@@ -234,7 +231,7 @@ int main(){
     }
     
     // just initializing
-    for (int i=0; i<M; i++){
+    for (int i=0; i<l_A; i++){
         swap_kinks.push_back(0);
     }
 
@@ -1103,11 +1100,48 @@ int main(){
                 }
                 
 //                /*-------------------TEMPORARY----------------------*/
-//
-//                // add count to bin corresponding to number of swapped sites
-//                if (head_idx[0]==-1 && tail_idx[0]==-1
-//                    && head_idx[1]==-1 && tail_idx[1]==-1){
-//                    if (N_beta[0]==N && N_beta[1]==N){
+
+                vector<int> fock_state_0 (4,0);
+                vector<int> fock_state_1 (4,0);
+                vector<int> swap_bit (2,0);
+                vector<int> extended_fock_state (10,0);
+                int integer_state;
+                
+                // build fock state of each replica at beta/2
+                get_fock_state(beta/2,4,fock_state_0,paths[0]);
+                get_fock_state(beta/2,4,fock_state_1,paths[1]);
+                
+                // build the swap bit
+                for (int i=0; i<l_A; i++){
+                    if (swap_kinks[i])
+                        swap_bit[i]=1;
+                    else
+                        swap_bit[i]=0;
+                }
+                
+                // add count to bin corresponding to number of swapped sites
+                if (head_idx[0]==-1 && tail_idx[0]==-1
+                    && head_idx[1]==-1 && tail_idx[1]==-1){
+                    if (N_beta[0]==N && N_beta[1]==N){
+                     
+                        // Build the extended fock state (binary word)
+                        for (int i=0; i<10; i++){
+                            if (i<4)
+                                extended_fock_state[i]=fock_state_0[i];
+                            else if (i>=4 && i<8)
+                                extended_fock_state[i]=fock_state_0[i-4];
+                            else
+                                extended_fock_state[i]=swap_bit[i-8];
+                        }
+                        
+                        // Convert the binary word to an integer
+                        integer_state=binaryToDecimal(extended_fock_state);
+                         
+                        // Add a count to the corresponding
+                        histogram[lookup[integer_state]]++;
+                        
+                    }
+                }
 
 //                /*-------------------TEMPORARY----------------------*/
 
@@ -1217,19 +1251,23 @@ int main(){
     cout << endl;
     
 //    /*-----------------TEMPORARY------------------------*/
-//    ofstream subsystem_fock_state_histogram_out;
-//    string file_name="subsystem_fock_state_histogram_"+
-//    to_string(U)+".dat";
-//
-//    subsystem_fock_state_histogram_out.open(file_name);
+    ofstream binary_state_histogram_out;
+    string file_name="binary_state_histogram_"+
+    to_string(U)+"_"+to_string(beta)+"_.dat";
+
+    binary_state_histogram_out.open(file_name);
 //    /*-----------------TEMPORARY------------------------*/
-//
-//    for (int i=0; i<subsystem_fock_states_histogram.size();i++){
-//        subsystem_fock_state_histogram_out<<fixed<<setprecision(17)
-//        <<subsystem_fock_states_histogram[i]<< " ";
-//    }
-//    subsystem_fock_state_histogram_out.close();
+
+    for (int i=0; i<histogram.size();i++){
+        binary_state_histogram_out<<fixed<<setprecision(17)
+        <<histogram[i]<< " ";
+    }
+    binary_state_histogram_out.close();
 //    /*-----------------TEMPORARY------------------------*/
+    
+    for (int i=0;i<64;i++){
+        cout << histogram[i] << endl;
+    }
 
     return 0;
     
