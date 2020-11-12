@@ -3251,14 +3251,10 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     }
     next_dest = next;
     
-    /*---------TEST THIS!!!*----------*/
-    
     if (n_src!=n_dest){return;}
     
     swap_kinks[next_swap_site] = 1;
-    
-//    cout << "move #15 accepted" << endl;
-    
+        
     // Metropolis Sampling (not actually, the ratio is unity!)
     R = 1.0;
         
@@ -3400,6 +3396,11 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     if (!swap_kinks[site_to_unswap]){return;}
     swap_kinks[site_to_unswap] = 0;
+    
+    // ADD THIS TEST!!!!!
+    // now need to check for BOTH replicas that:
+    // n_beta_half-eps == n_beta_half+eps
+    // if not satisfied for either replica, return;
     
     // Get swap kink indices
     // source replica
@@ -3604,7 +3605,7 @@ void get_fock_state(double measurement_center, int M,
     for (int i=0; i<M; i++){
         current=i;
         tau = paths[current].tau;
-        while (tau<=measurement_center && current!=-1){
+        while (tau<measurement_center-1.0E-12 && current!=-1){
             n_i=paths[current].n;
             fock_state_at_slice[i]=n_i;
             
