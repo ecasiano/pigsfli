@@ -13,25 +13,48 @@ int main(){
     
     /*---------------------- TEMPORARY -----------------------*/
     
-    vector<int> subsystem_fock_states_histogram (14,0);
-    vector<int> subsystem_fock_state (4,0);
-    vector<int> central_fock_state_A (4,0);
-    vector<int> central_fock_state_B (4,0);
+    int system,replica,config;
+    vector<int> configs;
+    for (int i = 0; i < 4; i++) {
+        system = 1 << i;
+        for (int j = 0; j < 4; j++) {
+            replica = 1 << j;
+            config = ((system << 4) | replica) << 2;
+            for (int k = 0; k < 4; k++) {
+                configs.push_back(config+k);
+            }
+        }
+     }
     
-    // Fill down below using get_fock_state() in measurement stage
-    /*-----------------TEMPORARY------------------------*/
+    for (int i=0; i<configs.size(); i++){
+        cout<<setw(2)<<right<<i<<":   ";
+        decToBinary(configs[i]);
+        cout<<"   ("<<configs[i]<<")"<<endl;
+    }
+
+    auto max_config = *std::max_element(configs.begin(), configs.end());
+    vector<int> lookup(max_config+1, -1);
+    for (int i = 0; i < configs.size(); i++) {
+        lookup[configs[i]] = i;
+    }
+    cout << endl << "Max config: " << max_config << endl;
     
-//    vector<int> fock_state_half_histogram (9,0);
+    cout << endl;
     
+    decToBinary(547);
+    
+    cout << binaryToDecimal(vector<int> {1,0,0,0,1,0,0,0,1,1}) << endl;
+    
+    
+
+    // Sample a replicated configuration (in binary)
+    // Convert the binary configuration an integer
+    //
+    
+    /*---------------------- TEMPORARY -----------------------*/
+
     // Initialize a Mersenne Twister RNG for each replica
-    int seed_A=326,seed_B=42;
-//    vector<boost::random::mt19937> rng;
-//    boost::random::mt19937 rng_A(seed_A);
-//    boost::random::mt19937 rng_B(seed_B);
-//    rng.push_back(rng_A);
-//    rng.push_back(rng_B);
-    
-//    boost::random::mt19937 rng(seed_A);
+    int seed_A=326;
     boost::random::mt19937 rng(seed_A);
     
     // Create a uniform distribution with support: [0.0,1.0)
@@ -157,7 +180,7 @@ int main(){
     boundary_condition="pbc";
     
     // Subsystem settings
-    l_A = 3; // subsystem linear size
+    l_A = 1; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -1085,88 +1108,7 @@ int main(){
 //                if (head_idx[0]==-1 && tail_idx[0]==-1
 //                    && head_idx[1]==-1 && tail_idx[1]==-1){
 //                    if (N_beta[0]==N && N_beta[1]==N){
-//                        // Get subsystem fock state at the central time slice
-//                        get_fock_state(beta/2.0,M,central_fock_state_A,paths[0]);
-//                        get_fock_state(beta/2.0,M,central_fock_state_B,paths[1]);
-//
-//                        subsystem_fock_state[0]=central_fock_state_A[0];
-//                        subsystem_fock_state[1]=central_fock_state_A[1];
-//                        subsystem_fock_state[2]=central_fock_state_B[0];
-//                        subsystem_fock_state[3]=central_fock_state_B[1];
-//
-//                        // Initialize all possible susbystem replicated fock states
-//                        vector<int> v0  {0,0,0,0};
-//
-//                        vector<int> v1  {0,1,0,1};
-//                        vector<int> v2  {0,1,1,0};
-//                        vector<int> v3  {1,0,0,1};
-//                        vector<int> v4  {1,0,1,0};
-//
-//                        vector<int> v5  {0,2,0,2};
-//                        vector<int> v6  {0,2,2,0};
-//                        vector<int> v7  {0,2,1,1};
-//                        vector<int> v8  {2,0,0,2};
-//                        vector<int> v9  {2,0,2,0};
-//                        vector<int> v10 {2,0,1,1};
-//                        vector<int> v11 {1,1,0,2};
-//                        vector<int> v12 {1,1,2,0};
-//                        vector<int> v13 {1,1,1,1};
-//
-//                        // Add to histogram based on subsystem replicated fock state
-//                        if (subsystem_fock_state==v0){
-//                            subsystem_fock_states_histogram[0]+=1;
-//                        }
-//                        else if (subsystem_fock_state==v1){
-//                            subsystem_fock_states_histogram[1]+=1;
-//                        }
-//
-//                        else if (subsystem_fock_state==v2){
-//                            subsystem_fock_states_histogram[2]+=1;
-//                        }
-//
-//                        else if (subsystem_fock_state==v3){
-//                            subsystem_fock_states_histogram[3]+=1;
-//                        }
-//
-//                        else if (subsystem_fock_state==v4){
-//                            subsystem_fock_states_histogram[4]+=1;
-//                        }
-//
-//                        else if (subsystem_fock_state==v5){
-//                            subsystem_fock_states_histogram[5]+=1;
-//                        }
-//
-//                        else if (subsystem_fock_state==v6){
-//                            subsystem_fock_states_histogram[6]+=1;
-//                        }
-//                        else if (subsystem_fock_state==v7){
-//                            subsystem_fock_states_histogram[7]+=1;
-//                        }
-//                        else if (subsystem_fock_state==v8){
-//                            subsystem_fock_states_histogram[8]+=1;
-//                        }
-//                        else if (subsystem_fock_state==v9){
-//                            subsystem_fock_states_histogram[9]+=1;
-//                        }
-//                        else if (subsystem_fock_state==v10){
-//                            subsystem_fock_states_histogram[10]+=1;
-//                        }
-//                        else if (subsystem_fock_state==v11){
-//                            subsystem_fock_states_histogram[11]+=1;
-//                        }
-//                        else if (subsystem_fock_state==v12){
-//                            subsystem_fock_states_histogram[12]+=1;
-//                        }
-//                        else if (subsystem_fock_state==v13){
-//                            subsystem_fock_states_histogram[13]+=1;
-//                        }
-//                        else {
-//                            //do nothing
-//                        }
-//
-//                    }
-//                }
-//
+
 //                /*-------------------TEMPORARY----------------------*/
 
             } // end of SWAP measurements if statement
@@ -1273,29 +1215,7 @@ int main(){
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
     
     cout << endl;
-//    cout << "fock_state_half_histogram" << endl;
-//
-//    for (int i=0; i<fock_state_half_histogram.size(); i++){
-//        cout << fock_state_half_histogram[i] << " ";
-//    }
-//    cout << endl;
     
-//    /*------------ Temporary ------------*/
-//    ofstream fock_state_half_histogram_file;
-//    string file_name;
-//
-//    file_name = to_string(L)+"_"+to_string(N)+"_"
-//    +to_string(U)+"_"+to_string(beta)+".dat";
-//
-//    fock_state_half_histogram_file.open(file_name);
-//
-//    for (int i=0; i<fock_state_half_histogram.size();i++){
-//        fock_state_half_histogram_file<<fixed<<setprecision(17)
-//        <<fock_state_half_histogram[i]<< " ";
-//    }
-//
-//    fock_state_half_histogram_file.close();
-        
 //    /*-----------------TEMPORARY------------------------*/
 //    ofstream subsystem_fock_state_histogram_out;
 //    string file_name="subsystem_fock_state_histogram_"+

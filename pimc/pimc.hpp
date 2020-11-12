@@ -65,6 +65,53 @@ ostream& operator<<(ostream& os, const Kink& dt)
 }
 
 /*-------------------------- Function Definitions ----------------------------*/
+//  
+//// function to convert decimal to binary
+//int decToBinary(int n)
+//{
+//    // Size of an integer is assumed to be 32 bits
+//    for (int i = 31; i >= 0; i--) {
+//        int k = n >> i;
+//        if (k & 1)
+//            cout << "1";
+//        else
+//            cout << "0";
+//    }
+//    return;
+//}
+
+// function to convert decimal to binary
+void decToBinary(int n)
+{
+    // Size of an integer is assumed to be 32 bits
+    for (int i = 31; i >= 0; i--) {
+        int k = n >> i;
+        if (k & 1)
+            cout << "1";
+        else
+            cout << "0";
+    }
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+
+// function to convert decimal to binary
+int binaryToDecimal(vector<int> binary_word){
+    int decimal=0;
+    bool bit;
+    
+    cout << endl;
+    for (int i=0;i<=binary_word.size();i++){
+        bit = binary_word[i];
+        if (bit){
+            decimal += pow(2,binary_word.size()-(i+1));
+        }
+    }
+    return decimal;
+}
+
+/*----------------------------------------------------------------------------*/
 
 vector<int> random_boson_config(int M,int N,boost::random::mt19937 &rng){
     // Generates random Fock state of N bosons in M=L^D sites
