@@ -3194,11 +3194,11 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     // Need at least two replicas to perform a spaceshift
     if (paths.size()<2){return;}
-    
-    insert_swap_kink_attempts+=1;
-    
+        
     // Can't perform update if SWAP region is full
     if (num_swaps==m_A){return;}
+    
+    insert_swap_kink_attempts+=1;
         
     // Retrieve source replica index and randomly choose destination replica
     src_replica = replica_idx;
@@ -3591,6 +3591,142 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     return;
 }
+
+/*----------------------------------------------------------------------------*/
+
+void swap_advance(vector<vector<Kink>> &paths, vector<int> &num_kinks,
+               int num_replicas, int replica_idx,
+               vector<int> &sub_sites, vector <int> &swapped_sites,
+               vector<int> &swap_kinks, int &num_swaps,
+               int l_A, int m_A,
+               vector<int> &head_idx,vector<int> &tail_idx,
+               int M, int N, double U, double mu, double t,
+               vector<vector<int>> &adjacency_matrix, int total_nn,
+               double beta,double eta,bool canonical,vector<double> &N_tracker,
+               vector<int> &N_zero,vector<int> &N_beta,
+               vector<vector<int>> &last_kinks,
+               unsigned long long int &swap_advance_head_attempts,
+               unsigned long long int &swap_advance_head_accepts,
+               unsigned long long int &swap_advance_tail_attempts,
+               unsigned long long int &swap_advance_tail_accepts,
+               boost::random::mt19937 &rng){
+    
+    // Variable declarations
+    int n,src,dest,prev,next,worm_end_idx,src_replica,dest_replica;
+    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,R,tau_new,Z;
+    bool shift_head;
+    
+    // Need at least two replicas to perform a spaceshift
+    if (paths.size()<2){return;}
+    
+    // Reject update if there is no worm end present
+    if (head_idx==-1 && tail_idx==-1){return;}
+
+    // Choose which worm end to move
+    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (head_idx!=-1 && tail_idx!=-1){ // both worm ends present
+        tau_h = paths[head_idx].tau;
+        tau_t = paths[tail_idx].tau;
+
+        // Randomly choose to shift HEAD or TAIL
+        if (rnum(rng) < 0.5)
+            shift_head = true;
+        else
+            shift_head = false;
+        }
+    else if (head_idx!=-1){ // only head present
+        tau_h = paths[head_idx].tau;
+        shift_head = true;
+    }
+    else{ // only tail present
+        tau_t = paths[tail_idx].tau;
+        shift_head = false;
+    }
+    
+    // Save the kink index of the end that will be shifted
+    if (shift_head){worm_end_idx=head_idx;}
+    else {worm_end_idx=tail_idx;}
+    
+    // Extract worm end attributes
+    tau = paths[worm_end_idx].tau;
+    n = paths[worm_end_idx].n;
+    src = paths[worm_end_idx].src;
+    dest = paths[worm_end_idx].dest;
+    prev = paths[worm_end_idx].prev;
+    next = paths[worm_end_idx].next;
+    
+    dV=U*(n-!shift_head)-mu;
+    
+    // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
+    if (!shift_head){dV *= -1;} // dV=eps-eps_w
+        
+    // Determine the lower and upper bounds of the worm end to be timeshifted
+    if (next==-1)
+        tau_next = beta;
+    else
+        tau_next = paths[next].tau;
+    tau_prev = paths[prev].tau;
+    
+    // Calculate length of flat interval
+    tau_flat = tau_next - tau_prev;
+
+    // Sample the new time of the worm end from truncated exponential dist.
+    /*:::::::::::::::::::: Truncated Exponential RVS :::::::::::::::::::::::::*/
+    Z = 1.0 - exp(-dV*(tau_next-tau_prev));
+    tau_new = tau_prev - log(1.0-Z*rnum(rng))  / dV;
+    /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    
+    // Add to PROPOSAL counter
+    if (shift_head){
+        if (tau_new > tau){advance_head_attempts+=1;}
+        else{recede_head_attempts+=1;}
+    }
+    else{ // shift tail
+        if (tau_new > tau){advance_tail_attempts+=1;}
+        else{recede_tail_attempts+=1;}
+    }
+    
+    // Determine the length of path to be modified
+    l_path = tau_new - tau;
+    
+    // Determine the total particle change based on wormend to be shifted
+    if (shift_head)
+        dN = +1.0 * l_path/beta;
+    else // shift tail
+        dN = -1.0 * l_path/beta;
+    
+    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    if (canonical)
+        if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+    
+    // Build the Metropolis condition (R)
+    R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
+
+    // Metropolis sampling
+    if (rnum(rng) < R){
+        
+        // Add to ACCEPTANCE counter
+        if (shift_head){
+            if (tau_new > tau){advance_head_accepts+=1;}
+            else{recede_head_accepts+=1;}
+        }
+        else{ // shift tail
+            if (tau_new > tau){advance_tail_accepts+=1;}
+            else{recede_tail_accepts+=1;}
+        }
+        
+        // Modify the worm end time
+        paths[worm_end_idx].tau = tau_new;
+        
+        // Modify total particle number tracker
+        N_tracker += dN;
+        
+        return;
+    }
+    else // Reject
+        return;
+}
+/*----------------------------------------------------------------------------*/
 
 /*------------------------------- Estimators ---------------------------------*/
 
