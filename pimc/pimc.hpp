@@ -3632,26 +3632,13 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     head_idx_0 = head_idx[0];
     head_idx_1 = head_idx[1];
     
+    // There's need to be STRICTLY ONE worm head to timeshift over swap kink
+    if (head_idx_0!=-1 && head_idx_1!=-1){return;}
+    if (head_idx_0==-1 && head_idx_1==-1){return;}
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     // Check which worm head is present. Reject update if no worm heads.
-    if (head_idx_0!=-1 && head_idx_1!=-1){
-        head_0_present=true;
-        head_1_present=true;
-        
-        num_heads=2;
-        
-        // Randomly choose a replica
-        if (rnum(rng)<0.5){src_replica=0;}
-        else {src_replica=1;}
-        
-        // Indices of lower,upper bounds of the head flat
-        head_0_prev=paths[0][head_idx_0].prev;
-        head_0_next=paths[0][head_idx_0].next;
-        
-        head_1_prev=paths[1][head_idx_1].prev;
-        head_1_next=paths[1][head_idx_1].next;
-        
-    }
+    // Also choose a replica randomly
+    
     else if (head_idx_0!=-1){
         head_0_present=true;
         head_1_present=false;
@@ -3659,6 +3646,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         num_heads=1;
 
         src_replica=0;
+        head_idx_src=1
         
         head_0_prev=paths[0][head_idx_0].prev;
         head_0_next=paths[0][head_idx_0].next;
@@ -3678,8 +3666,8 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     dest_replica = 1-src_replica;
     
     // Store the paths of each replica on separate variables (easy syntax)
-    paths_src = paths_vec[src_replica];
-    paths_dest = paths_vec[dest_replica];
+    paths_src = paths[src_replica];
+    paths_dest = paths[dest_replica];
     
     // Set the worm end indices of both replicas. (-1 means no worm end)
     head_idx_src = head_idx[src_replica];
