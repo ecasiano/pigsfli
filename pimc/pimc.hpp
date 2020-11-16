@@ -3594,7 +3594,7 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void swap_advance(vector<vector<Kink>> &paths_vec, vector<int> &num_kinks,
+void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
                int num_replicas, int replica_idx,
                vector<int> &sub_sites, vector <int> &swapped_sites,
                vector<int> &swap_kinks, int &num_swaps,
@@ -3613,17 +3613,68 @@ void swap_advance(vector<vector<Kink>> &paths_vec, vector<int> &num_kinks,
     
     // Variable declarations
     int n,src,dest,prev,next,worm_end_idx,src_replica,dest_replica,
-    head_idx_src,tail_idx_src,head_idx_dest,tail_idx_dest;
+    head_idx_src,tail_idx_src,head_idx_dest,tail_idx_dest,head_idx_0,
+    head_idx_1,head_0_prev,head_0_next,head_1_prev,head_1_next,num_heads;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,R,
     tau_new,Z;
-    bool shift_head;
+    bool shift_head,head_0_present,head_1_present,
+    head_0_near_beta_half,head_1_near_beta_half,head_0_can_recede,
+    head_0_can_advance,head_1_can_recede,head_1_can_advance;
     vector<Kink> paths_src,paths_dest;
     
     // Need at least two replicas to perform a spaceshift
-    if (paths_vec.size()<2){return;}
+    if (paths.size()<2){return;}
     
-    // Set the replica indices
-    src_replica = replica_idx;
+    // Need at least one swap kink to perform a timeshift trough swap kink
+    if (num_swaps==0){return;}
+    
+    // Retrieve worm head indices. -1 means no worm head
+    head_idx_0 = head_idx[0];
+    head_idx_1 = head_idx[1];
+    
+    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    // Check which worm head is present. Reject update if no worm heads.
+    if (head_idx_0!=-1 && head_idx_1!=-1){
+        head_0_present=true;
+        head_1_present=true;
+        
+        num_heads=2;
+        
+        // Randomly choose a replica
+        if (rnum(rng)<0.5){src_replica=0;}
+        else {src_replica=1;}
+        
+        // Indices of lower,upper bounds of the head flat
+        head_0_prev=paths[0][head_idx_0].prev;
+        head_0_next=paths[0][head_idx_0].next;
+        
+        head_1_prev=paths[1][head_idx_1].prev;
+        head_1_next=paths[1][head_idx_1].next;
+        
+    }
+    else if (head_idx_0!=-1){
+        head_0_present=true;
+        head_1_present=false;
+        
+        num_heads=1;
+
+        src_replica=0;
+        
+        head_0_prev=paths[0][head_idx_0].prev;
+        head_0_next=paths[0][head_idx_0].next;
+    }
+    else if (head_idx_1!=-1) {
+        head_0_present=false;
+        head_1_present=true;
+        
+        num_heads=1;
+        
+        src_replica=1;
+        
+        head_1_prev=paths[1][head_idx_1].prev;
+        head_1_next=paths[1][head_idx_1].next;
+    }
+    else {return;}
     dest_replica = 1-src_replica;
     
     // Store the paths of each replica on separate variables (easy syntax)
@@ -3640,7 +3691,6 @@ void swap_advance(vector<vector<Kink>> &paths_vec, vector<int> &num_kinks,
     if (head_idx_src==-1 && tail_idx_src==-1){return;}
 
     // Choose which worm end to move
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     if (head_idx_src!=-1 && tail_idx_src!=-1){ // both worm ends present
         tau_h = paths_src[head_idx_src].tau;
         tau_t = paths_src[tail_idx_src].tau;
