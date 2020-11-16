@@ -3614,12 +3614,14 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Variable declarations
     int n,src,dest,prev,next,worm_end_idx,src_replica,dest_replica,
     head_idx_src,tail_idx_src,head_idx_dest,tail_idx_dest,head_idx_0,
-    head_idx_1,head_0_prev,head_0_next,head_1_prev,head_1_next,num_heads;
+    head_idx_1,head_0_prev,head_0_next,head_1_prev,head_1_next,num_heads,
+    head_to_move,prev_src,next_src,prev_dest,next_dest,worm_end_idx,
+    shift_head;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,R,
     tau_new,Z;
     bool shift_head,head_0_present,head_1_present,
     head_0_near_beta_half,head_1_near_beta_half,head_0_can_recede,
-    head_0_can_advance,head_1_can_recede,head_1_can_advance;
+    head_0_can_advance,head_1_can_recede,head_1_can_advance,advance_head;
     vector<Kink> paths_src,paths_dest;
     
     // Need at least two replicas to perform a spaceshift
@@ -3635,81 +3637,39 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // There's need to be STRICTLY ONE worm head to timeshift over swap kink
     if (head_idx_0!=-1 && head_idx_1!=-1){return;}
     if (head_idx_0==-1 && head_idx_1==-1){return;}
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    // Check which worm head is present. Reject update if no worm heads.
-    // Also choose a replica randomly
     
-    else if (head_idx_0!=-1){
-        head_0_present=true;
-        head_1_present=false;
-        
-        num_heads=1;
-
-        src_replica=0;
-        head_idx_src=1
-        
-        head_0_prev=paths[0][head_idx_0].prev;
-        head_0_next=paths[0][head_idx_0].next;
-    }
-    else if (head_idx_1!=-1) {
-        head_0_present=false;
-        head_1_present=true;
-        
-        num_heads=1;
-        
-        src_replica=1;
-        
-        head_1_prev=paths[1][head_idx_1].prev;
-        head_1_next=paths[1][head_idx_1].next;
-    }
-    else {return;}
+    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    // Choose the "source" and "destination" replica
+    if (head_idx_0!=-1){src_replica=0;}
+    else{src_replica=1;}
     dest_replica = 1-src_replica;
     
-    // Store the paths of each replica on separate variables (easy syntax)
-    paths_src = paths[src_replica];
-    paths_dest = paths[dest_replica];
+    // Get index of the worm head to be moved
+    worm_end_idx=head_idx[src_replica];
     
-    // Set the worm end indices of both replicas. (-1 means no worm end)
-    head_idx_src = head_idx[src_replica];
-    tail_idx_src = tail_idx[src_replica];
-    head_idx_dest = head_idx[dest_replica];
-    tail_idx_dest = tail_idx[dest_replica];
-    
-    // Reject update if there is no worm end present
-    if (head_idx_src==-1 && tail_idx_src==-1){return;}
+    // Get lower and upper bounds of worm head to be moved
+    prev_src=paths[src_replica][worm_end_idx].prev;
+    next_src=paths[src_replica][worm_end_idx].next;
 
-    // Choose which worm end to move
-    if (head_idx_src!=-1 && tail_idx_src!=-1){ // both worm ends present
-        tau_h = paths_src[head_idx_src].tau;
-        tau_t = paths_src[tail_idx_src].tau;
-
-        // Randomly choose to shift HEAD or TAIL
-        if (rnum(rng) < 0.5)
-            shift_head = true;
-        else
-            shift_head = false;
-        }
-    else if (head_idx_src!=-1){ // only head present
-        tau_h = paths_src[head_idx_src].tau;
-        shift_head = true;
-    }
-    else{ // only tail present
-        tau_t = paths_src[tail_idx_src].tau;
-        shift_head = false;
-    }
+    // Check if worm head is adjacent to a swap kink and choose shift type
+    if (paths[src_replica][next_src].src_replica!=
+        paths[src_replica][next_src].dest_replica){advance_head=true;}
+    else if (paths[src_replica][prev_src].src_replica!=
+             paths[src_replica][prev_src].dest_replica){advance_head=false;}
+    else {return;}
     
-    // Save the kink index of the end that will be shifted
-    if (shift_head){worm_end_idx=head_idx;}
-    else {worm_end_idx=tail_idx;}
+    // Extract worm head attributes
+    tau = paths[src_replica][worm_end_idx].tau;
+    n = paths[src_replica][worm_end_idx].n;
+    src = paths[src_replica][worm_end_idx].src;
+    dest = paths[src_replica][worm_end_idx].dest;
+    prev = paths[src_replica][worm_end_idx].prev;
+    next = paths[src_replica][worm_end_idx].next;
+    src_replica = paths[src_replica][worm_end_idx].src_replica;
+    dest_replica = paths[src_replica][worm_end_idx].dest_replica;
     
-    // Extract worm end attributes
-    tau = paths[worm_end_idx].tau;
-    n = paths[worm_end_idx].n;
-    src = paths[worm_end_idx].src;
-    dest = paths[worm_end_idx].dest;
-    prev = paths[worm_end_idx].prev;
-    next = paths[worm_end_idx].next;
-    
+    // Calculate change in diagonal energy
+    shift_head=true;
     dV=U*(n-!shift_head)-mu;
     
     // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
