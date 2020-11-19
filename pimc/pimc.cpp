@@ -55,6 +55,9 @@ int main(){
     // Create integer distribution with support: [0,16]
     boost::random::uniform_int_distribution<> updates(0,14);
     
+    // Create integer distribution with support: [0,2]
+    boost::random::uniform_int_distribution<> swap_updates(0,14);
+    
     // Bose-Hubbard parameters
     int L,D,M,N;
     double t,U,mu;
@@ -156,8 +159,8 @@ int main(){
     unsigned long long int insert_swap_kink_attempts=0,insert_swap_kink_accepts=0;
     unsigned long long int delete_swap_kink_attempts=0,delete_swap_kink_accepts=0;
     
-    unsigned long long int advance_head_attempts=0,advance_head_accepts=0;
-    unsigned long long int recede_head_attempts=0,recede_head_accepts=0;
+    unsigned long long int swap_advance_head_attempts=0,swap_advance_head_accepts=0;
+    unsigned long long int swap_recede_head_attempts=0,swap_recede_head_accepts=0;
         
 /*------------------------- Initialize variables -----------------------------*/
 
@@ -192,8 +195,8 @@ int main(){
     eta=1/sqrt(M);
     beta=1.00;
     canonical=true;
-    sweeps=1000000000;
-    sweeps_pre=1000000;
+    sweeps=100000;
+    sweeps_pre=100000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
@@ -815,8 +818,9 @@ int main(){
     } // end of replica loop
 
 
+        label = swap_updates(rng);
         // Should have a separate menu for replica updates
-          if (rnum(rng)<0.5){ // insert_swap_kink
+          if (label==0){ // insert_swap_kink
              insert_swap_kink(paths, num_kinks,
                              num_replicas, 0,
                              sub_sites, swapped_sites,
@@ -832,7 +836,7 @@ int main(){
                              insert_swap_kink_accepts,
                              rng);
          }
-         else if (1==1) { // delete_swap_kink
+         else if (label==1) { // delete_swap_kink
              delete_swap_kink(paths, num_kinks,
                              num_replicas, 0,
                              sub_sites, swapped_sites,
@@ -848,7 +852,7 @@ int main(){
                              delete_swap_kink_accepts,
                              rng);
          }
-         else if (1==1) {
+         else if (label==2) {
              swap_timeshift_head(paths, num_kinks,
                              num_replicas, 0,
                              sub_sites, swapped_sites,
@@ -866,7 +870,9 @@ int main(){
                              swap_recede_head_accepts,
                              rng);
          }
-        
+         else{
+             // lol
+         }
         
 
         
