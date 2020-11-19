@@ -3357,10 +3357,10 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Variable declarations
     int src_replica,dest_replica,next,prev_src,prev_dest,next_src,next_dest,
     num_kinks_src,num_kinks_dest,site_to_unswap,kink_out_of_src,kink_in_to_dest,
-    kink_out_of_dest,kink_in_to_src;
+    kink_out_of_dest,kink_in_to_src,n_src_left,n_src_right,n_dest_left,
+    n_dest_right;
     double R,p_replica;
 
-    
     delete_swap_kink_attempts+=1;
     
     // Need at least two replicas to perform delete_swap_kink
@@ -3393,11 +3393,6 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     if (!swap_kinks[site_to_unswap]){return;}
     swap_kinks[site_to_unswap] = 0;
     
-    // ADD THIS TEST!!!!!
-    // now need to check for BOTH replicas that:
-    // n_beta_half-eps == n_beta_half+eps
-    // if not satisfied for either replica, return;
-    
     // Get swap kink indices
     // source replica
     next = site_to_unswap;
@@ -3415,11 +3410,26 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     kink_out_of_dest = next;
     kink_in_to_dest= paths[dest_replica][kink_out_of_dest].next;
     
+    // ADD THIS TEST!!!!!
+    // now need to check for BOTH replicas that:
+    // n_beta_half-eps == n_beta_half+eps
+    // if not satisfied for either replica, return;
+    
     // Get lower and upper bounds of the flat interval on each replica
     prev_src = paths[src_replica][kink_out_of_src].prev;
     next_src = paths[src_replica][kink_in_to_src].next;
     prev_dest = paths[dest_replica][kink_out_of_dest].prev;
     next_dest = paths[dest_replica][kink_in_to_dest].next;
+    
+    // Get number of particles to the left and righ of the swap kinks
+    n_src_left = paths[src_replica][prev_src].n;
+    n_src_right = paths[src_replica][kink_in_to_src].n;
+    n_dest_left = paths[dest_replica][prev_dest].n;
+    n_dest_right = paths[dest_replica][kink_in_to_dest].n;
+    
+    // Can only delete swap kink if pre/post no. of particles is the same
+    if (n_src_left!=n_src_right){return;}
+    if (n_dest_left!=n_dest_right){return;}
     
     // "Metropolis Sampling" (Actually unity acceptance probability)
     R = 1.0;
@@ -3660,7 +3670,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     tau = paths[src_replica][worm_end_idx].tau;
     worm_end_site = paths[src_replica][worm_end_idx].src;
     n = paths[src_replica][worm_end_idx].src;
-        
+            
     // Get index of central time slice at destination replica
     current_kink = worm_end_site; // next refers to index of next kink on site
     while (paths[dest_replica][current_kink].dest_replica==dest_replica){
@@ -3668,7 +3678,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     }
     kink_out_of_dest = current_kink;
     kink_in_to_dest= paths[dest_replica][kink_out_of_dest].next;
-    
+        
     // Get indices of kinks before & after swap kink in destination replica
     prev_dest = paths[dest_replica][kink_out_of_dest].prev;
     next_dest = paths[dest_replica][kink_in_to_dest].next;
@@ -3765,6 +3775,10 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
             paths[src_replica][prev_src].next = next_src;
         }
         else{
+            
+            return; // DEBUGGING.
+            // Code should be running fine for the over swap case. IT IS NOT!
+
             if (is_advance){ // advance OVER SWAP
                 
                 /*------- Insertion of worm end in destination replica -------*/
