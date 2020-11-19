@@ -3615,8 +3615,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     int n,src,dest,prev,next,worm_end_idx,src_replica,dest_replica,
     head_idx_src,tail_idx_src,head_idx_dest,tail_idx_dest,head_idx_0,
     head_idx_1,head_0_prev,head_0_next,head_1_prev,head_1_next,num_heads,
-    head_to_move,prev_src,next_src,prev_dest,next_dest,worm_end_idx,
-    shift_head;
+    head_to_move,prev_src,next_src,prev_dest,next_dest;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,R,
     tau_new,Z;
     bool shift_head,head_0_present,head_1_present,
