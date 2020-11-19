@@ -155,6 +155,9 @@ int main(){
     
     unsigned long long int insert_swap_kink_attempts=0,insert_swap_kink_accepts=0;
     unsigned long long int delete_swap_kink_attempts=0,delete_swap_kink_accepts=0;
+    
+    unsigned long long int advance_head_attempts=0,advance_head_accepts=0;
+    unsigned long long int recede_head_attempts=0,recede_head_accepts=0;
         
 /*------------------------- Initialize variables -----------------------------*/
 
@@ -829,7 +832,7 @@ int main(){
                              insert_swap_kink_accepts,
                              rng);
          }
-         else { // delete_swap_kink
+         else if (1==1) { // delete_swap_kink
              delete_swap_kink(paths, num_kinks,
                              num_replicas, 0,
                              sub_sites, swapped_sites,
@@ -845,6 +848,26 @@ int main(){
                              delete_swap_kink_accepts,
                              rng);
          }
+         else if (1==1) {
+             swap_timeshift_head(paths, num_kinks,
+                             num_replicas, 0,
+                             sub_sites, swapped_sites,
+                             swap_kinks, num_swaps,
+                             l_A, m_A,
+                             head_idx,tail_idx,
+                             M, N, U, mu, t,
+                             adjacency_matrix, total_nn,
+                             beta, eta, canonical, N_tracker,
+                             N_zero, N_beta,
+                             last_kinks,
+                             swap_advance_head_attempts,
+                             swap_advance_head_accepts,
+                             swap_recede_head_attempts,
+                             swap_recede_head_accepts,
+                             rng);
+         }
+        
+        
 
         
 /*------------------------- Unit Tests (kind of) -----------------------------*/
