@@ -3735,14 +3735,14 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         l_path_src = beta/2 - tau;
         l_path_dest = tau_new - beta/2;
     }
-    else{
+    else{ // did not go over swap
         l_path_src = tau_new - tau;
         l_path_dest = 0;
     }
     
     // Determine the total particle change based on wormend to be shifted
-    dN_src = +1.0 * l_path_src/beta;
-    dN_dest = +1.0 * l_path_dest/beta;
+    dN_src = 1.0 * l_path_src/beta;
+    dN_dest = 1.0 * l_path_dest/beta;
     
     // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
     if (canonical){
@@ -3770,11 +3770,11 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
             paths[src_replica][worm_end_idx].tau = tau_new;
             N_tracker[src_replica] += dN_src;
             
-            // Reconnect upper and lower bounds of the flat
-            paths[src_replica][next_src].prev = prev_src;
-            paths[src_replica][prev_src].next = next_src;
+//            // Reconnect upper and lower bounds of the flat
+//            paths[src_replica][next_src].prev = prev_src;
+//            paths[src_replica][prev_src].next = next_src;
         }
-        else{
+        else{ // We go Over Swap
             
             return; // DEBUGGING.
             // Code should be running fine for the over swap case. IT IS NOT!
