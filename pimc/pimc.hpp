@@ -1707,6 +1707,9 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
     tau_new = tau_prev - log(1.0-Z*rnum(rng))  / dV;
     /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     
+//    cout << tau << " " << tau_new << endl;
+
+    
     // Add to PROPOSAL counter
     if (shift_head){
         if (tau_new > tau){advance_head_attempts+=1;}
@@ -3276,16 +3279,6 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Had to change the meaning of src_replica and dest_replica ATTRIBUTES
     // The now actually have directional meaning. From origin replica to other.
 
-//    cout << "kink_out_of_src: ";
-//    cout << paths[src_replica][num_kinks_src] << endl;
-//    cout << "kink_in_to_src: ";
-//    cout << paths[src_replica][num_kinks_src+1] << endl;
-//    cout << "kink_out_of_dest: ";
-//    cout << paths[dest_replica][num_kinks_dest] << endl;
-//    cout << "kink_in_to_dest: ";
-//    cout << paths[dest_replica][num_kinks_dest+1] << endl;
-//    cout << endl;
-
     // Connect next of prev_src to swap_kink
     paths[src_replica][prev_src].next = num_kinks_src;
     
@@ -3316,21 +3309,6 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     num_kinks[dest_replica] += 2;
     
     insert_swap_kink_accepts+=1;
-    
-    // Chris suggested keeping track of swap kinks in helper array.
-    // Still need to modify it (swap_kinks)
-    
-//    cout << "src paths (" << src_replica << ")" << endl;
-//    for (int i=0; i<num_kinks[src_replica];i++){
-//        cout << i << " " << paths[src_replica][i] << endl;
-//    }
-//    cout << endl;
-//
-//    cout << "dest paths (" << dest_replica << ")" << endl;
-//    for (int i=0; i<num_kinks[dest_replica];i++){
-//        cout << i << " " << paths[dest_replica][i] << endl;
-//    }
-//    cout << endl;
 
     return;
 }
@@ -3409,11 +3387,6 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     }
     kink_out_of_dest = next;
     kink_in_to_dest= paths[dest_replica][kink_out_of_dest].next;
-    
-    // ADD THIS TEST!!!!!
-    // now need to check for BOTH replicas that:
-    // n_beta_half-eps == n_beta_half+eps
-    // if not satisfied for either replica, return;
     
     // Get lower and upper bounds of the flat interval on each replica
     prev_src = paths[src_replica][kink_out_of_src].prev;
@@ -3623,7 +3596,8 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     head_idx_1,head_0_prev,head_0_next,head_1_prev,head_1_next,num_heads,
     head_to_move,prev_src,next_src,prev_dest,next_dest,site,worm_end_site,
     kink_out_of_dest,kink_in_to_dest,n_after_worm_end,n_after_swap_kink,
-    num_kinks_src,num_kinks_dest,current_kink,n_before_swap_kink;
+    num_kinks_src,num_kinks_dest,current_kink,n_before_swap_kink,
+    n_before_worm_end;
     double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,R,
     tau_new,Z,tau_next_dest,tau_prev_dest,l_path_src,l_path_dest,dN_src,dN_dest;
     bool shift_head,head_0_present,head_1_present,
@@ -3643,10 +3617,9 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     head_idx_1 = head_idx[1];
     
     // There had to be STRICTLY ONE worm head to timeshift over swap kink
-    if (head_idx_0!=-1 && head_idx_1!=-1){return;}
-    if (head_idx_0==-1 && head_idx_1==-1){return;}
+    if (head_idx_0!=-1 && head_idx_1!=-1){return;} // two worms present
+    if (head_idx_0==-1 && head_idx_1==-1){return;} // no worms present
     
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     // Choose the "source" and "destination" replica
     if (head_idx_0!=-1){src_replica=0;}
     else{src_replica=1;}
@@ -3706,9 +3679,16 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     shift_head=true; // we are always moving head in this update. set to true.
     dV=U*(n-!shift_head)-mu;
     
+    // THE SAMPLING ABOVE IS WRONG! There are two change of particles that we
+    // need to account for. One in the src flat, and another in the destination
+    // flat. Either i) modify the weight or ii) force the kink to go over the
+    // swap kink if it's adjacent and do the truncated exponential sampling only
+    // in the destination flat.
+    
     // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
     if (!shift_head){dV *= -1;} // dV=eps-eps_w
     
+    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     // Sample the new time of the worm end from truncated exponential dist.
     /*:::::::::::::::::::: Truncated Exponential RVS :::::::::::::::::::::::::*/
     Z = 1.0 - exp(-dV*(tau_next-tau_prev));
@@ -3729,6 +3709,8 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     is_over_swap=false;
     if ( (is_advance && swap_in_front && tau_new>beta/2) ||
          (!is_advance && !swap_in_front && tau_new<beta/2) ){is_over_swap=true;}
+    
+    if (is_over_swap){return;}
     
     // Determine the length of path to be modified in each replica
     if (is_over_swap){
@@ -3753,6 +3735,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     // Get number of particles after: worm end @ src & central kink @ dest
     n_after_worm_end = paths[src_replica][worm_end_idx].n;
+    n_before_worm_end = paths[src_replica][prev_src].n;
     n_after_swap_kink = paths[dest_replica][kink_in_to_dest].n; // * check idx
     n_before_swap_kink = paths[dest_replica][prev_dest].n;
     
@@ -3763,22 +3746,20 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Build the Metropolis condition (R)
     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
 
+//    cout << tau << " " << tau_new << endl;
+
+    return;
     // Metropolis sampling
     if (rnum(rng) < R){
         
         if (!is_over_swap){ // worm end does not go over swap kink
             paths[src_replica][worm_end_idx].tau = tau_new;
             N_tracker[src_replica] += dN_src;
-            
-//            // Reconnect upper and lower bounds of the flat
-//            paths[src_replica][next_src].prev = prev_src;
-//            paths[src_replica][prev_src].next = next_src;
         }
         else{ // We go Over Swap
-            
-            return; // DEBUGGING.
-            // Code should be running fine for the over swap case. IT IS NOT!
 
+//            return; // Debugging
+            
             if (is_advance){ // advance OVER SWAP
                 
                 /*------- Insertion of worm end in destination replica -------*/
@@ -3800,6 +3781,9 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
                 num_kinks[dest_replica]+=1;
                 
                 /*--------- Deletion of worm end from source replica ---------*/
+                
+                // NEED TO MODIFY THE PARTICLE NUMBER OF THE SWAP KINK
+                // IN SOURCE REPLICA
                 
                 // num_kinks_src-1 will be swapped. Modify links to it
                 if (paths[src_replica][num_kinks_src-1].next!=-1){
