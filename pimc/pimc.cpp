@@ -195,8 +195,8 @@ int main(){
     eta=1/sqrt(M);
     beta=1.00;
     canonical=true;
-    sweeps=100000;
-    sweeps_pre=100000;
+    sweeps=10000000;
+    sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     

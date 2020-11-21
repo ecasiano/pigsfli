@@ -3710,9 +3710,6 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     if ( (is_advance && swap_in_front && tau_new>beta/2) ||
          (!is_advance && !swap_in_front && tau_new<beta/2) ){is_over_swap=true;}
     
-    // DEBUGGING
-    if (is_over_swap){return;}
-    
     // Determine the length of path to be modified in each replica
     if (is_over_swap){
         l_path_src = beta/2 - tau;
@@ -3746,8 +3743,10 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     // Build the Metropolis condition (R)
     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
-
-    cout << tau_prev << " " << tau << " " << tau_new << " "<< tau_next << " " << is_advance << endl;
+    
+    //    // DEBUGGING
+    //    if (is_over_swap){return;}
+    
     // Metropolis sampling
     if (rnum(rng) < R){
         
@@ -3756,15 +3755,16 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
             N_tracker[src_replica] += dN_src;
         }
         else{ // We go Over Swap
-
-            return; // Debugging
             
             if (is_advance){ // advance OVER SWAP
                 
                 /*------- Insertion of worm end in destination replica -------*/
                 paths[dest_replica][num_kinks_dest]=
-                Kink(tau_new,n_after_swap_kink-1,worm_end_site,worm_end_site,
+                Kink(tau_new,n_after_swap_kink,worm_end_site,worm_end_site,
                      kink_in_to_dest,next_dest,dest_replica,dest_replica);
+                
+                // Modify particle number in swap kink on destination replica
+                paths[dest_replica][kink_in_to_dest].n=n_after_swap_kink+1;
                 
                 // Modify links of central kink and next_dest kink
                 paths[dest_replica][kink_in_to_dest].next=num_kinks_dest;
@@ -3819,6 +3819,9 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                 paths[dest_replica][num_kinks_dest]=
                 Kink(tau_new,n_before_swap_kink-1,worm_end_site,worm_end_site,
                      prev_dest,kink_out_of_dest,dest_replica,dest_replica);
+                
+                // Modify particle number in swap kink on source replica
+                paths[src_replica][prev_src].n=n_after_worm_end;
                 
                 // Modify links of central kink and prev_dest kink
                 paths[dest_replica][prev_dest].next=num_kinks_dest;
