@@ -3658,7 +3658,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     // Determine the lower and upper bounds of the worm end to be timeshifted
     if (swap_in_front){
-        if (next_src!=-1)
+        if (next_dest!=-1)
             tau_next = paths[dest_replica][next_dest].tau;
         else
             tau_next = beta;
@@ -3710,6 +3710,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     if ( (is_advance && swap_in_front && tau_new>beta/2) ||
          (!is_advance && !swap_in_front && tau_new<beta/2) ){is_over_swap=true;}
     
+    // DEBUGGING
     if (is_over_swap){return;}
     
     // Determine the length of path to be modified in each replica
@@ -3746,9 +3747,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Build the Metropolis condition (R)
     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
 
-//    cout << tau << " " << tau_new << endl;
-
-    return;
+    cout << tau_prev << " " << tau << " " << tau_new << " "<< tau_next << " " << is_advance << endl;
     // Metropolis sampling
     if (rnum(rng) < R){
         
@@ -3758,7 +3757,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         }
         else{ // We go Over Swap
 
-//            return; // Debugging
+            return; // Debugging
             
             if (is_advance){ // advance OVER SWAP
                 
