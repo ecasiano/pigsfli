@@ -195,8 +195,8 @@ int main(){
     eta=1/sqrt(M);
     beta=1.00;
     canonical=true;
-    sweeps=10000000;
-    sweeps_pre=1000000;
+    sweeps=1000000;
+    sweeps_pre=100000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
@@ -818,8 +818,8 @@ int main(){
     } // end of replica loop
 
 
+        // SWAP Updates
         label = swap_updates(rng);
-        // Should have a separate menu for replica updates
           if (label==0){ // insert_swap_kink
              insert_swap_kink(paths, num_kinks,
                              num_replicas, 0,
