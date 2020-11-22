@@ -196,7 +196,7 @@ int main(){
     eta=1/sqrt(M);
     beta=1.00;
     canonical=true;
-    sweeps=10000000;
+    sweeps=1000000;
     sweeps_pre=1000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
@@ -853,7 +853,7 @@ int main(){
                              delete_swap_kink_accepts,
                              rng);
          }
-         else if (label==-2) {
+         else if (label==2) {
              swap_timeshift_head(paths, num_kinks,
                              num_replicas, 0,
                              sub_sites, swapped_sites,
