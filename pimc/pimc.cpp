@@ -28,6 +28,7 @@ int main(){
     
     for (int i=0; i<configs.size(); i++){
 //        cout<<setw(2)<<right<<i<<":   ";
+        cout << i << " ";
         decToBinary(configs[i]);
         cout << endl;
 //        cout<<"   ("<<configs[i]<<")"<<endl;
@@ -56,7 +57,7 @@ int main(){
     boost::random::uniform_int_distribution<> updates(0,14);
     
     // Create integer distribution with support: [0,2]
-    boost::random::uniform_int_distribution<> swap_updates(0,14);
+    boost::random::uniform_int_distribution<> swap_updates(0,2);
     
     // Bose-Hubbard parameters
     int L,D,M,N;
@@ -195,7 +196,7 @@ int main(){
     eta=1/sqrt(M);
     beta=1.00;
     canonical=true;
-    sweeps=10000;
+    sweeps=10000000;
     sweeps_pre=1000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
@@ -1150,15 +1151,17 @@ int main(){
                     else
                         swap_bit[i]=0;
                 }
+//                cout << swap_bit[0] << swap_bit[1] << num_swaps << endl;
                 
-                for (int i=0; i<4; i++){
-                    cout<<fock_state_0[i]<< " ";
-                }
-                cout << " || ";
-                for (int i=0; i<4; i++){
-                    cout<<fock_state_1[i]<< " ";
-                }
-                cout << endl;
+//                for (int i=0; i<4; i++){
+//                    cout<<fock_state_0[i]<< " ";
+//                }
+//                cout << " || ";
+//                for (int i=0; i<4; i++){
+//                    cout<<fock_state_1[i]<< " ";
+//                }
+//                cout << endl;
+                
                 
                 // add count to bin corresponding to number of swapped sites
                 if (head_idx[0]==-1 && tail_idx[0]==-1
@@ -1183,6 +1186,10 @@ int main(){
                         
                     }
                 }
+//                for (int i=0;i<extended_fock_state.size();i++){
+//                    cout << extended_fock_state[i];
+//                }
+//                cout << endl;
 
 //                /*-------------------TEMPORARY----------------------*/
 
@@ -1312,7 +1319,7 @@ int main(){
 //    /*-----------------TEMPORARY------------------------*/
     
     for (int i=0;i<64;i++){
-        cout << histogram[i] << endl;
+        cout << i << " "<< histogram[i] << endl;
     }
 
     return 0;
