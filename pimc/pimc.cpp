@@ -195,8 +195,8 @@ int main(){
     eta=1/sqrt(M);
     beta=1.00;
     canonical=true;
-    sweeps=1000000;
-    sweeps_pre=100000;
+    sweeps=10000;
+    sweeps_pre=1000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
@@ -852,7 +852,7 @@ int main(){
                              delete_swap_kink_accepts,
                              rng);
          }
-         else if (label==2) {
+         else if (label==-2) {
              swap_timeshift_head(paths, num_kinks,
                              num_replicas, 0,
                              sub_sites, swapped_sites,
@@ -875,7 +875,15 @@ int main(){
          }
         
 
+//        for (int i=0; i<num_kinks[0]; i++){
+//            cout << i << " " << paths[0][i] << endl;
+//        }
+//        cout << endl;
         
+//        for (int i=0; i<last_kinks[0].size(); i++){
+//            cout<<paths[0][last_kinks[0][i]]<< " ";
+//        }
+//        cout << " " << num_swaps << " " << m << endl;
 /*------------------------- Unit Tests (kind of) -----------------------------*/
 //
 //        // Unit test #1: No last kink indices should be repeated
@@ -1123,7 +1131,7 @@ int main(){
                     writing_ctr=0;
                 }
                 
-//                /*-------------------TEMPORARY----------------------*/
+                /*-------------------TEMPORARY----------------------*/
 
                 vector<int> fock_state_0 (4,0);
                 vector<int> fock_state_1 (4,0);
@@ -1142,6 +1150,15 @@ int main(){
                     else
                         swap_bit[i]=0;
                 }
+                
+                for (int i=0; i<4; i++){
+                    cout<<fock_state_0[i]<< " ";
+                }
+                cout << " || ";
+                for (int i=0; i<4; i++){
+                    cout<<fock_state_1[i]<< " ";
+                }
+                cout << endl;
                 
                 // add count to bin corresponding to number of swapped sites
                 if (head_idx[0]==-1 && tail_idx[0]==-1
@@ -1253,6 +1270,11 @@ int main(){
                                insert_swap_kink_attempts<<endl;
     cout <<"UNSWAP: "<<delete_swap_kink_accepts<<"/"<<
                                delete_swap_kink_attempts<<endl;
+    
+    cout<< endl <<"SWAP Advance Head: "<<swap_advance_head_accepts<<"/"<<
+                               swap_advance_head_attempts<<endl;
+    cout <<"SWAP Recede Head: "<<swap_recede_head_accepts<<"/"<<
+                               swap_recede_head_attempts<<endl;
     
     auto end = high_resolution_clock::now();
 
