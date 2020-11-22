@@ -3226,7 +3226,7 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     next = next_swap_site; // next variable refers to "next kink" in worldline
     n_src = -1;
     prev_src = -1;
-    while (tau<0.5*beta){
+    while (tau<0.5*beta-1.0E-12){
         n_src = paths[src_replica][next].n;
         prev_src = next;
         next = paths[src_replica][next].next;
@@ -3240,7 +3240,7 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     next = next_swap_site;
     n_dest=-1;
     prev_dest = -1;
-    while (tau<0.5*beta){
+    while (tau<0.5*beta-1.0E-12){
         n_dest = paths[dest_replica][next].n;
         prev_dest = next;
         next = paths[dest_replica][next].next;
@@ -3748,6 +3748,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     if (rnum(rng) < R){
         
         if (!is_over_swap){ // worm end does not go over swap kink
+            return; // Debugging
             paths[src_replica][worm_end_idx].tau = tau_new;
             N_tracker[src_replica] += dN_src;
         }
@@ -3798,6 +3799,7 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                 // Upper or lower bound of flat could've been swapped. Correct.
                 if (next_src==num_kinks_src-1){next_src=worm_end_idx;}
                 else if (prev_src==num_kinks_src-1){prev_src=worm_end_idx;}
+                else {1;}
                 
                 // Tail could've been swapped. Correct if so.
                 if (tail_idx[src_replica]==num_kinks_src-1)
@@ -3815,9 +3817,10 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                 
                 // Deactivate the worm end
                 head_idx[src_replica]=-1;
-                
-                // Modify number of kinks in the path tracker
+                                
+                // Update trackers for: no. of active kinks,total particles
                 num_kinks[src_replica]-=1;
+                N_tracker[src_replica] += dN_src;
                 
             }
             else{ // Recede OVER SWAP
