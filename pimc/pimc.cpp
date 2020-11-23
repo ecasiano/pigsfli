@@ -47,7 +47,7 @@ int main(){
     /*---------------------- TEMPORARY -----------------------*/
 
     // Initialize a Mersenne Twister RNG for each replica
-    int seed_A=326;
+    int seed_A=0;
     boost::random::mt19937 rng(seed_A);
     
     // Create a uniform distribution with support: [0.0,1.0)
@@ -196,8 +196,8 @@ int main(){
     eta=1/sqrt(M);
     beta=1.00;
     canonical=true;
-    sweeps=1000000;
-    sweeps_pre=1000;
+    sweeps=100000;
+    sweeps_pre=100000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
@@ -704,6 +704,7 @@ int main(){
     cout << "Stage (2/3): Equilibrating..." << endl << endl;
     
     for (unsigned long long int m=0; m < sweeps; m++){
+//        cout<<num_swaps<<endl;
     for (int r=0;r<num_replicas;r++){
         
         label = updates(rng);
@@ -1195,61 +1196,54 @@ int main(){
                 
                 /*-------------------TEMPORARY----------------------*/
 
-//                vector<int> fock_state_0 (4,0);
-//                vector<int> fock_state_1 (4,0);
-//                vector<int> swap_bit (2,0);
-//                vector<int> extended_fock_state (10,0);
-//                int integer_state;
-//
-//                // build fock state of each replica at beta/2
-//                get_fock_state(beta/2,4,fock_state_0,paths[0]);
-//                get_fock_state(beta/2,4,fock_state_1,paths[1]);
-//
-//                // build the swap bit
-//                for (int i=0; i<l_A; i++){
-//                    if (swap_kinks[i])
-//                        swap_bit[i]=1;
-//                    else
-//                        swap_bit[i]=0;
-//                }
-//                cout << swap_bit[0] << swap_bit[1] << num_swaps << endl;
-                
-//                for (int i=0; i<4; i++){
-//                    cout<<fock_state_0[i]<< " ";
-//                }
-//                cout << " || ";
-//                for (int i=0; i<4; i++){
-//                    cout<<fock_state_1[i]<< " ";
-//                }
-//                cout << endl;
-                
-//                // add count to bin corresponding to number of swapped sites
-//                if (head_idx[0]==-1 && tail_idx[0]==-1
-//                    && head_idx[1]==-1 && tail_idx[1]==-1){
-//                    if (N_beta[0]==N && N_beta[1]==N){
-//
-//                        // Build the extended fock state (binary word)
-//                        for (int i=0; i<10; i++){
-//                            if (i<4)
-//                                extended_fock_state[i]=fock_state_0[i];
-//                            else if (i>=4 && i<8)
-//                                extended_fock_state[i]=fock_state_1[i-4];
-//                            else
-//                                extended_fock_state[i]=swap_bit[i-8];
+                vector<int> fock_state_0 (4,0);
+                vector<int> fock_state_1 (4,0);
+                vector<int> swap_bit (2,0);
+                vector<int> extended_fock_state (10,0);
+                int integer_state;
+
+                // build fock state of each replica at beta/2
+                get_fock_state(beta/2,4,fock_state_0,paths[0]);
+                get_fock_state(beta/2,4,fock_state_1,paths[1]);
+
+                // build the swap bit
+                for (int i=0; i<l_A; i++){
+                    if (swap_kinks[i])
+                        swap_bit[i]=1;
+                    else
+                        swap_bit[i]=0;
+                }
+
+                // add count to bin corresponding to number of swapped sites
+                if (head_idx[0]==-1 && tail_idx[0]==-1
+                    && head_idx[1]==-1 && tail_idx[1]==-1){
+                    if (N_beta[0]==N && N_beta[1]==N){
+
+                        // Build the extended fock state (binary word)
+                        for (int i=0; i<10; i++){
+                            if (i<4)
+                                extended_fock_state[i]=fock_state_0[i];
+                            else if (i>=4 && i<8)
+                                extended_fock_state[i]=fock_state_1[i-4];
+                            else
+                                extended_fock_state[i]=swap_bit[i-8];
+                        }
+
+                        // Convert the binary word to an integer
+                        integer_state=binaryToDecimal(extended_fock_state);
+                        
+//                        bool only_one_and_zero=true;
+//                        for (int i=0;i<extended_fock_state.size();i++){
+//                            if (extended_fock_state[i]>=2)
+//                                {only_one_and_zero=false;}
 //                        }
-//
-//                        // Convert the binary word to an integer
-//                        integer_state=binaryToDecimal(extended_fock_state);
-//
+                        
 //                        // Add a count to the corresponding
-//                        histogram[lookup[integer_state]]++;
-//
-//                    }
-//                }
-//                for (int i=0;i<extended_fock_state.size();i++){
-//                    cout << extended_fock_state[i];
-//                }
-//                cout << endl;
+//                        if (only_one_and_zero)
+//                            histogram[lookup[integer_state]]++;
+
+                    }
+                }
 
 //                /*-------------------TEMPORARY----------------------*/
 
@@ -1382,16 +1376,16 @@ int main(){
         cout << i << " "<< histogram[i] << endl;
     }
 
-    cout << endl;
-    for (int i=0;i<num_kinks[0];i++){
-        cout << i << " " << paths[0][i] << endl;
-    }
-    cout << endl;
-    
-    for (int i=0;i<num_kinks[1];i++){
-        cout << i << " " << paths[1][i] << endl;
-    }
-    cout << endl;
+//    cout << endl;
+//    for (int i=0;i<num_kinks[0];i++){
+//        cout << i << " " << paths[0][i] << endl;
+//    }
+//    cout << endl;
+//
+//    for (int i=0;i<num_kinks[1];i++){
+//        cout << i << " " << paths[1][i] << endl;
+//    }
+//    cout << endl;
     
     return 0;
     
