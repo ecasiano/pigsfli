@@ -3194,9 +3194,11 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     num_kinks_dest;
     double tau,R,p_replica;
     
+//    cout << "kakarot" << endl;
     // Need at least two replicas to perform a spaceshift
     if (paths.size()<2){return;}
 
+//    cout << "VEGETA" << endl;
     // Can't perform update if SWAP region is full
     if (num_swaps==m_A){return;}
     
@@ -3252,9 +3254,7 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     next_dest = next;
     
     if (n_src!=n_dest){return;}
-    
-    swap_kinks[next_swap_site] = 1;
-        
+                    
     // Metropolis Sampling (not actually, the ratio is unity!)
     R = 1.0;
 
@@ -3309,6 +3309,9 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     num_kinks[src_replica] += 1;
     num_kinks[dest_replica] += 1;
     
+    // Activate the site on swap kinks tracker
+    swap_kinks[next_swap_site] = 1;
+    
     insert_swap_kink_accepts+=1;
     
 //    for (int i=0; i<1; i++){
@@ -3330,6 +3333,8 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 //    }
 //
 //    cout << endl;
+
+//    cout << "0" << endl;
 
     return;
 }
@@ -3388,8 +3393,21 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     boost::random::uniform_int_distribution<> sites(0, m_A-1);
     site_to_unswap = sites(rng);
     
+//    cout << swap_kinks[0];
+//    cout << swap_kinks[1];
+//    cout << " " << site_to_unswap;
+//    cout << endl;
+//    for (int i=0;i<num_kinks[0];i++){
+//        cout << i << " " << paths[0][i] << endl;
+//    }
+//    cout << endl;
+//
+//    for (int i=0;i<num_kinks[1];i++){
+//        cout << i << " " << paths[1][i] << endl;
+//    }
+//    cout << endl;
+    
     if (!swap_kinks[site_to_unswap]){return;}
-    swap_kinks[site_to_unswap] = 0;
     
     // Get swap kink indices
     // source replica
@@ -3511,6 +3529,10 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Modify number of kinks trackers for each replica
     num_kinks[src_replica]-=1;
     num_kinks[dest_replica]-=1;
+    
+    
+    // Deactivate the site from swap kinks boolean tracker
+    swap_kinks[site_to_unswap] = 0;
     
     delete_swap_kink_accepts+=1;
     
@@ -3703,7 +3725,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
         else{ // We go Over Swap
 
             if (is_advance){ // advance OVER SWAP
-                
+
                 /*--------- Deletion of worm end from SOURCE replica ---------*/
                 
                 // num_kinks_src-1 will be swapped. Modify links to it
@@ -3772,32 +3794,33 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                     last_kinks[dest_replica][worm_end_site]=
                     num_kinks_dest;
                 
-                cout<<"Advanced head over swap (left/right fock state)"<<endl;
-                for (int i=0; i<1; i++){
-                    cout<<paths[src_replica][prev_src].n;
-                }
-                cout << " || ";
-                for (int i=0; i<1; i++){
-                    cout<<paths[src_replica][next_src].n;
-                }
-
-                cout << "    ";
-
-                for (int i=0; i<1; i++){
-                    cout<<paths[dest_replica][prev_dest].n;
-                }
-                cout << " || ";
-                for (int i=0; i<1; i++){
-                    cout<<paths[dest_replica][kink_out_of_dest].n;
-                }
-
-                cout << endl;
+//                cout<<"Advanced head over swap AFTER (left/right fock state)"<<endl;
+//                for (int i=0; i<1; i++){
+//                    cout<<paths[src_replica][prev_src].n;
+//                }
+//                cout << " || ";
+//                for (int i=0; i<1; i++){
+//                    cout<<paths[src_replica][next_src].n;
+//                }
+//
+//                cout << "    ";
+//
+//                for (int i=0; i<1; i++){
+//                    cout<<paths[dest_replica][prev_dest].n;
+//                }
+//                cout << " || ";
+//                for (int i=0; i<1; i++){
+//                    cout<<paths[dest_replica][kink_out_of_dest].n;
+//                }
+//
+//                cout << endl;
+                
+//                cout << "2 (advance)" << endl;
                                 
             }
             else{ // Recede OVER SWAP
                 
                 /*--------- Deletion of worm end from SOURCE replica ---------*/
-                
                 // num_kinks_src-1 will be swapped. Modify links to it
                 if (paths[src_replica][num_kinks_src-1].next!=-1){
 paths[src_replica][paths[src_replica][num_kinks_src-1].next].prev=worm_end_idx;
@@ -3868,26 +3891,29 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                 num_kinks[dest_replica] += 1;
                 N_tracker[dest_replica] += dN_dest;
                 
-                cout<<"Receded head over swap (left/right fock state)"<<endl;
-                for (int i=0; i<1; i++){
-                    cout<<paths[src_replica][paths[src_replica][prev_src].prev].n;
-                }
-                cout << " || ";
-                for (int i=0; i<1; i++){
-                    cout<<paths[src_replica][prev_src].n;
-                }
+//                cout<<"Receded head over swap AFTER (left/right fock state)"<<endl;
+//                for (int i=0; i<1; i++){
+//                    cout<<paths[src_replica][paths[src_replica][prev_src].prev].n;
+//                }
+//                cout << " || ";
+//                for (int i=0; i<1; i++){
+//                    cout<<paths[src_replica][prev_src].n;
+//                }
+//
+//                cout << "    ";
+//
+//                for (int i=0; i<1; i++){
+//                    cout<<paths[dest_replica][num_kinks_dest].n;
+//                }
+//                cout << " || ";
+//                for (int i=0; i<1; i++){
+//                    cout<<paths[dest_replica][kink_out_of_dest].n;
+//                }
+//
+//                cout << endl;
+                
+//                cout << "2 (recede)" << endl;
 
-                cout << "    ";
-
-                for (int i=0; i<1; i++){
-                    cout<<paths[dest_replica][num_kinks_dest].n;
-                }
-                cout << " || ";
-                for (int i=0; i<1; i++){
-                    cout<<paths[dest_replica][kink_out_of_dest].n;
-                }
-
-                cout << endl;
             }
         }
         return;
