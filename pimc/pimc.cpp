@@ -707,6 +707,13 @@ int main(){
     for (int r=0;r<num_replicas;r++){
         
         label = updates(rng);
+        
+//        cout << label << " (regular before)" << endl;
+//
+//        for (int i=0; i<num_kinks[r]; i++){
+//            cout << i << " " << paths[r][i] << endl;
+//        }
+//        cout << endl;
 
         if (label==0){     // worm_insert
             insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -816,11 +823,42 @@ int main(){
                         N_zero[r],N_beta[r],last_kinks[r],
                         dkat_attempts,dkat_accepts,rng);
          }
+        
+//        cout << label << " (regular after)" << endl;
+//
+//        for (int i=0; i<num_kinks[r]; i++){
+//            cout << i << " " << paths[r][i] << endl;
+//        }
+//        cout << endl;
+//        for (int i=0; i<last_kinks[r].size(); i++){
+//            cout<<paths[r][last_kinks[r][i]]<< " ";
+//        }
+//        cout<<endl<<endl;
+        
     } // end of replica loop
 
-
+        
         // SWAP Updates
         label = swap_updates(rng);
+        
+//        cout << label << " (swap before)" << endl;
+//        for (int i=0; i<num_kinks[0]; i++){
+//            cout << i << " " << paths[0][i] << endl;
+//            if (paths[0][i].src_replica==1){exit(1);}
+//        }
+//        cout << endl;
+//
+//        for (int i=0; i<num_kinks[1]; i++){
+//            cout << i << " " << paths[1][i] << endl;
+//            if (paths[1][i].src_replica==0){exit(1);}
+//
+//        }
+//        cout << endl;
+//        int tau_head_old,tau_head_new;
+//        if (head_idx[0]!=-1)
+//            tau_head_old=paths[0][head_idx[0]].tau;
+//        else {tau_head_old=-1;}
+        
           if (label==0){ // insert_swap_kink
              insert_swap_kink(paths, num_kinks,
                              num_replicas, 0,
@@ -875,15 +913,39 @@ int main(){
              // lol
          }
         
-
+//        cout << label << " (swap after)" << endl;
 //        for (int i=0; i<num_kinks[0]; i++){
 //            cout << i << " " << paths[0][i] << endl;
+//            if (paths[0][i].src_replica==1){exit(1);}
 //        }
 //        cout << endl;
-        
+//
 //        for (int i=0; i<last_kinks[0].size(); i++){
 //            cout<<paths[0][last_kinks[0][i]]<< " ";
 //        }
+//        cout<<endl<<endl;
+//
+//        for (int i=0; i<num_kinks[1]; i++){
+//            cout << i << " " << paths[1][i] << endl;
+//            if (paths[1][i].src_replica==0){exit(1);}
+//
+//        }
+//        cout << endl;
+    
+//        cout << " " << num_swaps << " " << m << endl;
+//        for (int i=0; i<last_kinks[0].size(); i++){
+//            cout<<paths[1][last_kinks[1][i]]<< " ";
+//        }
+//        cout<<endl;
+//
+//        cout << "---------------------------------" << endl << endl;
+//        if (head_idx[0]!=-1)
+//            tau_head_new=paths[0][head_idx[0]].tau;
+//        else
+//            tau_head_new=-1;
+        
+//        if (label==2 && tau_head_old<tau_head_new ){exit(1);}
+
 //        cout << " " << num_swaps << " " << m << endl;
 /*------------------------- Unit Tests (kind of) -----------------------------*/
 //
@@ -1109,7 +1171,6 @@ int main(){
             
             // Non-conventional (SWAP) measurements
             if (num_replicas>1) {
-                
                 // add count to bin corresponding to number of swapped sites
                 if (head_idx[0]==-1 && tail_idx[0]==-1
                     && head_idx[1]==-1 && tail_idx[1]==-1){
@@ -1134,23 +1195,23 @@ int main(){
                 
                 /*-------------------TEMPORARY----------------------*/
 
-                vector<int> fock_state_0 (4,0);
-                vector<int> fock_state_1 (4,0);
-                vector<int> swap_bit (2,0);
-                vector<int> extended_fock_state (10,0);
-                int integer_state;
-                
-                // build fock state of each replica at beta/2
-                get_fock_state(beta/2,4,fock_state_0,paths[0]);
-                get_fock_state(beta/2,4,fock_state_1,paths[1]);
-                
-                // build the swap bit
-                for (int i=0; i<l_A; i++){
-                    if (swap_kinks[i])
-                        swap_bit[i]=1;
-                    else
-                        swap_bit[i]=0;
-                }
+//                vector<int> fock_state_0 (4,0);
+//                vector<int> fock_state_1 (4,0);
+//                vector<int> swap_bit (2,0);
+//                vector<int> extended_fock_state (10,0);
+//                int integer_state;
+//
+//                // build fock state of each replica at beta/2
+//                get_fock_state(beta/2,4,fock_state_0,paths[0]);
+//                get_fock_state(beta/2,4,fock_state_1,paths[1]);
+//
+//                // build the swap bit
+//                for (int i=0; i<l_A; i++){
+//                    if (swap_kinks[i])
+//                        swap_bit[i]=1;
+//                    else
+//                        swap_bit[i]=0;
+//                }
 //                cout << swap_bit[0] << swap_bit[1] << num_swaps << endl;
                 
 //                for (int i=0; i<4; i++){
@@ -1162,30 +1223,29 @@ int main(){
 //                }
 //                cout << endl;
                 
-                
-                // add count to bin corresponding to number of swapped sites
-                if (head_idx[0]==-1 && tail_idx[0]==-1
-                    && head_idx[1]==-1 && tail_idx[1]==-1){
-                    if (N_beta[0]==N && N_beta[1]==N){
-                     
-                        // Build the extended fock state (binary word)
-                        for (int i=0; i<10; i++){
-                            if (i<4)
-                                extended_fock_state[i]=fock_state_0[i];
-                            else if (i>=4 && i<8)
-                                extended_fock_state[i]=fock_state_1[i-4];
-                            else
-                                extended_fock_state[i]=swap_bit[i-8];
-                        }
-                        
-                        // Convert the binary word to an integer
-                        integer_state=binaryToDecimal(extended_fock_state);
-                         
-                        // Add a count to the corresponding
-                        histogram[lookup[integer_state]]++;
-                        
-                    }
-                }
+//                // add count to bin corresponding to number of swapped sites
+//                if (head_idx[0]==-1 && tail_idx[0]==-1
+//                    && head_idx[1]==-1 && tail_idx[1]==-1){
+//                    if (N_beta[0]==N && N_beta[1]==N){
+//
+//                        // Build the extended fock state (binary word)
+//                        for (int i=0; i<10; i++){
+//                            if (i<4)
+//                                extended_fock_state[i]=fock_state_0[i];
+//                            else if (i>=4 && i<8)
+//                                extended_fock_state[i]=fock_state_1[i-4];
+//                            else
+//                                extended_fock_state[i]=swap_bit[i-8];
+//                        }
+//
+//                        // Convert the binary word to an integer
+//                        integer_state=binaryToDecimal(extended_fock_state);
+//
+//                        // Add a count to the corresponding
+//                        histogram[lookup[integer_state]]++;
+//
+//                    }
+//                }
 //                for (int i=0;i<extended_fock_state.size();i++){
 //                    cout << extended_fock_state[i];
 //                }
@@ -1322,6 +1382,17 @@ int main(){
         cout << i << " "<< histogram[i] << endl;
     }
 
+    cout << endl;
+    for (int i=0;i<num_kinks[0];i++){
+        cout << i << " " << paths[0][i] << endl;
+    }
+    cout << endl;
+    
+    for (int i=0;i<num_kinks[1];i++){
+        cout << i << " " << paths[1][i] << endl;
+    }
+    cout << endl;
+    
     return 0;
     
 }
