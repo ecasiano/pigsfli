@@ -402,6 +402,7 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     dest = paths[k].dest;
     prev = paths[k].prev;
     next = paths[k].next;
+    src_replica = paths[k].src_replica; //due to way replica indices are coded
     dest_replica = paths[k].dest_replica; //due to way replica indices are coded
     
     // Calculate the length of the flat interval
@@ -465,9 +466,9 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
         // Activate the first two available kinks
         if (is_worm){
             paths[num_kinks]=Kink(tau_t,n_tail,src,src,k,num_kinks+1,
-                                  dest_replica,dest_replica);
+                                  src_replica,src_replica);
             paths[num_kinks+1]=Kink(tau_h,n_head,src,src,num_kinks,next,
-                                    dest_replica,dest_replica);
+                                    src_replica,src_replica);
             
             // Save indices of head & tail kinks
             head_idx = num_kinks+1;
@@ -478,9 +479,9 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
         }
         else{ // Antiworm
             paths[num_kinks]=Kink(tau_h,n_head,src,src,k,num_kinks+1,
-                                  dest_replica,dest_replica);
+                                  src_replica,src_replica);
             paths[num_kinks+1]=Kink(tau_t,n_tail,src,src,num_kinks,next,
-                                    dest_replica,dest_replica);
+                                    src_replica,src_replica);
             
             // Save indices of head & tail kinks
             head_idx = num_kinks;
@@ -1135,7 +1136,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     dest = paths[last_kinks[i]].dest;
     prev = paths[last_kinks[i]].prev;
     next = paths[last_kinks[i]].next;
-//    src_replica = paths[last_kinks[i]].src_replica;
+    src_replica = paths[last_kinks[i]].src_replica;
     dest_replica = paths[last_kinks[i]].dest_replica;
     
     // Determine the length of insertion flat interval
@@ -1250,7 +1251,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
         if (is_worm){
             paths[num_kinks] = Kink (tau_new,n_tail,src,src,
                                             last_kinks[src],next,
-                                            dest_replica,dest_replica);
+                                            src_replica,src_replica);
             
             // Save tail index
             tail_idx = num_kinks;
@@ -1264,7 +1265,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
         else{ // antiworm
             paths[num_kinks] = Kink (tau_new,n_head,src,src,
                                             last_kinks[src],next,
-                                            dest_replica,dest_replica);
+                                            src_replica,src_replica);
             
             // Save head index
             head_idx = num_kinks;
@@ -3693,9 +3694,11 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     if (rnum(rng) < R){
         
         if (!is_over_swap){ // worm end does not go over swap kink
-            return; // Debugging. Only allow shifts over swap kinks for now
+            return;
             paths[src_replica][worm_end_idx].tau = tau_new;
             N_tracker[src_replica] += dN_src;
+            if (is_advance){swap_advance_head_accepts+=1;}
+            else {swap_recede_head_accepts+=1;}
         }
         else{ // We go Over Swap
 
@@ -3769,30 +3772,30 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                     last_kinks[dest_replica][worm_end_site]=
                     num_kinks_dest;
                 
-//                for (int i=0; i<1; i++){
-//                    cout<<paths[src_replica][prev_src].n;
-//                }
-//                cout << " || ";
-//                for (int i=0; i<1; i++){
-//                    cout<<paths[src_replica][next_src].n;
-//                }
-//
-//                cout << "    ";
-//
-//                for (int i=0; i<1; i++){
-//                    cout<<paths[dest_replica][prev_dest].n;
-//                }
-//                cout << " || ";
-//                for (int i=0; i<1; i++){
-//                    cout<<paths[dest_replica][kink_out_of_dest].n;
-//                }
-//
-//                cout << endl;
+                cout<<"Advanced head over swap (left/right fock state)"<<endl;
+                for (int i=0; i<1; i++){
+                    cout<<paths[src_replica][prev_src].n;
+                }
+                cout << " || ";
+                for (int i=0; i<1; i++){
+                    cout<<paths[src_replica][next_src].n;
+                }
+
+                cout << "    ";
+
+                for (int i=0; i<1; i++){
+                    cout<<paths[dest_replica][prev_dest].n;
+                }
+                cout << " || ";
+                for (int i=0; i<1; i++){
+                    cout<<paths[dest_replica][kink_out_of_dest].n;
+                }
+
+                cout << endl;
                                 
             }
             else{ // Recede OVER SWAP
-
-                return;
+                
                 /*--------- Deletion of worm end from SOURCE replica ---------*/
                 
                 // num_kinks_src-1 will be swapped. Modify links to it
@@ -3842,6 +3845,7 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
 
                 /*------- Insertion of worm end in DESTINATION replica -------*/
                 
+                // Can't recede into other replica if no particles in flat
                 if (n_before_swap_kink==0){return;}
 
                 // Activate first available kink
@@ -3855,7 +3859,7 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                 // Add to acceptance counter
                 swap_recede_head_accepts+=1;
                 
-                // Modify links of swap kink and next_dest kink
+                // Modify links to worm head in destination replica
                 if (kink_out_of_dest!=-1)
                     paths[dest_replica][kink_out_of_dest].prev=num_kinks_dest;
                 paths[dest_replica][prev_dest].next=num_kinks_dest;
@@ -3863,6 +3867,27 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                 // Update trackers for: no. of active kinks,total particles
                 num_kinks[dest_replica] += 1;
                 N_tracker[dest_replica] += dN_dest;
+                
+                cout<<"Receded head over swap (left/right fock state)"<<endl;
+                for (int i=0; i<1; i++){
+                    cout<<paths[src_replica][paths[src_replica][prev_src].prev].n;
+                }
+                cout << " || ";
+                for (int i=0; i<1; i++){
+                    cout<<paths[src_replica][prev_src].n;
+                }
+
+                cout << "    ";
+
+                for (int i=0; i<1; i++){
+                    cout<<paths[dest_replica][num_kinks_dest].n;
+                }
+                cout << " || ";
+                for (int i=0; i<1; i++){
+                    cout<<paths[dest_replica][kink_out_of_dest].n;
+                }
+
+                cout << endl;
             }
         }
         return;
