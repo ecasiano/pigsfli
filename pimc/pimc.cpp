@@ -196,7 +196,7 @@ int main(){
     eta=1/sqrt(M);
     beta=2.00;
     canonical=true;
-    sweeps=1000000;
+    sweeps=100000000;
     sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
@@ -704,17 +704,9 @@ int main(){
     cout << "Stage (2/3): Equilibrating..." << endl << endl;
     
     for (unsigned long long int m=0; m < sweeps; m++){
-//        cout<<num_swaps<<endl;
     for (int r=0;r<num_replicas;r++){
         
         label = updates(rng);
-        
-//        cout << label << " (regular before)" << endl;
-//
-//        for (int i=0; i<num_kinks[r]; i++){
-//            cout << i << " " << paths[r][i] << endl;
-//        }
-//        cout << endl;
 
         if (label==0){     // worm_insert
             insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -824,57 +816,27 @@ int main(){
                         N_zero[r],N_beta[r],last_kinks[r],
                         dkat_attempts,dkat_accepts,rng);
          }
-        
-//        cout << label << " (regular after)" << endl;
-//
-//        for (int i=0; i<num_kinks[r]; i++){
-//            cout << i << " " << paths[r][i] << endl;
-//        }
-//        cout << endl;
-//        for (int i=0; i<last_kinks[r].size(); i++){
-//            cout<<paths[r][last_kinks[r][i]]<< " ";
-//        }
-//        cout<<endl<<endl;
-        
     } // end of replica loop
 
         
         // SWAP Updates
         label = swap_updates(rng);
-        
-//        cout << label << " (swap before)" << endl;
-//        for (int i=0; i<num_kinks[0]; i++){
-//            cout << i << " " << paths[0][i] << endl;
-//            if (paths[0][i].src_replica==1){exit(1);}
-//        }
-//        cout << endl;
-//
-//        for (int i=0; i<num_kinks[1]; i++){
-//            cout << i << " " << paths[1][i] << endl;
-//            if (paths[1][i].src_replica==0){exit(1);}
-//
-//        }
-//        cout << endl;
-//        int tau_head_old,tau_head_new;
-//        if (head_idx[0]!=-1)
-//            tau_head_old=paths[0][head_idx[0]].tau;
-//        else {tau_head_old=-1;}
-        
-          if (label==0){ // insert_swap_kink
-             insert_swap_kink(paths, num_kinks,
-                             num_replicas, 0,
-                             sub_sites, swapped_sites,
-                             swap_kinks, num_swaps,
-                             l_A, m_A,
-                             head_idx,tail_idx,
-                             M, N, U, mu, t,
-                             adjacency_matrix, total_nn,
-                             beta, eta, canonical, N_tracker,
-                             N_zero, N_beta,
-                             last_kinks,
-                             insert_swap_kink_attempts,
-                             insert_swap_kink_accepts,
-                             rng);
+
+        if (label==0){ // insert_swap_kink
+         insert_swap_kink(paths, num_kinks,
+                         num_replicas, 0,
+                         sub_sites, swapped_sites,
+                         swap_kinks, num_swaps,
+                         l_A, m_A,
+                         head_idx,tail_idx,
+                         M, N, U, mu, t,
+                         adjacency_matrix, total_nn,
+                         beta, eta, canonical, N_tracker,
+                         N_zero, N_beta,
+                         last_kinks,
+                         insert_swap_kink_attempts,
+                         insert_swap_kink_accepts,
+                         rng);
          }
          else if (label==1) { // delete_swap_kink
              delete_swap_kink(paths, num_kinks,
@@ -914,40 +876,6 @@ int main(){
              // lol
          }
         
-//        cout << label << " (swap after)" << endl;
-//        for (int i=0; i<num_kinks[0]; i++){
-//            cout << i << " " << paths[0][i] << endl;
-//            if (paths[0][i].src_replica==1){exit(1);}
-//        }
-//        cout << endl;
-//
-//        for (int i=0; i<last_kinks[0].size(); i++){
-//            cout<<paths[0][last_kinks[0][i]]<< " ";
-//        }
-//        cout<<endl<<endl;
-//
-//        for (int i=0; i<num_kinks[1]; i++){
-//            cout << i << " " << paths[1][i] << endl;
-//            if (paths[1][i].src_replica==0){exit(1);}
-//
-//        }
-//        cout << endl;
-    
-//        cout << " " << num_swaps << " " << m << endl;
-//        for (int i=0; i<last_kinks[0].size(); i++){
-//            cout<<paths[1][last_kinks[1][i]]<< " ";
-//        }
-//        cout<<endl;
-//
-//        cout << "---------------------------------" << endl << endl;
-//        if (head_idx[0]!=-1)
-//            tau_head_new=paths[0][head_idx[0]].tau;
-//        else
-//            tau_head_new=-1;
-        
-//        if (label==2 && tau_head_old<tau_head_new ){exit(1);}
-
-//        cout << " " << num_swaps << " " << m << endl;
 /*------------------------- Unit Tests (kind of) -----------------------------*/
 //
 //        // Unit test #1: No last kink indices should be repeated
@@ -1170,12 +1098,21 @@ int main(){
                 }
             } // end of conventional measurements if statement
             
+//            if (head_idx[0]==-1&&head_idx[1]==-1&&
+//                tail_idx[0]==-1&&tail_idx[1]==-1){
+//                if (abs(N_tracker[0]-N)<1.0E-13 &&
+//                    abs(N_tracker[1]-N)<1.0E-13){
+//                    cout << N_tracker[0] << " " << N_tracker[1] << endl;
+//                }
+//            }
+            
             // Non-conventional (SWAP) measurements
             if (num_replicas>1) {
                 // add count to bin corresponding to number of swapped sites
-                if (head_idx[0]==-1 && tail_idx[0]==-1
-                    && head_idx[1]==-1 && tail_idx[1]==-1){
-                    if (N_beta[0]==N && N_beta[1]==N){
+                if (head_idx[0]==-1&&head_idx[1]==-1&&
+                    tail_idx[0]==-1&&tail_idx[1]==-1){
+                    if (abs(N_tracker[0]-N)<1.0E-08 &&
+                        abs(N_tracker[1]-N)<1.0E-08){
                             SWAP_histogram[num_swaps]+=1;
                             writing_ctr+=1;
                     }

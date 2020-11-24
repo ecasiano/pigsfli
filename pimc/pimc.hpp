@@ -65,20 +65,6 @@ ostream& operator<<(ostream& os, const Kink& dt)
 }
 
 /*-------------------------- Function Definitions ----------------------------*/
-//  
-//// function to convert decimal to binary
-//int decToBinary(int n)
-//{
-//    // Size of an integer is assumed to be 32 bits
-//    for (int i = 31; i >= 0; i--) {
-//        int k = n >> i;
-//        if (k & 1)
-//            cout << "1";
-//        else
-//            cout << "0";
-//    }
-//    return;
-//}
 
 // function to convert decimal to binary
 void decToBinary(int n)
@@ -1687,6 +1673,7 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
     prev = paths[worm_end_idx].prev;
     next = paths[worm_end_idx].next;
     
+    // Diagonal energy difference in simplified form
     dV=U*(n-!shift_head)-mu;
     
     // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
@@ -3604,13 +3591,12 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     next_src=paths[src_replica][worm_end_idx].next;
     
     // Check if worm head is adjacent to a swap kink
-    
     if (next_src!=-1){
-    if (paths[src_replica][next_src].src_replica!=
-        paths[src_replica][next_src].dest_replica){swap_in_front=true;}
-    else if (paths[src_replica][prev_src].src_replica!=
-             paths[src_replica][prev_src].dest_replica){swap_in_front=false;}
-    else {return;}
+        if (paths[src_replica][next_src].src_replica!=
+            paths[src_replica][next_src].dest_replica){swap_in_front=true;}
+        else if (paths[src_replica][prev_src].src_replica!=
+                 paths[src_replica][prev_src].dest_replica){swap_in_front=false;}
+        else {return;}
     }
     else{
         if (paths[src_replica][prev_src].src_replica!=
@@ -3652,12 +3638,6 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     // Calculate change in diagonal energy
     shift_head=true; // we are always moving head in this update. set to true.
     dV=U*(n-!shift_head)-mu;
-    
-    // THE SAMPLING ABOVE IS WRONG! There are two change of particles that we
-    // need to account for. One in the src flat, and another in the destination
-    // flat. Either i) modify the weight or ii) force the kink to go over the
-    // swap kink if it's adjacent and do the truncated exponential sampling only
-    // in the destination flat.
     
     // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
     if (!shift_head){dV *= -1;} // dV=eps-eps_w
@@ -3719,7 +3699,6 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 
     // Metropolis sampling
     if (rnum(rng) < R){
-        
         if (!is_over_swap){ // worm end does not go over swap kink
             paths[src_replica][worm_end_idx].tau = tau_new;
             N_tracker[src_replica] += dN_src;
@@ -3730,43 +3709,43 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 
             if (is_advance){ // advance OVER SWAP
                 
-                int n_left,n_right;
-
-//                /*---------------------------------------*/
-                // DEBUGGING (ONly allow flats to differ by one particle)
-                n_right=paths[src_replica][next_src].n;
-                n_left=paths[src_replica][worm_end_idx].n+1;
-//                if (abs(n_right-n_left)!=1){return;}
-
-                
-                cout<<"Advanced head over swap AFTER (left/right fock state)"<<endl;
-                for (int i=0; i<1; i++){
-                    cout<<n_left;
-                }
-                cout << " || ";
-                for (int i=0; i<1; i++){
-                    cout<<n_right;
-                }
-                cout << endl;
-                
-//                /*---------------------------------------*/
-//                /*---------------------------------------*/
-                // DEBUGGING (ONly allow flats to differ by one particle)
-                n_right=paths[dest_replica][kink_out_of_dest].n+1;
-                n_left=paths[dest_replica][prev_dest].n;
-//                if (abs(n_right-n_left)!=1){return;}
-
-                
-                for (int i=0; i<1; i++){
-                    cout<<n_left;
-                }
-                cout << " || ";
-                for (int i=0; i<1; i++){
-                    cout<<n_right;
-                }
-
-                cout << endl << endl;
-//                /*---------------------------------------*/
+//                int n_left,n_right;
+//
+////                /*---------------------------------------*/
+//                // DEBUGGING (ONly allow flats to differ by one particle)
+//                n_right=paths[src_replica][next_src].n;
+//                n_left=paths[src_replica][worm_end_idx].n+1;
+////                if (abs(n_right-n_left)!=1){return;}
+//
+//
+//                cout<<"Advanced head over swap AFTER (left/right fock state)"<<endl;
+//                for (int i=0; i<1; i++){
+//                    cout<<n_left;
+//                }
+//                cout << " || ";
+//                for (int i=0; i<1; i++){
+//                    cout<<n_right;
+//                }
+//                cout << endl;
+//
+////                /*---------------------------------------*/
+////                /*---------------------------------------*/
+//                // DEBUGGING (ONly allow flats to differ by one particle)
+//                n_right=paths[dest_replica][kink_out_of_dest].n+1;
+//                n_left=paths[dest_replica][prev_dest].n;
+////                if (abs(n_right-n_left)!=1){return;}
+//
+//
+//                for (int i=0; i<1; i++){
+//                    cout<<n_left;
+//                }
+//                cout << " || ";
+//                for (int i=0; i<1; i++){
+//                    cout<<n_right;
+//                }
+//
+//                cout << endl << endl;
+////                /*---------------------------------------*/
 
                 /*--------- Deletion of worm end from SOURCE replica ---------*/
                 
@@ -3839,45 +3818,46 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
             }
             else{ // Recede OVER SWAP
                 
-                int n_left,n_right;
-
-//                /*---------------------------------------*/
-                // DEBUGGING (ONly allow flats to differ by one particle)
-                n_right=n_after_worm_end;
-                n_left=paths[src_replica][paths[src_replica][prev_src].prev].n;
-//                if (abs(n_right-n_left)!=1){return;}
-
+//                int n_left,n_right;
+//
+////                /*---------------------------------------*/
+//                // DEBUGGING (ONly allow flats to differ by one particle)
+//                n_right=n_after_worm_end;
+//                n_left=paths[src_replica][paths[src_replica][prev_src].prev].n;
+////                if (abs(n_right-n_left)!=1){return;}
+//
+//
+//                cout<<"Recede head over swap AFTER (left/right fock state)"<<endl;
+//                for (int i=0; i<1; i++){
+//                    cout<<n_left;
+//                }
+//                cout << " || ";
+//                for (int i=0; i<1; i++){
+//                    cout<<n_right;
+//                }
+//                cout << endl;
+//
+////                /*---------------------------------------*/
+////                /*---------------------------------------*/
+//                // DEBUGGING (ONly allow flats to differ by one particle)
+//                n_right=paths[dest_replica][kink_out_of_dest].n;
+//                n_left=paths[dest_replica][prev_dest].n-1;
+////                if (abs(n_right-n_left)!=1){return;}
+//
+//                for (int i=0; i<1; i++){
+//                    cout<<n_left;
+//                }
+//                cout << " || ";
+//                for (int i=0; i<1; i++){
+//                    cout<<n_right;
+//                }
+//
+//                cout << endl << endl;
+////                /*---------------------------------------*/
+//
+//
+////                if (n_before_swap_kink==0){return;}
                 
-                cout<<"Recede head over swap AFTER (left/right fock state)"<<endl;
-                for (int i=0; i<1; i++){
-                    cout<<n_left;
-                }
-                cout << " || ";
-                for (int i=0; i<1; i++){
-                    cout<<n_right;
-                }
-                cout << endl;
-                
-//                /*---------------------------------------*/
-//                /*---------------------------------------*/
-                // DEBUGGING (ONly allow flats to differ by one particle)
-                n_right=paths[dest_replica][kink_out_of_dest].n;
-                n_left=paths[dest_replica][prev_dest].n-1;
-//                if (abs(n_right-n_left)!=1){return;}
-                
-                for (int i=0; i<1; i++){
-                    cout<<n_left;
-                }
-                cout << " || ";
-                for (int i=0; i<1; i++){
-                    cout<<n_right;
-                }
-
-                cout << endl << endl;
-//                /*---------------------------------------*/
-                
-                
-//                if (n_before_swap_kink==0){return;}
                 /*--------- Deletion of worm end from SOURCE replica ---------*/
                 // num_kinks_src-1 will be swapped. Modify links to it
                 if (paths[src_replica][num_kinks_src-1].next!=-1){
@@ -3971,7 +3951,6 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
 //                cout << endl;
                 
 //                cout << "2 (recede)" << endl;
-
             }
         }
         return;
