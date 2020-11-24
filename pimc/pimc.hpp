@@ -3586,7 +3586,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     n = paths[src_replica][worm_end_idx].n;
     
     // Get lower and upper adjacent kinks of worm head to be moved
-    // NOTE: One of the two bounds will be the swap kink.
+    // NOTE: One of the two bounds might be the swap kink.
     prev_src=paths[src_replica][worm_end_idx].prev;
     next_src=paths[src_replica][worm_end_idx].next;
     
@@ -3636,11 +3636,12 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     tau_flat = tau_next - tau_prev;
 
     // Calculate change in diagonal energy
-    shift_head=true; // we are always moving head in this update. set to true.
-    dV=U*(n-!shift_head)-mu;
+//    shift_head=true; // we are always moving head in this update. set to true.
+//    dV=U*(n-!shift_head)-mu;
+    dV=U*n-mu;
     
     // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
-    if (!shift_head){dV *= -1;} // dV=eps-eps_w
+//    if (!shift_head){dV *= -1;} // dV=eps-eps_w
     
     boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     // Sample the new time of the worm end from truncated exponential dist.
@@ -3680,19 +3681,22 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     
     // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
     if (canonical){
-        if ((N_tracker[src_replica]+dN_src) < (N-1) || (N_tracker[src_replica]+dN_src) > (N+1)){return;}
-        if ((N_tracker[dest_replica]+dN_dest) < (N-1) || (N_tracker[dest_replica]+dN_dest) > (N+1)){return;}
+        if ((N_tracker[src_replica]+dN_src)   < (N-1)  || (N_tracker[src_replica]+dN_src)   > (N+1)  ||
+            (N_tracker[dest_replica]+dN_dest) < (N-1)  ||
+            (N_tracker[dest_replica]+dN_dest) > (N+1)){return;}
     }
     
     // Get number of particles after: worm end @ src & central kink @ dest
     n_after_worm_end = paths[src_replica][worm_end_idx].n;
     n_before_worm_end = paths[src_replica][prev_src].n;
-    n_after_swap_kink = paths[dest_replica][kink_out_of_dest].n; // * check idx
+    n_after_swap_kink = paths[dest_replica][kink_out_of_dest].n;
     n_before_swap_kink = paths[dest_replica][prev_dest].n;
         
     // Get number of kinks in source and destination replicas
     num_kinks_src = num_kinks[src_replica];
     num_kinks_dest = num_kinks[dest_replica];
+    
+//    if (!is_advance && is_over_swap){cout<<n_before_swap_kink<<endl;}
     
     // Build the Metropolis condition (R)
     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
@@ -3709,15 +3713,14 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 
             if (is_advance){ // advance OVER SWAP
                 
-//                int n_left,n_right;
-//
-////                /*---------------------------------------*/
-//                // DEBUGGING (ONly allow flats to differ by one particle)
-//                n_right=paths[src_replica][next_src].n;
-//                n_left=paths[src_replica][worm_end_idx].n+1;
-////                if (abs(n_right-n_left)!=1){return;}
-//
-//
+                int n_left,n_right;
+
+//                /*---------------------------------------*/
+                // DEBUGGING (ONly allow flats to differ by one particle)
+                n_right=paths[src_replica][next_src].n;
+                n_left=paths[src_replica][worm_end_idx].n+1;
+                if (abs(n_right-n_left)>1){return;}
+
 //                cout<<"Advanced head over swap AFTER (left/right fock state)"<<endl;
 //                for (int i=0; i<1; i++){
 //                    cout<<n_left;
@@ -3727,15 +3730,14 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 //                    cout<<n_right;
 //                }
 //                cout << endl;
-//
-////                /*---------------------------------------*/
-////                /*---------------------------------------*/
-//                // DEBUGGING (ONly allow flats to differ by one particle)
-//                n_right=paths[dest_replica][kink_out_of_dest].n+1;
-//                n_left=paths[dest_replica][prev_dest].n;
-////                if (abs(n_right-n_left)!=1){return;}
-//
-//
+
+//                /*---------------------------------------*/
+//                /*---------------------------------------*/
+                // DEBUGGING (ONly allow flats to differ by one particle)
+                n_right=paths[dest_replica][kink_out_of_dest].n+1;
+                n_left=paths[dest_replica][prev_dest].n;
+                if (abs(n_right-n_left)>1){return;}
+
 //                for (int i=0; i<1; i++){
 //                    cout<<n_left;
 //                }
@@ -3743,7 +3745,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 //                for (int i=0; i<1; i++){
 //                    cout<<n_right;
 //                }
-//
+
 //                cout << endl << endl;
 ////                /*---------------------------------------*/
 
@@ -3818,15 +3820,14 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
             }
             else{ // Recede OVER SWAP
                 
-//                int n_left,n_right;
-//
-////                /*---------------------------------------*/
-//                // DEBUGGING (ONly allow flats to differ by one particle)
-//                n_right=n_after_worm_end;
-//                n_left=paths[src_replica][paths[src_replica][prev_src].prev].n;
-////                if (abs(n_right-n_left)!=1){return;}
-//
-//
+                int n_left,n_right;
+
+//                /*---------------------------------------*/
+                // DEBUGGING (ONly allow flats to differ by one particle)
+                n_right=n_after_worm_end;
+                n_left=paths[src_replica][paths[src_replica][prev_src].prev].n;
+                if (abs(n_right-n_left)>1){return;}
+
 //                cout<<"Recede head over swap AFTER (left/right fock state)"<<endl;
 //                for (int i=0; i<1; i++){
 //                    cout<<n_left;
@@ -3836,14 +3837,14 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
 //                    cout<<n_right;
 //                }
 //                cout << endl;
-//
-////                /*---------------------------------------*/
-////                /*---------------------------------------*/
-//                // DEBUGGING (ONly allow flats to differ by one particle)
-//                n_right=paths[dest_replica][kink_out_of_dest].n;
-//                n_left=paths[dest_replica][prev_dest].n-1;
-////                if (abs(n_right-n_left)!=1){return;}
-//
+
+//                /*---------------------------------------*/
+//                /*---------------------------------------*/
+                // DEBUGGING (ONly allow flats to differ by one particle)
+                n_right=paths[dest_replica][kink_out_of_dest].n;
+                n_left=paths[dest_replica][prev_dest].n-1;
+                if (abs(n_right-n_left)>1){return;}
+
 //                for (int i=0; i<1; i++){
 //                    cout<<n_left;
 //                }
@@ -3851,12 +3852,13 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
 //                for (int i=0; i<1; i++){
 //                    cout<<n_right;
 //                }
-//
+
 //                cout << endl << endl;
-////                /*---------------------------------------*/
-//
-//
-////                if (n_before_swap_kink==0){return;}
+                
+//                /*---------------------------------------*/
+
+                // Cannot recede head over swap if no particles on destination
+                if (n_before_swap_kink==0){return;}
                 
                 /*--------- Deletion of worm end from SOURCE replica ---------*/
                 // num_kinks_src-1 will be swapped. Modify links to it
@@ -3905,9 +3907,6 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                 
 
                 /*------- Insertion of worm end in DESTINATION replica -------*/
-                
-                // Can't recede into other replica if no particles in flat
-                if (n_before_swap_kink==0){return;}
 
                 // Activate first available kink
                 paths[dest_replica][num_kinks_dest]=
@@ -3921,8 +3920,7 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                 swap_recede_head_accepts+=1;
                 
                 // Modify links to worm head in destination replica
-                if (kink_out_of_dest!=-1)
-                    paths[dest_replica][kink_out_of_dest].prev=num_kinks_dest;
+                paths[dest_replica][kink_out_of_dest].prev=num_kinks_dest;
                 paths[dest_replica][prev_dest].next=num_kinks_dest;
                 
                 // Update trackers for: no. of active kinks,total particles

@@ -194,9 +194,9 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=2.00;
+    beta=1.00;
     canonical=true;
-    sweeps=100000000;
+    sweeps=10000000;
     sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
@@ -1133,54 +1133,54 @@ int main(){
                 
                 /*-------------------TEMPORARY----------------------*/
 
-//                vector<int> fock_state_0 (4,0);
-//                vector<int> fock_state_1 (4,0);
-//                vector<int> swap_bit (2,0);
-//                vector<int> extended_fock_state (10,0);
-//                int integer_state;
-//
-//                // build fock state of each replica at beta/2
-//                get_fock_state(beta/2,4,fock_state_0,paths[0]);
-//                get_fock_state(beta/2,4,fock_state_1,paths[1]);
-//
-//                // build the swap bit
-//                for (int i=0; i<l_A; i++){
-//                    if (swap_kinks[i])
-//                        swap_bit[i]=1;
-//                    else
-//                        swap_bit[i]=0;
-//                }
-//
-//                // add count to bin corresponding to number of swapped sites
-//                if (head_idx[0]==-1 && tail_idx[0]==-1
-//                    && head_idx[1]==-1 && tail_idx[1]==-1){
-//                    if (N_beta[0]==N && N_beta[1]==N){
-//
-//                        // Build the extended fock state (binary word)
-//                        for (int i=0; i<10; i++){
-//                            if (i<4)
-//                                extended_fock_state[i]=fock_state_0[i];
-//                            else if (i>=4 && i<8)
-//                                extended_fock_state[i]=fock_state_1[i-4];
-//                            else
-//                                extended_fock_state[i]=swap_bit[i-8];
-//                        }
-//
-//                        // Convert the binary word to an integer
-//                        integer_state=binaryToDecimal(extended_fock_state);
+                vector<int> fock_state_0 (4,0);
+                vector<int> fock_state_1 (4,0);
+                vector<int> swap_bit (2,0);
+                vector<int> extended_fock_state (10,0);
+                int integer_state;
+
+                // build fock state of each replica at beta/2
+                get_fock_state(beta/2,4,fock_state_0,paths[0]);
+                get_fock_state(beta/2,4,fock_state_1,paths[1]);
+
+                // build the swap bit
+                for (int i=0; i<l_A; i++){
+                    if (swap_kinks[i])
+                        swap_bit[i]=1;
+                    else
+                        swap_bit[i]=0;
+                }
+
+                // add count to bin corresponding to number of swapped sites
+                if (head_idx[0]==-1 && tail_idx[0]==-1
+                    && head_idx[1]==-1 && tail_idx[1]==-1){
+                    if (N_beta[0]==N && N_beta[1]==N){
+
+                        // Build the extended fock state (binary word)
+                        for (int i=0; i<10; i++){
+                            if (i<4)
+                                extended_fock_state[i]=fock_state_0[i];
+                            else if (i>=4 && i<8)
+                                extended_fock_state[i]=fock_state_1[i-4];
+                            else
+                                extended_fock_state[i]=swap_bit[i-8];
+                        }
+
+                        // Convert the binary word to an integer
+                        integer_state=binaryToDecimal(extended_fock_state);
                         
-//                        bool only_one_and_zero=true;
-//                        for (int i=0;i<extended_fock_state.size();i++){
-//                            if (extended_fock_state[i]>=2)
-//                                {only_one_and_zero=false;}
-//                        }
+                        bool only_one_and_zero=true;
+                        for (int i=0;i<extended_fock_state.size();i++){
+                            if (extended_fock_state[i]>=2)
+                                {only_one_and_zero=false;}
+                        }
                         
-//                        // Add a count to the corresponding
-//                        if (only_one_and_zero)
-//                            histogram[lookup[integer_state]]++;
-//
-//                    }
-//                }
+                        // Add a count to the corresponding
+                        if (only_one_and_zero)
+                            histogram[lookup[integer_state]]++;
+
+                    }
+                }
 
 //                /*-------------------TEMPORARY----------------------*/
 
