@@ -169,17 +169,17 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=4;
+    L=6;
     D=1;
     M=pow(L,D);
-    N=1;
+    N=6;
     t=1.0;
-    U=0.0;
+    U=10.0;
     mu=-1.60341;
     boundary_condition="pbc";
     
     // Subsystem settings
-    l_A = 4; // subsystem linear size
+    l_A = 3; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -1127,71 +1127,71 @@ int main(){
                 
                 /*-------------------TEMPORARY----------------------*/
 
-                vector<int> fock_state_0 (4,0);
-                vector<int> fock_state_1 (4,0);
-                vector<int> swap_bit (2,0);
-                vector<int> extended_fock_state (10,0);
-                int integer_state;
-
-                // build fock state of each replica at beta/2
-                get_fock_state(beta/2,4,fock_state_0,paths[0]);
-                get_fock_state(beta/2,4,fock_state_1,paths[1]);
-
-                // build the swap bit
-                for (int i=0; i<l_A; i++){
-                    if (swap_kinks[i])
-                        swap_bit[i]=1;
-                    else
-                        swap_bit[i]=0;
-                }
-
-                // add count to bin corresponding to number of swapped sites
-                if (head_idx[0]==-1 && tail_idx[0]==-1
-                    && head_idx[1]==-1 && tail_idx[1]==-1){
-                    if (N_beta[0]==N && N_beta[1]==N
-                        && N_zero[0]==N && N_zero[1]==N){
-
-                        // Build the extended fock state (binary word)
-                        for (int i=0; i<10; i++){
-                            if (i<4)
-                                extended_fock_state[i]=fock_state_0[i];
-                            else if (i>=4 && i<8)
-                                extended_fock_state[i]=fock_state_1[i-4];
-                            else
-                                extended_fock_state[i]=swap_bit[i-8];
-                        }
-
-                        // Convert the binary word to an integer
-                        integer_state=binaryToDecimal(extended_fock_state);
-
-                        bool only_one_and_zero=true;
-                        for (int i=0;i<extended_fock_state.size();i++){
-                            if (extended_fock_state[i]>=2)
-                                {only_one_and_zero=false;}
-                        }
-
-                        // Add a count to the corresponding
-                        if (only_one_and_zero)
-                            histogram[lookup[integer_state]]++;
-                        
-                        // Is N_zero==N_half? Test.
-                        int N_half_0=0;
-                        int N_half_1=0;
-                        for (int i=0;i<M;i++){
-                            N_half_0+=fock_state_0[i];
-                            N_half_1+=fock_state_1[i];
-                        }
-                        if (N_zero[0]!=N_half_0 || N_beta[0]!=N_half_0){
-                            cout<<head_idx[0]<<" "<<tail_idx[0]<<endl;
-                            cout<<N_zero[0]<<" "<<N_half_0<<" "<<N_beta[0]<<endl;
-                            exit(1);}
-                        if (N_zero[1]!=N_half_1 || N_beta[1]!=N_half_1){
-                            cout<<head_idx[1]<<" "<<tail_idx[1]<<endl;
-                            cout<<N_zero[1]<<" "<<N_half_1<<" "<<N_beta[1]<<endl;
-                            exit(2);}
-
-                    }
-                }
+//                vector<int> fock_state_0 (4,0);
+//                vector<int> fock_state_1 (4,0);
+//                vector<int> swap_bit (2,0);
+//                vector<int> extended_fock_state (10,0);
+//                int integer_state;
+//
+//                // build fock state of each replica at beta/2
+//                get_fock_state(beta/2,4,fock_state_0,paths[0]);
+//                get_fock_state(beta/2,4,fock_state_1,paths[1]);
+//
+//                // build the swap bit
+//                for (int i=0; i<l_A; i++){
+//                    if (swap_kinks[i])
+//                        swap_bit[i]=1;
+//                    else
+//                        swap_bit[i]=0;
+//                }
+//
+//                // add count to bin corresponding to number of swapped sites
+//                if (head_idx[0]==-1 && tail_idx[0]==-1
+//                    && head_idx[1]==-1 && tail_idx[1]==-1){
+//                    if (N_beta[0]==N && N_beta[1]==N
+//                        && N_zero[0]==N && N_zero[1]==N){
+//
+//                        // Build the extended fock state (binary word)
+//                        for (int i=0; i<10; i++){
+//                            if (i<4)
+//                                extended_fock_state[i]=fock_state_0[i];
+//                            else if (i>=4 && i<8)
+//                                extended_fock_state[i]=fock_state_1[i-4];
+//                            else
+//                                extended_fock_state[i]=swap_bit[i-8];
+//                        }
+//
+//                        // Convert the binary word to an integer
+//                        integer_state=binaryToDecimal(extended_fock_state);
+//
+//                        bool only_one_and_zero=true;
+//                        for (int i=0;i<extended_fock_state.size();i++){
+//                            if (extended_fock_state[i]>=2)
+//                                {only_one_and_zero=false;}
+//                        }
+//
+//                        // Add a count to the corresponding
+//                        if (only_one_and_zero)
+//                            histogram[lookup[integer_state]]++;
+//
+//                        // Is N_zero==N_half? Test.
+//                        int N_half_0=0;
+//                        int N_half_1=0;
+//                        for (int i=0;i<M;i++){
+//                            N_half_0+=fock_state_0[i];
+//                            N_half_1+=fock_state_1[i];
+//                        }
+//                        if (N_zero[0]!=N_half_0 || N_beta[0]!=N_half_0){
+//                            cout<<head_idx[0]<<" "<<tail_idx[0]<<endl;
+//                            cout<<N_zero[0]<<" "<<N_half_0<<" "<<N_beta[0]<<endl;
+//                            exit(1);}
+//                        if (N_zero[1]!=N_half_1 || N_beta[1]!=N_half_1){
+//                            cout<<head_idx[1]<<" "<<tail_idx[1]<<endl;
+//                            cout<<N_zero[1]<<" "<<N_half_1<<" "<<N_beta[1]<<endl;
+//                            exit(2);}
+//
+//                    }
+//                }
                 
 
 

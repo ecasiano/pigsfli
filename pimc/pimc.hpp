@@ -3202,8 +3202,9 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     }
 
     // Propose the next site to swap
-    boost::random::uniform_int_distribution<> sites(0, m_A-1);
-    next_swap_site = sites(rng);
+//    boost::random::uniform_int_distribution<> sites(0, m_A-1);
+//    next_swap_site = sites(rng);
+    next_swap_site = sub_sites[num_swaps];
     
     if (swap_kinks[next_swap_site]){return;}
     
@@ -3375,8 +3376,9 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
     num_kinks_dest = num_kinks[dest_replica];
     
     // Randomly choose a swapped site to unswap
-    boost::random::uniform_int_distribution<> sites(0, m_A-1);
-    site_to_unswap = sites(rng);
+//    boost::random::uniform_int_distribution<> sites(0, m_A-1);
+//    site_to_unswap = sites(rng);
+    site_to_unswap = sub_sites[num_swaps-1];
     
 //    cout << swap_kinks[0];
 //    cout << swap_kinks[1];
