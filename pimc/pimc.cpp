@@ -179,7 +179,7 @@ int main(){
     boundary_condition="pbc";
     
     // Subsystem settings
-    l_A = 1; // subsystem linear size
+    l_A = 2; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -194,10 +194,10 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=1.00;
+    beta=2.00;
     canonical=true;
-    sweeps=10000000;
-    sweeps_pre=1000000;
+    sweeps=100000000;
+    sweeps_pre=10000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
@@ -1098,21 +1098,13 @@ int main(){
                 }
             } // end of conventional measurements if statement
             
-//            if (head_idx[0]==-1&&head_idx[1]==-1&&
-//                tail_idx[0]==-1&&tail_idx[1]==-1){
-//                if (abs(N_tracker[0]-N)<1.0E-13 &&
-//                    abs(N_tracker[1]-N)<1.0E-13){
-//                    cout << N_tracker[0] << " " << N_tracker[1] << endl;
-//                }
-//            }
-            
             // Non-conventional (SWAP) measurements
             if (num_replicas>1) {
                 // add count to bin corresponding to number of swapped sites
                 if (head_idx[0]==-1&&head_idx[1]==-1&&
                     tail_idx[0]==-1&&tail_idx[1]==-1){
-                    if (abs(N_tracker[0]-N)<1.0E-08 &&
-                        abs(N_tracker[1]-N)<1.0E-08){
+                    if (N_zero[0]==N && N_beta[0]==N
+                        && N_zero[1]==N && N_beta[1]==N){
                             SWAP_histogram[num_swaps]+=1;
                             writing_ctr+=1;
                     }
@@ -1154,7 +1146,8 @@ int main(){
                 // add count to bin corresponding to number of swapped sites
                 if (head_idx[0]==-1 && tail_idx[0]==-1
                     && head_idx[1]==-1 && tail_idx[1]==-1){
-                    if (N_beta[0]==N && N_beta[1]==N){
+                    if (N_beta[0]==N && N_beta[1]==N
+                        && N_zero[0]==N && N_zero[1]==N){
 
                         // Build the extended fock state (binary word)
                         for (int i=0; i<10; i++){
@@ -1168,19 +1161,39 @@ int main(){
 
                         // Convert the binary word to an integer
                         integer_state=binaryToDecimal(extended_fock_state);
-                        
+
                         bool only_one_and_zero=true;
                         for (int i=0;i<extended_fock_state.size();i++){
                             if (extended_fock_state[i]>=2)
                                 {only_one_and_zero=false;}
                         }
-                        
+
                         // Add a count to the corresponding
                         if (only_one_and_zero)
                             histogram[lookup[integer_state]]++;
+                        
+                        // Is N_zero==N_half? Test.
+                        int N_half_0=0;
+                        int N_half_1=0;
+                        for (int i=0;i<M;i++){
+                            N_half_0+=fock_state_0[i];
+                            N_half_1+=fock_state_1[i];
+                        }
+                        if (N_zero[0]!=N_half_0 || N_beta[0]!=N_half_0){
+                            cout<<head_idx[0]<<" "<<tail_idx[0]<<endl;
+                            cout<<N_zero[0]<<" "<<N_half_0<<" "<<N_beta[0]<<endl;
+                            exit(1);}
+                        if (N_zero[1]!=N_half_1 || N_beta[1]!=N_half_1){
+                            cout<<head_idx[1]<<" "<<tail_idx[1]<<endl;
+                            cout<<N_zero[1]<<" "<<N_half_1<<" "<<N_beta[1]<<endl;
+                            exit(2);}
 
                     }
                 }
+                
+
+
+
 
 //                /*-------------------TEMPORARY----------------------*/
 
