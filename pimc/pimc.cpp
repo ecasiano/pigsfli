@@ -179,7 +179,7 @@ int main(){
     boundary_condition="pbc";
     
     // Subsystem settings
-    l_A = 2; // subsystem linear size
+    l_A = 4; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -629,6 +629,7 @@ int main(){
         
         if (canonical){ // name of file if canonical simulation
             SWAP_histogram_name=to_string(M)+"_"+to_string(N)+"_"+
+            to_string(l_A)+"_"+
             to_string(U)+"_"+to_string(beta)+"_"+
             to_string(t)+"_"+to_string(sweeps)+"_"+
             to_string(seed_A)+"_"+to_string(D)+"D_"+
@@ -636,6 +637,7 @@ int main(){
         }
         else { // name of file if grand canonical simulation
             SWAP_histogram_name=to_string(M)+"_"+to_string(N)+"_"+
+            to_string(l_A)+"_"+
             to_string(U)+"_"+to_string(mu)+"_"+
             to_string(beta)+"_"+
             to_string(t)+"_"+to_string(sweeps)+"_"+
@@ -1310,7 +1312,7 @@ int main(){
 //    /*-----------------TEMPORARY------------------------*/
     ofstream binary_state_histogram_out;
     string file_name="binary_state_histogram_"+
-    to_string(U)+"_"+to_string(beta)+"_.dat";
+    to_string(U)+"_"+to_string(beta)+"_"+to_string(l_A)+"_.dat";
 
     binary_state_histogram_out.open(file_name);
 //    /*-----------------TEMPORARY------------------------*/
@@ -1325,17 +1327,6 @@ int main(){
     for (int i=0;i<64;i++){
         cout << i << " "<< histogram[i] << endl;
     }
-
-//    cout << endl;
-//    for (int i=0;i<num_kinks[0];i++){
-//        cout << i << " " << paths[0][i] << endl;
-//    }
-//    cout << endl;
-//
-//    for (int i=0;i<num_kinks[1];i++){
-//        cout << i << " " << paths[1][i] << endl;
-//    }
-//    cout << endl;
     
     return 0;
     
