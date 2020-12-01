@@ -121,7 +121,7 @@ vector<int> random_boson_config(int M,int N,boost::random::mt19937 &rng){
 vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
 
     // Pre-allocate kinks. Recall: (tau,n,src,dest,prev,next)
-    vector<Kink> paths(10000,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1));
+    vector<Kink> paths(100000,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1));
 
     // Initialize the first M=L^D kinks
     for (int site=0; site<M; site++){
@@ -3719,8 +3719,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
                 // DEBUGGING (ONly allow flats to differ by one particle)
                 n_right=paths[src_replica][next_src].n;
                 n_left=paths[src_replica][worm_end_idx].n+1;
-                if (abs(n_right-n_left)>1){return;}
-
+//                if (n_right==2||n_left==2){return;}
 //                cout<<"Advanced head over swap AFTER (left/right fock state)"<<endl;
 //                for (int i=0; i<1; i++){
 //                    cout<<n_left;
@@ -3736,8 +3735,7 @@ void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
                 // DEBUGGING (ONly allow flats to differ by one particle)
                 n_right=paths[dest_replica][kink_out_of_dest].n+1;
                 n_left=paths[dest_replica][prev_dest].n;
-                if (abs(n_right-n_left)>1){return;}
-
+//                if (n_right==2||n_left==2){return;}
 //                for (int i=0; i<1; i++){
 //                    cout<<n_left;
 //                }
@@ -3826,8 +3824,7 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                 // DEBUGGING (ONly allow flats to differ by one particle)
                 n_right=n_after_worm_end;
                 n_left=paths[src_replica][paths[src_replica][prev_src].prev].n;
-                if (abs(n_right-n_left)>1){return;}
-
+//                if (n_right==2||n_left==2){return;}
 //                cout<<"Recede head over swap AFTER (left/right fock state)"<<endl;
 //                for (int i=0; i<1; i++){
 //                    cout<<n_left;
@@ -3843,8 +3840,7 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                 // DEBUGGING (ONly allow flats to differ by one particle)
                 n_right=paths[dest_replica][kink_out_of_dest].n;
                 n_left=paths[dest_replica][prev_dest].n-1;
-                if (abs(n_right-n_left)>1){return;}
-
+//                if (n_right==2||n_left==2){return;}
 //                for (int i=0; i<1; i++){
 //                    cout<<n_left;
 //                }
@@ -3971,7 +3967,7 @@ void get_fock_state(double measurement_center, int M,
     for (int i=0; i<M; i++){
         current=i;
         tau = paths[current].tau;
-        while (tau<measurement_center-1.0E-12 && current!=-1){
+        while (tau<measurement_center+1.0E-12 && current!=-1){
             n_i=paths[current].n;
             fock_state_at_slice[i]=n_i;
             
