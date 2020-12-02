@@ -169,17 +169,17 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=6;
+    L=4;
     D=1;
     M=pow(L,D);
-    N=6;
+    N=1;
     t=1.0;
-    U=10.0;
+    U=1.0;
     mu=-1.60341;
     boundary_condition="pbc";
     
     // Subsystem settings
-    l_A = 3; // subsystem linear size
+    l_A = L/2; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -194,10 +194,10 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=2.00;
+    beta=2.0;
     canonical=true;
-    sweeps=100000000;
-    sweeps_pre=10000000;
+    sweeps=1000000;
+    sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
