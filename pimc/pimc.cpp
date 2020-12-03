@@ -172,7 +172,7 @@ int main(){
     L=4;
     D=1;
     M=pow(L,D);
-    N=1;
+    N=2;
     t=1.0;
     U=1.0;
     mu=-1.60341;
@@ -194,10 +194,10 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=2.0;
+    beta=0.1;
     canonical=true;
-    sweeps=1000000;
-    sweeps_pre=1000000;
+    sweeps=1000000000;
+    sweeps_pre=10000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
