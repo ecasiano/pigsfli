@@ -10,41 +10,6 @@
 
 // Main
 int main(){
-    
-    /*---------------------- TEMPORARY -----------------------*/
-
-    int system,replica,config;
-    vector<int> configs;
-    for (int i = 0; i < 4; i++) {
-        system = 1 << i;
-        for (int j = 0; j < 4; j++) {
-            replica = 1 << j;
-            config = ((system << 4) | replica) << 2;
-            for (int k = 0; k < 4; k++) {
-                configs.push_back(config+k);
-            }
-        }
-     }
-    
-    for (int i=0; i<configs.size(); i++){
-//        cout<<setw(2)<<right<<i<<":   ";
-        cout << i << " ";
-        decToBinary(configs[i]);
-        cout << endl;
-//        cout<<"   ("<<configs[i]<<")"<<endl;
-    }
-
-    auto max_config = *std::max_element(configs.begin(), configs.end());
-    vector<int> lookup(max_config+1, -1);
-    for (int i = 0; i < configs.size(); i++) {
-        lookup[configs[i]] = i;
-    }
-    cout << endl << "Max config: " << max_config << endl;
-    
-    vector<int> histogram (configs.size(),0);
-
-    
-    /*---------------------- TEMPORARY -----------------------*/
 
     // Initialize a Mersenne Twister RNG for each replica
     int seed_A=0;
@@ -52,7 +17,7 @@ int main(){
     
     // Create a uniform distribution with support: [0.0,1.0)
     boost::random::uniform_real_distribution<double> rnum(0.0,1.0);
-    
+
     // Create integer distribution with support: [0,16]
     boost::random::uniform_int_distribution<> updates(0,14);
     
@@ -172,7 +137,7 @@ int main(){
     L=4;
     D=1;
     M=pow(L,D);
-    N=2;
+    N=4;
     t=1.0;
     U=1.0;
     mu=-1.60341;
@@ -183,18 +148,13 @@ int main(){
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
-    cout << "sub_system sites: ";
-    for (int i=0; i<sub_sites.size(); i++){
-        cout << sub_sites[i] << " ";
-    }
-    cout << endl;
     
     // Initialize Fock State
     initial_fock_state = random_boson_config(M,N,rng);
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=1;
+    beta=2;
     canonical=true;
     sweeps=10000000;
     sweeps_pre=1000000;
@@ -878,156 +838,6 @@ int main(){
              // lol
          }
         
-/*------------------------- Unit Tests (kind of) -----------------------------*/
-//
-//        // Unit test #1: No last kink indices should be repeated
-//        if (last_kinks[0]==last_kinks[1]
-//           || last_kinks[0]==last_kinks[2]
-//           || last_kinks[0]==last_kinks[3]
-//           || last_kinks[1]==last_kinks[2]
-//           || last_kinks[1]==last_kinks[3]
-//           || last_kinks[2]==last_kinks[3]){
-//            cout << "ERROR: Every site should have different last indices";
-//            cout << "label " << label << " m " << m << endl;
-//            // Print out the indices of each sites last kink
-//            cout << "Last kiNk indices before update: ";
-//            for (int i=0; i<M ; i++){
-//                cout << last_kinks[i] << " ";
-//            }
-//            cout << endl;
-//            break;
-//        }
-//
-//
-//        // Unit test #2: src and dest of worm tail kink should be the same
-//        if (tail_idx!=-1){
-//            if (paths[tail_idx].src!=paths[tail_idx].dest){
-//                cout << "ERROR: src,dest of worm tail not the same ";
-//                cout << "label: " << label << " m " << m <<
-//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//                 " tail_idx: " << tail_idx << endl;
-//                // Print out the indices of each sites last kink
-//                cout << "Structure after worm end idx error: " << endl;
-//                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << paths[i] << endl;
-//                }
-//                cout << endl;
-//                break;
-//            }
-//        }
-//
-//        // Unit test 3: src and dest of worm head kink should be the same
-//        if (head_idx!=-1){
-//            if (paths[head_idx].src!=paths[head_idx].dest){
-//                cout << "ERROR: src,dest of worm head not the same ";
-//                cout << "label: " << label << " m " << m <<
-//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//                 " tail_idx: " << tail_idx << endl;
-//                // Print out the indices of each sites last kink
-//                cout << "Structure after worm end idx error: " << endl;
-//                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << paths[i] << endl;
-//                }
-//                cout << endl;
-//                break;
-//            }
-//        }
-//
-//        // Unit test 4: Last indices should have .next equal to -1
-//        if (paths[last_kinks[0]].next!=-1
-//            || paths[last_kinks[1]].next!=-1
-//            || paths[last_kinks[2]].next!=-1
-//            || paths[last_kinks[3]].next!=-1){
-//            cout << "ERROR: Last indices should have .next equal to -1 ";
-//            cout << "label: " << label << " m " << m <<
-//             " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//             " tail_idx: " << tail_idx << endl;
-//            // Print out the indices of each sites last kink
-//            cout << "Last indices: " << endl;
-//            for (int i=0; i<M; i++){
-//                cout << last_kinks[i] << " ";
-//            }
-//            cout << endl;
-//            cout << ".next of each of the last kinks:"<<endl;
-//            for (int i=0; i<M; i++){
-//                cout << paths[last_kinks[i]].next << " ";
-//            }
-//            cout << endl;
-//            cout << "Structure after worm end idx error: " << endl;
-//            for (int i=0; i<num_kinks+5 ; i++){
-//                cout << i << " " << paths[i] << endl;
-//            }
-//            cout << endl;
-//            break;
-//        }
-//
-//        // Unit test 5: Conservation of N_zero
-//        if (head_idx==-1 && tail_idx==-1 && canonical){
-//            if (N_tracker < N-1 || N_tracker > N+1){
-//                cout << "ERROR: Total particle number N not conserved" << endl;
-//                cout << "label: " << label << " m " << m <<
-//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//                 " tail_idx: " << tail_idx << endl;
-//                // Print out the indices of each sites last kink
-//                cout << "Structure after worm end idx error: " << endl;
-//                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << paths[i] << endl;
-//                }
-//                break;
-//            }
-//        }
-//
-//        // Unit Test 6: Sum the particles at the beggining when no worm ends
-//        if (head_idx==-1 && tail_idx==-1 && canonical){
-//            int N_total_sum_zero=0;
-//            for (int i=0; i<M; i++){
-//                N_total_sum_zero+=paths[i].n;
-//            }
-//            if (N_total_sum_zero < N-1 || N_total_sum_zero > N+1){
-//                cout << "ERROR: Total particle number N at zero not conserved" << endl;
-//                cout << "label: " << label << " m " << m <<
-//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//                 " tail_idx: " << tail_idx << endl;
-//                cout << "N_zero (unit test 6): " << N_total_sum_zero << endl;
-//                // Print out the indices of each sites last kink
-//                cout << "Structure after worm end idx error: " << endl;
-//                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << paths[i] << endl;
-//                }
-//                break;
-//            }
-//        }
-//
-//        // Unit Test 7: Sum the particles at the end when no worm ends
-//        if (head_idx==-1 && tail_idx==-1 && canonical){
-//            int N_total_sum_beta=0;
-//            for (int i=0; i<M; i++){
-//                N_total_sum_beta+=paths[last_kinks[i]].n;
-//            }
-//            if (N_total_sum_beta < N-1 || N_total_sum_beta > N+1){
-//                cout << "ERROR: Total particle number at beta not conserved" << endl;
-//                cout << "label: " << label << " m " << m <<
-//                 " num_kinks: " << num_kinks << " head_idx: " << head_idx <<
-//                 " tail_idx: " << tail_idx << " N_tracker: " << N_tracker <<endl;
-//                cout << "N_beta (unit test 7): " << N_total_sum_beta << endl;
-//                // Print out the indices of each sites last kink
-//                cout << "Structure after worm end idx error: " << endl;
-//                for (int i=0; i<num_kinks+5 ; i++){
-//                    cout << i << " " << paths[i] << endl;
-//                }
-//                break;
-//            }
-//        }
-
-//        // Unit test 8: Check that the prev,next attributes are different to kink index
-//        for (int i=0; i<num_kinks; i++){
-//            if (i==paths[i].prev
-//                || i==paths[i].next){
-//                cout << "ERROR: the kink with index " <<
-//                i << " has the same prev or next" << endl;
-//                break;}
-//        }
-        
 /*----------------------------- Measurements ---------------------------------*/
 
         if (m%(sweep*measurement_frequency)==0 && m>=sweeps*0.25){
@@ -1124,80 +934,6 @@ int main(){
                               SWAP_histogram.end(),0);
                     writing_ctr=0;
                 }
-                
-                /*-------------------TEMPORARY----------------------*/
-
-//                vector<int> fock_state_0 (4,0);
-//                vector<int> fock_state_1 (4,0);
-//                vector<int> swap_bit (2,0);
-//                vector<int> extended_fock_state (10,0);
-//                int integer_state;
-//
-//                // build fock state of each replica at beta/2
-//                get_fock_state(beta/2,4,fock_state_0,paths[0]);
-//                get_fock_state(beta/2,4,fock_state_1,paths[1]);
-//
-//                // build the swap bit
-//                for (int i=0; i<l_A; i++){
-//                    if (swap_kinks[i])
-//                        swap_bit[i]=1;
-//                    else
-//                        swap_bit[i]=0;
-//                }
-//
-//                // add count to bin corresponding to number of swapped sites
-//                if (head_idx[0]==-1 && tail_idx[0]==-1
-//                    && head_idx[1]==-1 && tail_idx[1]==-1){
-//                    if (N_beta[0]==N && N_beta[1]==N
-//                        && N_zero[0]==N && N_zero[1]==N){
-//
-//                        // Build the extended fock state (binary word)
-//                        for (int i=0; i<10; i++){
-//                            if (i<4)
-//                                extended_fock_state[i]=fock_state_0[i];
-//                            else if (i>=4 && i<8)
-//                                extended_fock_state[i]=fock_state_1[i-4];
-//                            else
-//                                extended_fock_state[i]=swap_bit[i-8];
-//                        }
-//
-//                        // Convert the binary word to an integer
-//                        integer_state=binaryToDecimal(extended_fock_state);
-//
-//                        bool only_one_and_zero=true;
-//                        for (int i=0;i<extended_fock_state.size();i++){
-//                            if (extended_fock_state[i]>=2)
-//                                {only_one_and_zero=false;}
-//                        }
-//
-//                        // Add a count to the corresponding
-//                        if (only_one_and_zero)
-//                            histogram[lookup[integer_state]]++;
-//
-//                        // Is N_zero==N_half? Test.
-//                        int N_half_0=0;
-//                        int N_half_1=0;
-//                        for (int i=0;i<M;i++){
-//                            N_half_0+=fock_state_0[i];
-//                            N_half_1+=fock_state_1[i];
-//                        }
-//                        if (N_zero[0]!=N_half_0 || N_beta[0]!=N_half_0){
-//                            cout<<head_idx[0]<<" "<<tail_idx[0]<<endl;
-//                            cout<<N_zero[0]<<" "<<N_half_0<<" "<<N_beta[0]<<endl;
-//                            exit(1);}
-//                        if (N_zero[1]!=N_half_1 || N_beta[1]!=N_half_1){
-//                            cout<<head_idx[1]<<" "<<tail_idx[1]<<endl;
-//                            cout<<N_zero[1]<<" "<<N_half_1<<" "<<N_beta[1]<<endl;
-//                            exit(2);}
-//
-//                    }
-//                }
-                
-
-
-
-
-//                /*-------------------TEMPORARY----------------------*/
 
             } // end of SWAP measurements if statement
         } // end of measurement after 25% equilibration if statement
@@ -1306,27 +1042,6 @@ int main(){
     }
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
-    
-    cout << endl;
-    
-//    /*-----------------TEMPORARY------------------------*/
-    ofstream binary_state_histogram_out;
-    string file_name="binary_state_histogram_"+
-    to_string(U)+"_"+to_string(beta)+"_"+to_string(l_A)+"_.dat";
-
-    binary_state_histogram_out.open(file_name);
-//    /*-----------------TEMPORARY------------------------*/
-
-    for (int i=0; i<histogram.size();i++){
-        binary_state_histogram_out<<fixed<<setprecision(17)
-        <<histogram[i]<< " ";
-    }
-    binary_state_histogram_out.close();
-//    /*-----------------TEMPORARY------------------------*/
-    
-    for (int i=0;i<64;i++){
-        cout << i << " "<< histogram[i] << endl;
-    }
     
     return 0;
     
