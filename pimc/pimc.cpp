@@ -72,21 +72,21 @@ int main(){
     int label; // random update label;
     
     // Adjacency matrix
-    vector<vector<int>> adjacency_matrix;
+    vector<vector<int> > adjacency_matrix;
     int total_nn;
     
     // Declare the data structure
-    vector<vector<Kink>> paths;
+    vector<vector<Kink> > paths;
         
     // Replicated trackers
     vector<int> num_kinks,head_idx,tail_idx,N_zero,N_beta,bin_ctr;
     vector<double> N_tracker;
-    vector<vector<int>> last_kinks;
+    vector<vector<int> > last_kinks;
     vector<unsigned long long int> Z_ctr,measurement_attempts;
     
     // Replicated observables
     vector<double> N_sum,diagonal_energy,kinetic_energy;
-    vector<vector<double>> tr_kinetic_energy,tr_diagonal_energy;
+    vector<vector<double> > tr_kinetic_energy,tr_diagonal_energy;
     
     // <SWAP> estimator settings and trackers
     int l_A; // subregion linear size
@@ -194,10 +194,10 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=0.1;
+    beta=1;
     canonical=true;
-    sweeps=1000000000;
-    sweeps_pre=10000000;
+    sweeps=10000000;
+    sweeps_pre=1000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     

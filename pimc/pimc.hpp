@@ -148,7 +148,7 @@ double norm(vector<double> point){
 /*----------------------------------------------------------------------------*/
 
 void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
-                                      vector<vector<int>> &adjacency_matrix){
+                                      vector<vector<int> > &adjacency_matrix){
     
     int M = pow(L,D);
     int site_left,site_right,site_up,site_down,site_high,site_low;
@@ -219,7 +219,7 @@ void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
 /*----------------------------------------------------------------------------*/
 
 void build_adjacency_matrix(int L,int D,string boundary_condition,
-                            vector<vector<bool>>&adjacency_matrix){
+                            vector<vector<bool> >&adjacency_matrix){
 
     // Variable declarations
     int M = pow(L,D); // Number of lattice points
@@ -234,7 +234,7 @@ void build_adjacency_matrix(int L,int D,string boundary_condition,
     
     // Initialize array that will store all the points
     vector<double> empty_point (D,0);
-    vector<vector<double>> points (M,empty_point);
+    vector<vector<double> > points (M,empty_point);
     
     // Norm of basis vectors
     a1 = norm(a1_vec);
@@ -1754,7 +1754,7 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
 void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
-                vector<vector<int>> &adjacency_matrix, int total_nn,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikbh_attempts,
@@ -1887,7 +1887,7 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
 void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
-                vector<vector<int>> &adjacency_matrix, int total_nn,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkbh_attempts,
@@ -2097,7 +2097,7 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
 void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
-                vector<vector<int>> &adjacency_matrix, int total_nn,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikah_attempts,
@@ -2242,7 +2242,7 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
 void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
-                vector<vector<int>> &adjacency_matrix, int total_nn,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkah_attempts,
@@ -2454,7 +2454,7 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
 void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
-                vector<vector<int>> &adjacency_matrix, int total_nn,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikbt_attempts,
@@ -2599,7 +2599,7 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
 void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
-                vector<vector<int>> &adjacency_matrix, int total_nn,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkbt_attempts,
@@ -2807,7 +2807,7 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
 void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
-                vector<vector<int>> &adjacency_matrix, int total_nn,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikat_attempts,
@@ -2949,7 +2949,7 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
 void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
-                vector<vector<int>> &adjacency_matrix, int total_nn,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
                 double beta, double eta, bool canonical, double &N_tracker,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkat_attempts,
@@ -3158,17 +3158,17 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
+void insert_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                 int num_replicas, int replica_idx,
                 vector<int> &sub_sites, vector <int> &swapped_sites,
                 vector<int> &swap_kinks, int &num_swaps,
                 int l_A, int m_A,
                 vector<int> &head_idx,vector<int> &tail_idx,
                 int M, int N, double U, double mu, double t,
-                vector<vector<int>> &adjacency_matrix, int total_nn,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
                 double beta,double eta,bool canonical,vector<double> &N_tracker,
                 vector<int> &N_zero,vector<int> &N_beta,
-                vector<vector<int>> &last_kinks,
+                vector<vector<int> > &last_kinks,
                 unsigned long long int &insert_swap_kink_attempts,
                 unsigned long long int &insert_swap_kink_accepts,
                 boost::random::mt19937 &rng){
@@ -3327,17 +3327,17 @@ void insert_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
+void delete_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                 int num_replicas, int replica_idx,
                 vector<int> &sub_sites, vector <int> &swapped_sites,
                 vector<int> &swap_kinks, int &num_swaps,
                 int l_A, int m_A,
                 vector<int> &head_idx,vector<int> &tail_idx,
                 int M, int N, double U, double mu, double t,
-                vector<vector<int>> &adjacency_matrix, int total_nn,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
                 double beta,double eta,bool canonical,vector<double> &N_tracker,
                 vector<int> &N_zero,vector<int> &N_beta,
-                vector<vector<int>> &last_kinks,
+                vector<vector<int> > &last_kinks,
                 unsigned long long int &delete_swap_kink_attempts,
                 unsigned long long int &delete_swap_kink_accepts,
                 boost::random::mt19937 &rng){
@@ -3527,17 +3527,17 @@ void delete_swap_kink(vector<vector<Kink>> &paths, vector<int> &num_kinks,
 
 /*----------------------------------------------------------------------------*/
 
-void swap_timeshift_head(vector<vector<Kink>> &paths, vector<int> &num_kinks,
+void swap_timeshift_head(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                int num_replicas, int replica_idx,
                vector<int> &sub_sites, vector <int> &swapped_sites,
                vector<int> &swap_kinks, int &num_swaps,
                int l_A, int m_A,
                vector<int> &head_idx,vector<int> &tail_idx,
                int M, int N, double U, double mu, double t,
-               vector<vector<int>> &adjacency_matrix, int total_nn,
+               vector<vector<int> > &adjacency_matrix, int total_nn,
                double beta,double eta,bool canonical,vector<double> &N_tracker,
                vector<int> &N_zero,vector<int> &N_beta,
-               vector<vector<int>> &last_kinks,
+               vector<vector<int> > &last_kinks,
                unsigned long long int &swap_advance_head_attempts,
                unsigned long long int &swap_advance_head_accepts,
                unsigned long long int &swap_recede_head_attempts,
