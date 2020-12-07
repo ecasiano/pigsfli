@@ -871,9 +871,7 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
             if (is_worm){last_kinks[src]=head_idx;}
             else {last_kinks[src]=tail_idx;}
         }
-//        cout << "move #2 accepted on site " << i << " at tau=" <<tau_new<<endl;
-//        cout << "dest_replica from move #2 is" << dest_replica << endl;
-//        cout << "inserted kink: " << paths[num_kinks-1] << endl;
+
         return;
     }
     else // Reject
@@ -2104,8 +2102,6 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &ikah_accepts,
                 boost::random::mt19937 &rng){
     
-//    if (t==0.0){return;}
-
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     src_replica,dest_replica;
@@ -2249,8 +2245,6 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &dkah_accepts,
                 boost::random::mt19937 &rng){
     
-//    if (t==0.0){return;}
-
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     kink_idx_i,kink_idx_j,src_replica,dest_replica;
@@ -2461,8 +2455,6 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &ikbt_accepts,
                 boost::random::mt19937 &rng){
     
-//    if (t==0.0){return;}
-
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     src_replica,dest_replica;
@@ -2606,8 +2598,6 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &dkbt_accepts,
                 boost::random::mt19937 &rng){
     
-//    if (t==0.0){return;}
-
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     kink_idx_i,kink_idx_j,src_replica,dest_replica;
@@ -2814,8 +2804,6 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &ikat_accepts,
                 boost::random::mt19937 &rng){
     
-//    if (t==0.0){return;}
-
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     src_replica,dest_replica;
@@ -2956,8 +2944,6 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 unsigned long long int &dkat_accepts,
                 boost::random::mt19937 &rng){
     
-//    if (t==0.0){return;}
-
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     kink_idx_i,kink_idx_j,src_replica,dest_replica;
@@ -3202,8 +3188,6 @@ void insert_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     }
 
     // Propose the next site to swap
-//    boost::random::uniform_int_distribution<> sites(0, m_A-1);
-//    next_swap_site = sites(rng);
     next_swap_site = sub_sites[num_swaps];
     
     if (swap_kinks[next_swap_site]){return;}
@@ -3251,18 +3235,10 @@ void insert_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                               Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
                               prev_src,next_src,
                               src_replica,dest_replica);
-//    paths[src_replica][num_kinks_src+1] =
-//                              Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
-//                              num_kinks_src,next_src,
-//                              dest_replica,src_replica);
     paths[dest_replica][num_kinks_dest] =
                               Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
                               prev_dest,next_dest,
                               dest_replica,src_replica);
-//    paths[dest_replica][num_kinks_dest+1] =
-//                              Kink(beta/2.0,n_src,next_swap_site,next_swap_site,
-//                              num_kinks_dest,next_dest,
-//                              src_replica,dest_replica);
     // Had to change the meaning of src_replica and dest_replica ATTRIBUTES
     // The now actually have directional meaning. From origin replica to other.
 
@@ -3299,28 +3275,6 @@ void insert_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     swap_kinks[next_swap_site] = 1;
     
     insert_swap_kink_accepts+=1;
-    
-//    for (int i=0; i<1; i++){
-//        cout<<paths[0][prev_src].n;
-//    }
-//    cout << " || ";
-//    for (int i=0; i<1; i++){
-//        cout<<paths[0][num_kinks_src].n;
-//    }
-//
-//    cout << "    ";
-//
-//    for (int i=0; i<1; i++){
-//        cout<<paths[1][prev_dest].n;
-//    }
-//    cout << " || ";
-//    for (int i=0; i<1; i++){
-//        cout<<paths[1][num_kinks_dest].n;
-//    }
-//
-//    cout << endl;
-
-//    cout << "0" << endl;
 
     return;
 }
@@ -3346,9 +3300,8 @@ void delete_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     
     // Variable declarations
     int src_replica,dest_replica,next,prev_src,prev_dest,next_src,next_dest,
-    num_kinks_src,num_kinks_dest,site_to_unswap,kink_out_of_src,kink_in_to_dest,
-    kink_out_of_dest,kink_in_to_src,n_src_left,n_src_right,n_dest_left,
-    n_dest_right;
+    num_kinks_src,num_kinks_dest,site_to_unswap,kink_out_of_src,
+    kink_out_of_dest,n_src_left,n_src_right,n_dest_left,n_dest_right;
     double R,p_replica;
     
     // Need at least two replicas to perform delete_swap_kink
@@ -3376,23 +3329,7 @@ void delete_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     num_kinks_dest = num_kinks[dest_replica];
     
     // Randomly choose a swapped site to unswap
-//    boost::random::uniform_int_distribution<> sites(0, m_A-1);
-//    site_to_unswap = sites(rng);
     site_to_unswap = sub_sites[num_swaps-1];
-    
-//    cout << swap_kinks[0];
-//    cout << swap_kinks[1];
-//    cout << " " << site_to_unswap;
-//    cout << endl;
-//    for (int i=0;i<num_kinks[0];i++){
-//        cout << i << " " << paths[0][i] << endl;
-//    }
-//    cout << endl;
-//
-//    for (int i=0;i<num_kinks[1];i++){
-//        cout << i << " " << paths[1][i] << endl;
-//    }
-//    cout << endl;
     
     if (!swap_kinks[site_to_unswap]){return;}
     
@@ -3545,19 +3482,14 @@ void swap_timeshift_head(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                boost::random::mt19937 &rng){
     
     // Variable declarations
-    int n,src,dest,prev,next,worm_end_idx,src_replica,dest_replica,
-    head_idx_src,tail_idx_src,head_idx_dest,tail_idx_dest,head_idx_0,
-    head_idx_1,head_0_prev,head_0_next,head_1_prev,head_1_next,num_heads,
-    head_to_move,prev_src,next_src,prev_dest,next_dest,site,worm_end_site,
-    kink_out_of_dest,kink_in_to_dest,n_after_worm_end,n_after_swap_kink,
+    int n,worm_end_idx,src_replica,dest_replica,head_idx_0,
+    head_idx_1,prev_src,next_src,prev_dest,next_dest,worm_end_site,
+    kink_out_of_dest,n_after_worm_end,n_after_swap_kink,
     num_kinks_src,num_kinks_dest,current_kink,n_before_swap_kink,
-    n_before_worm_end,kink_out_of_src;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,R,
-    tau_new,Z,tau_next_dest,tau_prev_dest,l_path_src,l_path_dest,dN_src,dN_dest;
-    bool shift_head,head_0_present,head_1_present,
-    head_0_near_beta_half,head_1_near_beta_half,head_0_can_recede,
-    head_0_can_advance,head_1_can_recede,head_1_can_advance,swap_in_front,
-    is_advance,is_over_swap;
+    n_before_worm_end;
+    double tau,tau_prev,tau_next,tau_flat,dV,R,tau_new,Z,l_path_src,
+    l_path_dest,dN_src,dN_dest;
+    bool swap_in_front,is_advance,is_over_swap;
     vector<Kink> paths_src,paths_dest;
     
     // Need at least two replicas to perform a spaceshift
