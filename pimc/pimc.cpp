@@ -144,7 +144,7 @@ int main(){
     boundary_condition="pbc";
    
     // Subsystem settings
-    l_A = L-1; // subsystem linear size
+    l_A = 1; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -154,7 +154,7 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=2;
+    beta=4;
     canonical=true;
     sweeps=100000000;
     sweeps_pre=10000000;
@@ -592,20 +592,19 @@ cout << endl;
         string SWAP_histogram_name;
         
         if (canonical){ // name of file if canonical simulation
-            SWAP_histogram_name=to_string(M)+"_"+to_string(N)+"_"+
-            to_string(l_A)+"_"+
-            to_string(U)+"_"+to_string(beta)+"_"+
+            SWAP_histogram_name=to_string(L)+"_"+to_string(N)+"_"+
+            to_string(l_A)+"_"+to_string(D)
+            to_string(U)+"D_"+to_string(beta)+"_"+
             to_string(t)+"_"+to_string(sweeps)+"_"+
-            to_string(seed_A)+"_"+to_string(D)+"D_"+
+            to_string(seed_A)+"_"+
             "can_"+"SWAP.dat";
         }
         else { // name of file if grand canonical simulation
-            SWAP_histogram_name=to_string(M)+"_"+to_string(N)+"_"+
-            to_string(l_A)+"_"+
-            to_string(U)+"_"+to_string(mu)+"_"+
-            to_string(beta)+"_"+
+            SWAP_histogram_name=to_string(L)+"_"+to_string(N)+"_"+
+            to_string(l_A)+"_"+to_string(D)
+            to_string(U)+"D_"+to_string(beta)+"_"+
             to_string(t)+"_"+to_string(sweeps)+"_"+
-            to_string(seed_A)+"_"+to_string(D)+"D_"+
+            to_string(seed_A)+"_"+
             "grandcan_"+"SWAP.dat";
         }
             
