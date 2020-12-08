@@ -314,17 +314,12 @@ void create_sub_sites(vector<int> &sub_sites,int l_A,int L,int D,int M){
     
     m_A = pow(l_A,D); // total subsystem sites
     
-    if (L>=2 && l_A>=L){cout<<"ERROR: l_A needs to be smaller than L"<<endl;}
+    if (L>=2 && m_A>M){cout<<"ERROR: l_A needs to be smaller than L"<<endl; exit(1);}
     
     if (D==1 || L==2){ // cluster
         for (int i=0; i<l_A; i++){sub_sites.push_back(i);}
     }
     else if (D==2){
-//        for (int i=0; i<M; i++){
-//            if (sub_sites.size()==m_A){break;}
-//            sub_sites.push_back(i);
-//            ctr+=1;
-//            if (ctr==l_A){ctr=0;i+=(L-l_A);}
         next_sub_site = -1;
         horizontal_direction = +1;
         horizontal_direction_old = +1;

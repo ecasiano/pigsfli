@@ -134,17 +134,17 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=2;
-    D=1;
+    L=3;
+    D=2;
     M=pow(L,D);
-    N=1;
+    N=M;
     t=1.0;
     U=1.0;
     mu=-1.60341;
     boundary_condition="pbc";
-    
+   
     // Subsystem settings
-    l_A = L/2; // subsystem linear size
+    l_A = L-1; // subsystem linear size
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -154,9 +154,9 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=8;
+    beta=2;
     canonical=true;
-    sweeps=10000000000;
+    sweeps=100000000;
     sweeps_pre=10000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
@@ -211,6 +211,11 @@ int main(){
     N_flats_samples=0;
         
 /*------------------- Try drawing a pretty welcome message -------------------*/
+
+for (int i=0; i<sub_sites.size(); i++){
+    cout << sub_sites[i] << " ";
+}
+cout << endl;
 
     cout << R"(
   _           _   _   _           ______ _____ _____  _____
