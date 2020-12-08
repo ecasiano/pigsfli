@@ -12,7 +12,7 @@
 int main(){
 
     // Initialize a Mersenne Twister RNG for each replica
-    int seed_A=0;
+    int seed_A=1968;
     boost::random::mt19937 rng(seed_A);
     
     // Create a uniform distribution with support: [0.0,1.0)
