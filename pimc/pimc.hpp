@@ -123,10 +123,10 @@ vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
     int num_empty_kinks;
 
     // Set the number of kinks to pre-allocate based on lattice size
-    num_empty_kinks = M*1000;
+    num_empty_kinks = 100000;
 
     // Pre-allocate kinks. Recall: (tau,n,src,dest,prev,next)
-    vector<Kink> paths(10000,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1));
+    vector<Kink> paths(num_empty_kinks,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1));
 
     // Initialize the first M=L^D kinks
     for (int site=0; site<M; site++){
@@ -3189,9 +3189,7 @@ void insert_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
 
     // Propose the next site to swap
     next_swap_site = sub_sites[num_swaps];
-    
-    if (swap_kinks[next_swap_site]){return;}
-    
+     
     /*---------TEST THIS!!!*----------*/
     // Check if no. of particles at beta/2 is the same on both replicas
     // Source Replica

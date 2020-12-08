@@ -589,7 +589,6 @@ cout << endl;
     
     // Estimators in replicated configuration space
     else {
-//        ofstream SWAP_histogram_file;
         string SWAP_histogram_name;
         
         if (canonical){ // name of file if canonical simulation
