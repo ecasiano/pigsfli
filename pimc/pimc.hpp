@@ -123,7 +123,7 @@ vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
     int num_empty_kinks;
 
     // Set the number of kinks to pre-allocate based on lattice size
-    num_empty_kinks = 100000;
+    num_empty_kinks = M*1000;
 
     // Pre-allocate kinks. Recall: (tau,n,src,dest,prev,next)
     vector<Kink> paths(num_empty_kinks,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1));
