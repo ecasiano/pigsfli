@@ -3268,10 +3268,7 @@ void insert_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     // Update number of kinks tracker of each replica
     num_kinks[src_replica] += 1;
     num_kinks[dest_replica] += 1;
-    
-    // Activate the site on swap kinks tracker
-    swap_kinks[next_swap_site] = 1;
-    
+     
     insert_swap_kink_accepts+=1;
 
     return;
@@ -3328,9 +3325,7 @@ void delete_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     
     // Randomly choose a swapped site to unswap
     site_to_unswap = sub_sites[num_swaps-1];
-    
-    if (!swap_kinks[site_to_unswap]){return;}
-    
+     
     // Get swap kink indices
     // source replica
     next = site_to_unswap;
@@ -3366,10 +3361,7 @@ void delete_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     
     // "Metropolis Sampling" (Actually unity acceptance probability)
     R = 1.0;
-    
-    // Deactivate the site from swap kinks boolean tracker
-    swap_kinks[site_to_unswap] = 0;
-    
+     
     // Stage 1: delete kink coming out of source replica
     // Modify links to kink at end of paths vector that will be swapped
     if (paths[src_replica][num_kinks_src-1].next!=-1)
