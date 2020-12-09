@@ -12,7 +12,7 @@
 int main(){
 
     // Initialize a Mersenne Twister RNG for each replica
-    int seed_A=1968;
+    int seed_A=0;
     boost::random::mt19937 rng(seed_A);
     
     // Create a uniform distribution with support: [0.0,1.0)
@@ -156,7 +156,7 @@ int main(){
     eta=1/sqrt(M);
     beta=3;
     canonical=true;
-    sweeps=100000000;
+    sweeps=1000000;
     sweeps_pre=10000000;
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
@@ -593,16 +593,16 @@ cout << endl;
         
         if (canonical){ // name of file if canonical simulation
             SWAP_histogram_name=to_string(L)+"_"+to_string(N)+"_"+
-            to_string(l_A)+"_"+to_string(D)+
-            to_string(U)+"D_"+to_string(beta)+"_"+
+            to_string(l_A)+"_"+to_string(D)+"D_"+
+            to_string(U)+"_"+to_string(beta)+"_"+
             to_string(t)+"_"+to_string(sweeps)+"_"+
             to_string(seed_A)+"_"+
             "can_"+"SWAP.dat";
         }
         else { // name of file if grand canonical simulation
             SWAP_histogram_name=to_string(L)+"_"+to_string(N)+"_"+
-            to_string(l_A)+"_"+to_string(D)+
-            to_string(U)+"D_"+to_string(beta)+"_"+
+            to_string(l_A)+"_"+to_string(D)+"D_"+
+            to_string(U)+"_"+to_string(beta)+"_"+
             to_string(t)+"_"+to_string(sweeps)+"_"+
             to_string(seed_A)+"_"+
             "grandcan_"+"SWAP.dat";
