@@ -7,13 +7,43 @@
 //
 
 #include "pimc.hpp"
+#include <cxxopts.hpp>
 
 // Main
-int main(){
+int main(int argc, char** argv){
+
+
+  /*------------------------- Command line arguments -----------------------------*/
+
+    cxxopts::Options options("test", "A brief description");
+
+    options.add_options()
+        ("h,help", "Print usage")
+        ("D","Dimension of hypercubic lattice",cxxopts::value<int>())
+        ("L","Linear size of hypercube",cxxopts::value<int>())
+        ("N","Total number of particles",cxxopts::value<int>())
+        ("U","Interaction potential",cxxopts::value<double>())
+        ("l","Linear size of hypercubic subregion",cxxopts::value<int>())
+        ("sweeps","Number of Monte Carlo sweeps",cxxopts::value<unsigned long long int>())
+        ("beta","Set length of imaginary time",cxxopts::value<double>())
+
+        ("mu","Chemical potential",cxxopts::value<double>()->default_value("-3.0"))
+        ("t","Tunneling parameter",cxxopts::value<double>()->default_value("1.0"))
+        ("canonical", "set to false for grand canonical simulation",
+            cxxopts::value<bool>()->default_value("true"))
+        ("seed","Random seed value",cxxopts::value<int>()->default_value("0"))
+        ("sweeps-pre","Number pre-equilibration sweeps",
+            cxxopts::value<unsigned long long int>()->default_value("1000000"))
+//        ("conventionals", "set to take conventional measurements (E,N,...)")
+    ;
+
+    auto result = options.parse(argc, argv);
+
+  /*-----------------------------------------------------------------------------*/
 
     // Initialize a Mersenne Twister RNG for each replica
-    int seed_A=0;
-    boost::random::mt19937 rng(seed_A);
+    int seed = result["seed"].as<int>();
+    boost::random::mt19937 rng(seed);
     
     // Create a uniform distribution with support: [0.0,1.0)
     boost::random::uniform_real_distribution<double> rnum(0.0,1.0);
@@ -134,17 +164,18 @@ int main(){
     num_replicas=2;
     
     // Bose-Hubbard parameters
-    L=3;
-    D=2;
+    D=result["D"].as<int>();
+    L=result["L"].as<int>();
     M=pow(L,D);
-    N=M;
-    t=1.0;
-    U=1.0;
-    mu=-1.60341;
+    N=result["N"].as<int>();
+    t=result["t"].as<double>();
+    U=result["U"].as<double>();
+    mu=result["mu"].as<double>();
     boundary_condition="pbc";
    
     // Subsystem settings
-    l_A = L-1; // subsystem linear size
+    l_A = result["l"].as<int>(); // subsystem linear size
+    if (l_A>=L){cout << "ERROR: Please choose l < L" << endl;exit(1);}
     m_A = pow(l_A,D);
     create_sub_sites(sub_sites,l_A,L,D,M);
     num_swaps=0;
@@ -154,10 +185,10 @@ int main(){
     
     // Simulation parameters
     eta=1/sqrt(M);
-    beta=3;
-    canonical=true;
-    sweeps=1000000;
-    sweeps_pre=10000000;
+    beta=result["beta"].as<double>();
+    canonical=result["canonical"].as<bool>();
+    sweeps=result["sweeps"].as<unsigned long long int>();
+    sweeps_pre=result["sweeps-pre"].as<unsigned long long int>();
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     
@@ -204,7 +235,7 @@ int main(){
     bin_size=500;
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){fock_state_at_slice.push_back(0);}
-    writing_frequency = 201; // ACTUALLY BIN-SIZE. CHANGE.
+    writing_frequency = 1001; // ACTUALLY BIN-SIZE. CHANGE.
     writing_ctr = 0;
     
     N_flats_mean=0.0;
@@ -596,7 +627,7 @@ cout << endl;
             to_string(l_A)+"_"+to_string(D)+"D_"+
             to_string(U)+"_"+to_string(beta)+"_"+
             to_string(t)+"_"+to_string(sweeps)+"_"+
-            to_string(seed_A)+"_"+
+            to_string(seed)+"_"+
             "can_"+"SWAP.dat";
         }
         else { // name of file if grand canonical simulation
@@ -604,7 +635,7 @@ cout << endl;
             to_string(l_A)+"_"+to_string(D)+"D_"+
             to_string(U)+"_"+to_string(beta)+"_"+
             to_string(t)+"_"+to_string(sweeps)+"_"+
-            to_string(seed_A)+"_"+
+            to_string(seed)+"_"+
             "grandcan_"+"SWAP.dat";
         }
             
