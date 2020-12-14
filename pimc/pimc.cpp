@@ -34,6 +34,7 @@ int main(int argc, char** argv){
         ("seed","Random seed value",cxxopts::value<int>()->default_value("0"))
         ("sweeps-pre","Number pre-equilibration sweeps",
             cxxopts::value<unsigned long long int>()->default_value("1000000"))
+        ("bin-size","Number of measurements per bin",cxxopts::value<int>())
 //        ("conventionals", "set to take conventional measurements (E,N,...)")
     ;
 
@@ -232,10 +233,9 @@ int main(int argc, char** argv){
     measurement_center=beta/2.0;
     measurement_plus_minus=0.10*beta;
     measurement_frequency=1;
-    bin_size=500;
+    bin_size=5000;
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){fock_state_at_slice.push_back(0);}
-    writing_frequency = 1001; // ACTUALLY BIN-SIZE. CHANGE.
     writing_ctr = 0;
     
     N_flats_mean=0.0;
@@ -957,7 +957,7 @@ cout << endl;
                 }
             
                 // Save current histogram of swapped sites to file
-                if (writing_ctr==writing_frequency){
+                if (writing_ctr==bin_size){
                     for (int i=0; i<=m_A; i++){
                         SWAP_histogram_file<<fixed<<setprecision(17)<<
                         SWAP_histogram[i] << " ";
