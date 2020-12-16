@@ -90,18 +90,22 @@ int main(int argc, char** argv){
     vector<int> sub_sites, swapped_sites;
     vector<int> swap_kinks;
     int num_swaps;
-    vector<int> SWAP_histogram; // one histogram per row
+    vector<int> SWAP_histogram;
+    vector<vector<int> > n_histograms; // On-site particle distribution at beta/2 on each site
     
     // Measurement settings
     double measurement_center,measurement_plus_minus;
     int measurement_frequency,bin_size,writing_frequency,writing_ctr;
     vector<double> measurement_centers;
-    vector<int> fock_state_at_slice;
+    vector<int> fock_state_at_slice,fock_state_at_half_plus;
+
+    // Related to on-site particle number distributions necessary for accessible entanglement
+    int n_i; // on-site number of particles
     
     // Declare data files
     vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,
     tr_kinetic_energy_file,tr_diagonal_energy_file;
-    ofstream SWAP_histogram_file;
+    ofstream SWAP_histogram_file,n_histograms_file;
 
     // mu-calibration variables
     bool not_equilibrated;
@@ -235,7 +239,10 @@ int main(int argc, char** argv){
     measurement_frequency=1;
     bin_size=5000;
     measurement_centers=get_measurement_centers(beta);
-    for (int i=0;i<M;i++){fock_state_at_slice.push_back(0);}
+    for (int i=0;i<M;i++){
+        fock_state_at_slice.push_back(0);
+        fock_state_at_half_plus.push_back(0);
+    }
     writing_ctr = 0;
     
     N_flats_mean=0.0;
@@ -620,7 +627,7 @@ cout << endl;
     
     // Estimators in replicated configuration space
     else {
-        string SWAP_histogram_name;
+        string SWAP_histogram_name,n_histograms_name;
         
         if (canonical){ // name of file if canonical simulation
             SWAP_histogram_name=to_string(L)+"_"+to_string(N)+"_"+
@@ -629,6 +636,13 @@ cout << endl;
             to_string(t)+"_"+to_string(sweeps)+"_"+
             to_string(seed)+"_"+
             "can_"+"SWAP.dat";
+            
+            n_histograms_name=to_string(L)+"_"+to_string(N)+"_"+
+            to_string(l_A)+"_"+to_string(D)+"D_"+
+            to_string(U)+"_"+to_string(beta)+"_"+
+            to_string(t)+"_"+to_string(sweeps)+"_"+
+            to_string(seed)+"_"+
+            "can_"+"Pns.dat";
         }
         else { // name of file if grand canonical simulation
             SWAP_histogram_name=to_string(L)+"_"+to_string(N)+"_"+
@@ -637,13 +651,25 @@ cout << endl;
             to_string(t)+"_"+to_string(sweeps)+"_"+
             to_string(seed)+"_"+
             "grandcan_"+"SWAP.dat";
+            
+            n_histograms_name=to_string(L)+"_"+to_string(N)+"_"+
+            to_string(l_A)+"_"+to_string(D)+"D_"+
+            to_string(U)+"_"+to_string(beta)+"_"+
+            to_string(t)+"_"+to_string(sweeps)+"_"+
+            to_string(seed)+"_"+
+            "grandcan_"+"Pns.dat";
         }
             
         // Open SWAP histograms file
         SWAP_histogram_file.open(SWAP_histogram_name);
+        n_histograms_file.open(n_histograms_name);
         
         if( !SWAP_histogram_file ) { // file couldn't be opened
            cerr << "Error: SWAP histogram file could not be opened" << endl;
+           exit(1);
+        }
+        if( !n_histograms_file ) { // file couldn't be opened
+           cerr << "Error: n_histograms_file could not be opened" << endl;
            exit(1);
         }
     } // End of replicated estimators else block
@@ -683,7 +709,7 @@ cout << endl;
     else {sweeps*=M;}
     
     // Initialize vector estimators (conventional or SWAP)
-    if (num_replicas<2) { // conventional
+    if (num_replicas<2) { // conventional vector estimators
         for (int r=0;r<num_replicas;r++){
             tr_kinetic_energy.push_back(vector<double>
                                         (measurement_centers.size(),0.0));
@@ -691,11 +717,17 @@ cout << endl;
                                          (measurement_centers.size(),0.0));
         }
     }
-    else { // SWAP
+    else { // SWAP vector estimators
         for (int i=0; i<=m_A; i++){
             SWAP_histogram.push_back(0); // just initializing
         }
+        for (int i=0; i<M; i++){
+            for (int j=0; j<=N; j++){
+                n_histograms.push_back(vector<int> (N+1,0));
+            }
+        }
     }
+    cout << "n_histograms.size(): " << n_histograms[0].size() << endl;
 
     cout << "Stage (2/3): Equilibrating..." << endl << endl;
     
@@ -873,9 +905,9 @@ cout << endl;
          }
         
 /*----------------------------- Measurements ---------------------------------*/
-
+        
         if (m%(sweep*measurement_frequency)==0 && m>=sweeps*0.25){
-            
+ 
             if (not_equilibrated){
                 not_equilibrated=false;
                 cout << "Stage (3/3): Main Monte Carlo loop..." << endl;
@@ -951,21 +983,50 @@ cout << endl;
                     tail_idx[0]==-1&&tail_idx[1]==-1){
                     if (N_zero[0]==N && N_beta[0]==N
                         && N_zero[1]==N && N_beta[1]==N){
-                            SWAP_histogram[num_swaps]+=1;
-                            writing_ctr+=1;
+
+                        // Add count to histogram of number of swapped sites
+                        SWAP_histogram[num_swaps]+=1;
+
+                        // Add count to histogram of on-site particle number distributions
+                        get_fock_state(beta/2.0,M,fock_state_at_half_plus,paths[0]);
+                        for (int i=0; i<M; i++){
+                            n_i = fock_state_at_half_plus[i];
+                            n_histograms[i][n_i]+=1;
+                        }
+                        
+                        // Add a count to measurements in the bin
+                        writing_ctr+=1;
                     }
                 }
             
-                // Save current histogram of swapped sites to file
                 if (writing_ctr==bin_size){
+
+                    // Save current histogram of swapped sites to file
                     for (int i=0; i<=m_A; i++){
                         SWAP_histogram_file<<fixed<<setprecision(17)<<
                         SWAP_histogram[i] << " ";
                     }
                     SWAP_histogram_file<<endl;
+
                     // Restart histogram
                     std::fill(SWAP_histogram.begin(),
                               SWAP_histogram.end(),0);
+
+                    // Save on-site particle number distributions to disk
+                    for (int i=0; i<M; i++){
+                        n_histograms_file<<"["<<n_histograms[i][0];
+                        for (int j=1; j<=N; j++){
+                            n_histograms_file<<","<<n_histograms[i][j];
+                        }
+                        n_histograms_file<<"] ";
+                    }
+                    n_histograms_file<<endl;
+
+                    // Restart histogram
+                    std::fill(n_histograms.begin(),
+                              n_histograms.end(),vector<int> (N+1,0));
+
+                    // Restart counter that tracks when to save to file
                     writing_ctr=0;
                 }
 
@@ -984,6 +1045,7 @@ cout << endl;
     }
     else {
         SWAP_histogram_file.close();
+        n_histograms_file.close();
     }
 /*--------------------------------- FIN --------------------------------------*/
 
@@ -1076,7 +1138,8 @@ cout << endl;
     }
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
-    
+
+    cout << "n_histograms.size() " << n_histograms[0].size() << endl;
     return 0;
     
 }
