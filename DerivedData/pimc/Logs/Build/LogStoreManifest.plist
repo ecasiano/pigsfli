@@ -6,7 +6,7 @@
 	<integer>10</integer>
 	<key>logs</key>
 	<dict>
-		<key>157074D7-07A9-45DB-B9A8-3C9E7232A268</key>
+		<key>33DC20AC-7654-4A73-9FA6-98CF5F062AE8</key>
 		<dict>
 			<key>className</key>
 			<string>IDEActivityLogSection</string>
@@ -15,7 +15,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
 			<key>fileName</key>
-			<string>157074D7-07A9-45DB-B9A8-3C9E7232A268.xcactivitylog</string>
+			<string>33DC20AC-7654-4A73-9FA6-98CF5F062AE8.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -32,13 +32,47 @@
 			<key>signature</key>
 			<string>Build pimc</string>
 			<key>timeStartedRecording</key>
-			<real>629668249.45408797</real>
+			<real>629930676.94309902</real>
 			<key>timeStoppedRecording</key>
-			<real>629668254.98637998</real>
+			<real>629930680.34987605</real>
 			<key>title</key>
 			<string>Build pimc</string>
 			<key>uniqueIdentifier</key>
-			<string>157074D7-07A9-45DB-B9A8-3C9E7232A268</string>
+			<string>33DC20AC-7654-4A73-9FA6-98CF5F062AE8</string>
+		</dict>
+		<key>AB8A5F61-1DC2-4061-BA80-616A9FEBA3BC</key>
+		<dict>
+			<key>className</key>
+			<string>IDEActivityLogSection</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
+			<key>fileName</key>
+			<string>AB8A5F61-1DC2-4061-BA80-616A9FEBA3BC.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>W</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>pimc project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>pimc</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Build pimc</string>
+			<key>timeStartedRecording</key>
+			<real>629924589.62926996</real>
+			<key>timeStoppedRecording</key>
+			<real>629924594.75010002</real>
+			<key>title</key>
+			<string>Build pimc</string>
+			<key>uniqueIdentifier</key>
+			<string>AB8A5F61-1DC2-4061-BA80-616A9FEBA3BC</string>
 		</dict>
 	</dict>
 </dict>
