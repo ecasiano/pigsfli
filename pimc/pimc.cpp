@@ -999,15 +999,36 @@ cout << endl;
                         SWAP_histogram[num_swaps]+=1;
 
                         // Add count to swapped sites histogram of n-sector
-                        n_A = 0;
-                        get_fock_state(beta/2.0,M,fock_state_at_half_plus,paths[0]);
-                        for (int i=0; i<m_A; i++){
-                            n_A+=fock_state_at_half_plus[sub_sites[i]];
+                        //n_A = 0;
+                        //get_fock_state(beta/2.0,M,fock_state_at_half_plus,paths[0]);
+                        //for (int i=0; i<m_A; i++){
+                        //    n_A+=fock_state_at_half_plus[sub_sites[i]];
+                        //}
+                        //n_resolved_SWAP_histograms[n_A][num_swaps]+=1;
+
+                        // PERHAPS NEED TO MEASURE WHEN n_A (system) == n_A (replica) ??? 
+                        /*--------------------TEMPORARY_______________________________*/
+                        vector <int> n_zero (2,0);
+                        vector <int> n_beta (2,0);
+                        int n_A; 
+
+                        for (int REP=0; REP<2; REP++){
+                            for (int i=0; i<m_A; i++){
+                                n_zero[REP]+=paths[REP][sub_sites[i]].n;
+                                n_beta[REP]+=paths[REP][last_kinks[REP][sub_sites[i]]].n;
+                            }
                         }
-                        n_resolved_SWAP_histograms[n_A][num_swaps]+=1;
+
+                        if (n_zero[0]==n_beta[0] && n_zero[0]==n_zero[1] && n_zero[0]==n_beta[1]){
+                            n_A=n_zero[0];
+                            n_resolved_SWAP_histograms[n_A][num_swaps]+=1;
+                            writing_ctr+=1;
+                        }
                         
+                        /*--------------------TEMPORARY_______________________________*/
+
                         // Add a count to measurements in the bin
-                        writing_ctr+=1;
+                        writing_ctr+=0; // TEMPORARY. SHOULD BE +=1
                     }
                 }
             
@@ -1039,8 +1060,6 @@ cout << endl;
                         
                     }
                     
-
-
                     // Restart counter that tracks when to save to file
                     writing_ctr=0;
                 }
