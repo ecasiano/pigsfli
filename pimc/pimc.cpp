@@ -91,20 +91,21 @@ int main(int argc, char** argv){
     vector<int> swap_kinks;
     int num_swaps;
     vector<int> SWAP_histogram;
-    vector<vector<int> > n_resolved_SWAP_histograms;
+    vector<vector<int> > n_resolved_SWAP_histograms,Pn,Pn_squared;
     
     // Measurement settings
     double measurement_center,measurement_plus_minus;
     int measurement_frequency,bin_size,writing_ctr;
     vector<double> measurement_centers;
-    vector<int> fock_state_at_slice,fock_state_at_half_plus;
+    vector<int> fock_state_at_slice;
+    vector<vector<int> > fock_state_at_half_plus;
  
     // Declare data files
     vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,
     tr_kinetic_energy_file,tr_diagonal_energy_file;
     ofstream SWAP_histogram_file;
-    vector<ofstream> n_resolved_SWAP_histogram_files;
-    ofstream n_resolved_SWAP_histogram_file;
+    vector<ofstream> n_resolved_SWAP_histogram_files,Pn_files,Pn_squared_files;
+    ofstream n_resolved_SWAP_histogram_file,Pn_file,Pn_squared_file;
 
     // mu-calibration variables
     bool not_equilibrated;
@@ -120,8 +121,7 @@ int main(int argc, char** argv){
     int num_replicas;
     
     // Related to accessible entanglement
-    int n_A; // total particles in subsystem
-    
+    vector<vector<int> > n_A; // total particles in subsystem
     
     // Attempt/Acceptance counters
     unsigned long long int insert_worm_attempts=0,insert_worm_accepts=0;
@@ -229,11 +229,17 @@ int main(int argc, char** argv){
         kinetic_energy.push_back(0);
         Z_ctr.push_back(0);
         measurement_attempts.push_back(0);
+        fock_state_at_half_plus.push_back(vector<int> (M,0));
     }
     
     // just initializing
-    for (int i=0; i<l_A; i++){
+    for (int i=0; i<m_A; i++){
         swap_kinks.push_back(0);
+    }
+
+    // initializing m_A
+    for (int i=0; i<num_replicas; i++){
+        n_A.push_back(vector<int> (m_A,0));
     }
 
     // Measurement settings
@@ -244,7 +250,6 @@ int main(int argc, char** argv){
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){
         fock_state_at_slice.push_back(0);
-        fock_state_at_half_plus.push_back(0);
     }
     writing_ctr = 0;
     
@@ -631,7 +636,7 @@ cout << endl;
     // Estimators in replicated configuration space
     else {
         string SWAP_histogram_name;
-        vector<string> n_resolved_SWAP_histogram_names;
+        vector<string> n_resolved_SWAP_histogram_names,Pn_names,Pn_squared_names;
         
         if (canonical){ // name of file if canonical simulation
             SWAP_histogram_name=to_string(L)+"_"+to_string(N)+"_"+
@@ -649,7 +654,29 @@ cout << endl;
                 to_string(U)+"_"+to_string(beta)+"_"+
                 to_string(t)+"_"+to_string(sweeps)+"_"+
                 to_string(seed)+"_"+"can_"+"SWAP_"+
-                to_string(i)+"-sector.dat");
+                to_string(i)+"-n-sector.dat");
+            }
+            
+            // Create filenames of SWAP histograms for each n-Sector
+            for (int i=1; i<=m_A; i++){
+                Pn_names.push_back(
+                to_string(L)+"_"+to_string(N)+"_"+
+                to_string(l_A)+"_"+to_string(D)+"D_"+
+                to_string(U)+"_"+to_string(beta)+"_"+
+                to_string(t)+"_"+to_string(sweeps)+"_"+
+                to_string(seed)+"_"+"can_"+"Pn_"+
+                to_string(i)+"-mA.dat");
+            }
+            
+            // Create filenames of SWAP histograms for each n-Sector
+            for (int i=1; i<=m_A; i++){
+                Pn_squared_names.push_back(
+                to_string(L)+"_"+to_string(N)+"_"+
+                to_string(l_A)+"_"+to_string(D)+"D_"+
+                to_string(U)+"_"+to_string(beta)+"_"+
+                to_string(t)+"_"+to_string(sweeps)+"_"+
+                to_string(seed)+"_"+"can_"+"Pn_squared"+
+                to_string(i)+"-mA.dat");
             }
         }
         else { // name of file if grand canonical simulation
@@ -679,6 +706,18 @@ cout << endl;
                                             n_resolved_SWAP_histogram_names[i]);
             n_resolved_SWAP_histogram_files.push_back(std::move(
                                                n_resolved_SWAP_histogram_file));
+        }
+        
+        // Open mA-sector resolved local particle number distribution files
+        for (int i=1; i<=m_A; i++){
+            Pn_file.open(Pn_names[i-1]);
+            Pn_files.push_back(std::move(Pn_file));
+        }
+        
+        // Open...
+        for (int i=1; i<=m_A; i++){
+            Pn_squared_file.open(Pn_squared_names[i-1]);
+            Pn_squared_files.push_back(std::move(Pn_squared_file));
         }
 
         if( !SWAP_histogram_file ) { // file couldn't be opened
@@ -737,6 +776,12 @@ cout << endl;
         }
         for (int i=0; i<=N; i++){
             n_resolved_SWAP_histograms.push_back(vector<int> (m_A+1,0));
+        }
+        for (int i=1; i<=m_A; i++){
+            Pn.push_back(vector<int> (N+1,0));
+        }
+        for (int i=1; i<=m_A; i++){
+            Pn_squared.push_back(vector<int> (N+1,0));
         }
     }
 
@@ -997,38 +1042,45 @@ cout << endl;
 
                         // Add count to histogram of number of swapped sites
                         SWAP_histogram[num_swaps]+=1;
-
-                        // Add count to swapped sites histogram of n-sector
-                        //n_A = 0;
-                        //get_fock_state(beta/2.0,M,fock_state_at_half_plus,paths[0]);
-                        //for (int i=0; i<m_A; i++){
-                        //    n_A+=fock_state_at_half_plus[sub_sites[i]];
-                        //}
-                        //n_resolved_SWAP_histograms[n_A][num_swaps]+=1;
-
-                        // PERHAPS NEED TO MEASURE WHEN n_A (system) == n_A (replica) ??? 
-                        /*--------------------TEMPORARY_______________________________*/
-                        vector <int> n_zero (2,0);
-                        vector <int> n_beta (2,0);
-                        int n_A; 
-
-                        for (int REP=0; REP<2; REP++){
-                            for (int i=0; i<m_A; i++){
-                                n_zero[REP]+=paths[REP][sub_sites[i]].n;
-                                n_beta[REP]+=paths[REP][last_kinks[REP][sub_sites[i]]].n;
+                        
+                        // Build subsystem particle number distribution P(n)
+                        if (num_swaps==0){
+                            for (int REP=0; REP<num_replicas; REP++){
+                                std::fill(n_A[REP].begin(),n_A[REP].end(),0);
+                                get_fock_state(beta/2.0,M,fock_state_at_half_plus[REP],paths[REP]);
+                                int n_A_last=0; // tracks subsystem n
+                                for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
+                                    n_A_last+=fock_state_at_half_plus[REP][sub_sites[m_A_primed-1]];
+                                    n_A[REP][m_A_primed-1]=n_A_last;
+                                    Pn[m_A_primed-1][n_A[REP][m_A_primed-1]]+=1;
+                                }
                             }
-                        }
-
-                        if (n_zero[0]==n_beta[0] && n_zero[0]==n_zero[1] && n_zero[0]==n_beta[1]){
-                            n_A=n_zero[0];
-                            n_resolved_SWAP_histograms[n_A][num_swaps]+=1;
-                            writing_ctr+=1;
+                            
+                            for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
+                                if (n_A[0][m_A_primed-1]==n_A[1][m_A_primed-1]){
+                                    Pn_squared[m_A_primed-1][n_A[0][m_A_primed-1]]+=1;
+                                }
+                            }
+                            
                         }
                         
-                        /*--------------------TEMPORARY_______________________________*/
+                        else{ // num_swaps>0
+                        
+                            // Add count to swapped sites histogram of n-sector
+                            for (int REP=0; REP<num_replicas; REP++){
+                                std::fill(n_A[REP].begin(),n_A[REP].end(),0);
+                                get_fock_state(beta/2.0,M,fock_state_at_half_plus[REP],paths[REP]);
+                                int n_A_last=0; // tracks subsystem n
+                                for (int i=0; i<num_swaps; i++){
+                                    n_A_last+=fock_state_at_half_plus[REP][sub_sites[i]];
+                                    n_A[REP][i]=n_A_last;
+                                }
+                            }
+                            n_resolved_SWAP_histograms[n_A[0][num_swaps-1]][num_swaps]+=1;
+                        }
 
-                        // Add a count to measurements in the bin
-                        writing_ctr+=0; // TEMPORARY. SHOULD BE +=1
+                        // Track how many measurements are in the bin
+                        writing_ctr+=1;
                     }
                 }
             
@@ -1044,6 +1096,36 @@ cout << endl;
                     // Restart histogram
                     std::fill(SWAP_histogram.begin(),
                               SWAP_histogram.end(),0);
+                    
+                    // Save current swapped-resolved Pn to file
+                    for (int i=1; i<=m_A; i++){
+                        for (int j=0; j<=N; j++){
+                            Pn_files[i-1]<<
+                            fixed<<setprecision(17)<<
+                            Pn[i-1][j]<<" ";
+                        }
+                        Pn_files[i-1]<<endl;
+                        
+                        // Restart histogram
+                        std::fill(Pn[i-1].begin(),
+                                  Pn[i-1].end(),0);
+                        
+                    }
+                    
+                    // Save current swapped-resolved Pn to file
+                    for (int i=1; i<=m_A; i++){
+                        for (int j=0; j<=N; j++){
+                            Pn_squared_files[i-1]<<
+                            fixed<<setprecision(17)<<
+                            Pn_squared[i-1][j]<<" ";
+                        }
+                        Pn_squared_files[i-1]<<endl;
+                        
+                        // Restart histogram
+                        std::fill(Pn_squared[i-1].begin(),
+                                  Pn_squared[i-1].end(),0);
+                        
+                    }
                     
                     // Save current n-resolved swapped sites histogram to file
                     for (int i=0; i<=N; i++){
@@ -1079,8 +1161,12 @@ cout << endl;
     }
     else {
         SWAP_histogram_file.close();
-        for (int i=0; i<=m_A; i++){
+        for (int i=0; i<=N; i++){
             n_resolved_SWAP_histogram_files[i].close();
+        }
+        for (int i=1; i<=m_A; i++){
+            Pn_files[i-1].close();
+            Pn_squared_files[i-1].close();
         }
     }
 /*--------------------------------- FIN --------------------------------------*/
