@@ -1,0 +1,27 @@
+#!/bin/bash
+#PBS -S /bin/bash
+
+#PBS -l walltime=23:59:00
+#PBS -q batch
+#PBS -l select=1:ncpus=16:model=san
+#PBS -N PIGS-0064-0.00313-C1o3
+#PBS -V
+#PBS -j oe
+#PBS -o ./out/
+
+# Do not send email
+#PBS -M ecasiano@vols.utk.edu
+#PBS -m n
+
+# Start job script
+
+# Check if the out directory exists, if not, create it
+if [ ! -d "./out" ]; then
+  mkdir out
+fi
+
+# Change into submission directory
+cd $PBS_O_WORKDIR
+
+# Calling parallel jobs
+seq 0 15 | parallel -j 16 -u --sshloginfile $PBS_NODEFILE "cd $PWD; ./input-pigs-0064-0.00313-C1o3.sh {}"
