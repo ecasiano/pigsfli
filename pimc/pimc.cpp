@@ -7,7 +7,7 @@
 //
 
 #include "pimc.hpp"
-#include <cxxopts.hpp>
+#include "cxxopts.hpp"
 
 // Main
 int main(int argc, char** argv){
