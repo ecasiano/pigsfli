@@ -1,27 +1,21 @@
+### PBS preamble
+
 #!/bin/bash
 #PBS -S /bin/bash
+#PBS -A ACF-UTK0011
 
-#PBS -l walltime=23:59:00
+#PBS -N pimc
 #PBS -q batch
-#PBS -l select=1:ncpus=16:model=san
-#PBS -N PIGS-0064-0.00313-C1o3
-#PBS -V
+#PBS -l nodes=1:ppn=10
+#PBS -l walltime=02:00:00
 #PBS -j oe
-#PBS -o ./out/
+#PBS -o out_pimc
+#PBS -t 101-500
 
 # Do not send email
 #PBS -M ecasiano@vols.utk.edu
 #PBS -m n
 
-# Start job script
-
-# Check if the out directory exists, if not, create it
-if [ ! -d "./out" ]; then
-  mkdir out
-fi
-
-# Change into submission directory
 cd $PBS_O_WORKDIR
-
-# Calling parallel jobs
-seq 0 15 | parallel -j 16 -u --sshloginfile $PBS_NODEFILE "cd $PWD; ./input-pigs-0064-0.00313-C1o3.sh {}"
+module load gcc
+./pimc.e -D 1 -L 2 -N 1 -l 1 --beta 4.0 --sweeps 1000000000 --bin-size 100 -U 3.3 --seed ${PBS_ARRAYID}
