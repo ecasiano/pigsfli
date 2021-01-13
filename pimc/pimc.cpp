@@ -102,6 +102,8 @@ int main(int argc, char** argv){
     vector<double> measurement_centers;
     vector<int> fock_state_at_slice;
     vector<vector<int> > fock_state_at_half_plus;
+    int m=0; //iteration counter
+    int bins_written=0; // tracks how many beens have been written
  
     // Declare data files
     vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,
@@ -793,8 +795,8 @@ cout << endl;
     cout << "Stage (2/3): Equilibrating..." << endl << endl;
     
 //    for (unsigned long long int m=0; m < sweeps; m++){
-    int m=0; //iteration counter
-    int bins_written=0; // tracks how many beens have been written
+    m=0; //iteration counter
+    bins_written=0; // tracks how many beens have been written
     while(bins_written<bins_wanted){
     for (int r=0;r<num_replicas;r++){
         
