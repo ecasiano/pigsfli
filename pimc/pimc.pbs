@@ -6,11 +6,11 @@
 
 #PBS -N pimc
 #PBS -q batch
-#PBS -l nodes=1:ppn=10
-#PBS -l walltime=02:00:00
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=03:00:00
 #PBS -j oe
 #PBS -o out_pimc
-#PBS -t 101-500
+#PBS -t 1
 
 # Do not send email
 #PBS -M ecasiano@vols.utk.edu
@@ -18,4 +18,4 @@
 
 cd $PBS_O_WORKDIR
 module load gcc
-./pimc.e -D 1 -L 2 -N 1 -l 1 --beta 4.0 --sweeps 1000000000 --bin-size 100 -U 3.3 --seed ${PBS_ARRAYID}
+./pimc.e -D 1 -L 4 -N 4 -l 2 --beta 4.0 --sweeps 10000000 --bin-size 10000 -U 3.3 --seed ${PBS_ARRAYID}
