@@ -102,8 +102,8 @@ int main(int argc, char** argv){
     vector<double> measurement_centers;
     vector<int> fock_state_at_slice;
     vector<vector<int> > fock_state_at_half_plus;
-    int m=0; //iteration counter
-    int bins_written=0; // tracks how many beens have been written
+    unsigned long long int m; //iteration counter
+    int bins_written; // tracks how many beens have been written
  
     // Declare data files
     vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,
@@ -356,7 +356,7 @@ cout << endl;
         
         boost::random::uniform_int_distribution<> updates(0, 14);
 
-        for (unsigned long long int m=0;m<sweeps_pre;m++){
+        for (unsigned long long int m_pre=0;m_pre<sweeps_pre;m_pre++){
 
               label = updates(rng);
 
@@ -481,7 +481,7 @@ cout << endl;
               }
 
             // Measure the total number of particles
-            if (m%(sweep*measurement_frequency)==0 && m>=0.25*sweeps_pre){
+            if (m_pre%(sweep*measurement_frequency)==0 && m_pre>=0.25*sweeps_pre){
                 measurement_attempts[0]+=1;
                 if (head_idx[0]==-1 && tail_idx[0]==-1){
                     N_data.push_back(N_beta[0]);
