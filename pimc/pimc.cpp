@@ -24,7 +24,8 @@ int main(int argc, char** argv){
         ("N","Total number of particles",cxxopts::value<int>())
         ("U","Interaction potential",cxxopts::value<double>())
         ("l","Linear size of hypercubic subregion",cxxopts::value<int>())
-        ("sweeps","Number of Monte Carlo sweeps",cxxopts::value<unsigned long long int>())
+        ("sweeps","Number of Monte Carlo sweeps",
+            cxxopts::value<unsigned long long int>()->default_value("10000000"))
         ("beta","Set length of imaginary time",cxxopts::value<double>())
 
         ("mu","Chemical potential",cxxopts::value<double>()->default_value("-3.0"))
@@ -35,6 +36,7 @@ int main(int argc, char** argv){
         ("sweeps-pre","Number pre-equilibration sweeps",
             cxxopts::value<unsigned long long int>()->default_value("1000000"))
         ("bin-size","Number of measurements per bin",cxxopts::value<int>())
+        ("bins-wanted","Number of bins desired in data file",cxxopts::value<int>())
 //        ("conventionals", "set to take conventional measurements (E,N,...)")
     ;
 
@@ -66,6 +68,7 @@ int main(int argc, char** argv){
     bool canonical;
     unsigned long long int sweeps_pre,sweeps,sweep;
     int label; // random update label;
+    int bins_wanted;
     
     // Adjacency matrix
     vector<vector<int> > adjacency_matrix;
@@ -200,6 +203,7 @@ int main(int argc, char** argv){
     sweeps_pre=result["sweeps-pre"].as<unsigned long long int>();
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
+    bins_wanted=result["bins-wanted"].as<int>();
     
     // Adjacency matrix
     build_hypercube_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
@@ -643,7 +647,7 @@ cout << endl;
             SWAP_histogram_name=to_string(D)+"D_"+to_string(L)+
             "_"+to_string(N)+"_"+to_string(l_A)+"_"+
             to_string(U)+"_"+to_string(t)+"_"+
-            to_string(beta)+"_"+to_string(sweeps)+"_"+
+            to_string(beta)+"_"+to_string(bins_wanted)+"_"+
             "SWAP_"+to_string(seed)+".dat";
 
             // Create filenames of SWAP histograms for each n-Sector
@@ -652,7 +656,7 @@ cout << endl;
                 to_string(D)+"D_"+to_string(L)+"_"+
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
-                to_string(beta)+"_"+to_string(sweeps)+"_"+
+                to_string(beta)+"_"+to_string(bins_wanted)+"_"+
                 "SWAP_n"+to_string(i)+"-sector_"+
                 to_string(seed)+".dat");
             }
@@ -663,7 +667,7 @@ cout << endl;
                 to_string(D)+"D_"+to_string(L)+"_"+
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
-                to_string(beta)+"_"+to_string(sweeps)+"_"+
+                to_string(beta)+"_"+to_string(bins_wanted)+"_"+
                 "Pn_mA-"+to_string(i)+"_"+
                 to_string(seed)+".dat");
             }
@@ -674,7 +678,7 @@ cout << endl;
                 to_string(D)+"D_"+to_string(L)+"_"+
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
-                to_string(beta)+"_"+to_string(sweeps)+"_"+
+                to_string(beta)+"_"+to_string(bins_wanted)+"_"+
                 "PnSquared_mA-"+to_string(i)+"_"+
                 to_string(seed)+".dat");
             }
@@ -788,7 +792,10 @@ cout << endl;
 
     cout << "Stage (2/3): Equilibrating..." << endl << endl;
     
-    for (unsigned long long int m=0; m < sweeps; m++){
+//    for (unsigned long long int m=0; m < sweeps; m++){
+    int m=0; //iteration counter
+    int bins_written=0; // tracks how many beens have been written
+    while(bins_written<bins_wanted){
     for (int r=0;r<num_replicas;r++){
         
         label = updates(rng);
@@ -1084,6 +1091,8 @@ cout << endl;
             
                 if (writing_ctr==bin_size){
 
+                    bins_written+=1;
+                    
                     // Save current histogram of swapped sites to file
                     for (int i=0; i<=m_A; i++){
                         SWAP_histogram_file<<fixed<<setprecision(17)<<
@@ -1145,7 +1154,8 @@ cout << endl;
 
             } // end of SWAP measurements if statement
         } // end of measurement after 25% equilibration if statement
-    } // end of sweeps loop
+        m+=1;
+    } // end of sweeps for/while loop
     
     // Close data files
     if (num_replicas<2){
