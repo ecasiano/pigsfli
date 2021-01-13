@@ -659,7 +659,7 @@ cout << endl;
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
                 to_string(beta)+"_"+to_string(bins_wanted)+"_"+
-                "SWAP_n"+to_string(i)+"-sector_"+
+                "SWAP-n"+to_string(i)+"_"+
                 to_string(seed)+".dat");
             }
             
@@ -670,7 +670,7 @@ cout << endl;
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
                 to_string(beta)+"_"+to_string(bins_wanted)+"_"+
-                "Pn_mA-"+to_string(i)+"_"+
+                "Pn-mA"+to_string(i)+"_"+
                 to_string(seed)+".dat");
             }
             
@@ -681,7 +681,7 @@ cout << endl;
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
                 to_string(beta)+"_"+to_string(bins_wanted)+"_"+
-                "PnSquared_mA-"+to_string(i)+"_"+
+                "PnSquared-mA"+to_string(i)+"_"+
                 to_string(seed)+".dat");
             }
         }
