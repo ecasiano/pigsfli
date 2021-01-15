@@ -42,7 +42,7 @@ S2_data = -np.log(combined_SWAP_data / SWAP_0[:,None])
 
 # Get mean and std dev,err of S2
 S2_mean = np.mean(S2_data,axis=0)
-S2_stderr = np.std(S2_data,axis=0)/number_of_seeds
+S2_stderr = np.std(S2_data,axis=0)/np.sqrt(number_of_seeds)
 
 # Print out <S2> +/- error
 for l in range(columns_per_file):
