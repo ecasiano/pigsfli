@@ -10,7 +10,7 @@ filenames_all = os.listdir(path)
 
 # Only keep the files that contain the string 'SWAP' in their name
 string_to_keep = '_SWAP_'  # The string that kept files will contain
-U_to_keep = '0.100000'
+U_to_keep = '10.000000'
 files_SWAP = []
 for filename in filenames_all:
     if (string_to_keep in filename) and (U_to_keep in filename):
