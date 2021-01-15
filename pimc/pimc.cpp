@@ -269,6 +269,7 @@ for (int i=0; i<sub_sites.size(); i++){
     cout << sub_sites[i] << " ";
 }
 cout << endl;
+cout << "U: " << U << endl;
 
     cout << R"(
   _           _   _   _           ______ _____ _____  _____
