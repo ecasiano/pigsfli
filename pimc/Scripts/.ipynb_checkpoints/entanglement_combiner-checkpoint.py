@@ -8,14 +8,19 @@ import numpy as np
 path = '../Data/'
 filenames_all = os.listdir(path)
 
-# Only keep the files that contain the string 'SWAP' in their name
+# Only keep the files that contain the string 'SWAP' in their name,
+# the desired "U" in their name, and that were able to collect all bins
 string_to_keep = '_SWAP_'  # The string that kept files will contain
 U_to_keep = '3.300000'
+bins_wanted = 1000
 files_SWAP = []
 for filename in filenames_all:
     if (string_to_keep in filename) and (U_to_keep in filename):
         if os.stat(path+filename).st_size > 0:
-            files_SWAP.append(filename)
+            with open(path+filename) as f:
+               count = sum(1 for _ in f)
+            if count == bins_wanted:
+                files_SWAP.append(filename)
         
 # Sort SWAP files in ascending order of random seed
 files_SWAP.sort()
@@ -42,3 +47,5 @@ S2_stderr = np.std(S2_data,axis=0)/number_of_seeds
 # Print out <S2> +/- error
 for l in range(columns_per_file):
     print(f"<S2(l={l})> = {S2_mean[l]} +/- {S2_stderr[l]:0.8f}")
+    
+print(number_of_seeds)
