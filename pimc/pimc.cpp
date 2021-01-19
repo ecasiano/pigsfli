@@ -34,7 +34,7 @@ int main(int argc, char** argv){
             cxxopts::value<bool>()->default_value("true"))
         ("seed","Random seed value",cxxopts::value<int>()->default_value("0"))
         ("sweeps-pre","Number pre-equilibration sweeps",
-            cxxopts::value<unsigned long long int>()->default_value("1000000"))
+            cxxopts::value<unsigned long long int>()->default_value("2000000"))
         ("bin-size","Number of measurements per bin",cxxopts::value<int>())
         ("bins-wanted","Number of bins desired in data file",cxxopts::value<int>())
 //        ("conventionals", "set to take conventional measurements (E,N,...)")
@@ -299,9 +299,11 @@ cout << "U: " << U << endl;
 //
     cout << endl << endl;
 
-/*------------------- Pre-equilibration 1: mu calibration --------------------*/
+/*----------------- Pre-equilibration 1: mu,eta calibration ------------------*/
 
     bool at_least_one_iteration = false;
+    bool eta_fine_tuning_stage = false;
+    bool eta_fine_tuning_complete = false;
     
     not_equilibrated=true;
     mu_initial=mu;
@@ -313,6 +315,7 @@ cout << "U: " << U << endl;
     cout << "Stage (1/3): Determining mu and eta..." << endl << endl;
 
     // Iterate until particle distribution P(N) is peaked at target N
+    for (int stage=0;stage<2;stage++){ // stage0:mu,eta stage1:eta fine tuning
     while (true){
         
         if (!canonical){break;}
@@ -548,14 +551,30 @@ cout << "U: " << U << endl;
         }
         cout << "<N>: " << N_mean_pre << endl << endl;
         
-        // Get average number of flats (relevant for eta-equilibration)
-        N_flats_mean/=N_flats_samples;
-        eta=1/sqrt(N_flats_mean);
+        // Eta equilibration
+        if (!eta_fine_tuning_stage){ // Course calibration
+            N_flats_mean/=N_flats_samples;
+            eta=1/sqrt(N_flats_mean);
+        }
+        else{ // Fine tuning (want 0.10 < Z-frac < 0.15 to get more data quick)
+            if (Z_frac>=0.10 && Z_frac<=0.15){eta_fine_tuning_complete=true;}
+            else if (Z_frac>0.15){eta*=1.45;eta_fine_tuning_complete=false;}
+            else {eta*=0.5;eta_fine_tuning_complete=false;} // if Z_frac<0.10
+        }
 
         if (N_target_in_bins){
             // Stop the loop if the peak is at P(N)
             if (peak_idx==N_idx && abs(N_mean_pre-N)<0.33
-                && at_least_one_iteration){break;}
+                && at_least_one_iteration){
+                if (!eta_fine_tuning_stage){
+                    cout<<"Fine tuning eta... (Want: 10% < Z-frac < 15%)"<<endl
+                    <<endl;
+                    eta_fine_tuning_stage = true;
+                    break;}
+                else{
+                    if (eta_fine_tuning_complete){break;}
+                }
+            }
 
             else{
                 // Estimate mu via Eq. 15 in:https://arxiv.org/pdf/1312.6177.pdf
@@ -591,7 +610,8 @@ cout << "U: " << U << endl;
             }
         }
         at_least_one_iteration=true;
-    }
+    } // end of while loop
+    } // end of "stages" for loop
     
 /*---------------------------- Open files ------------------------------------*/
     
