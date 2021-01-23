@@ -4,8 +4,12 @@
 import os
 import numpy as np
 
+incomplete_seeds = []
+seeds_list = list(range(1000))
+seeds_measured = []
+
 # Save all the file names in the path as strings to a list
-path = '../'
+path = '../Data/'
 filenames_all = os.listdir(path)
 
 # Saves the files relevant to the Renyi Entanglement Entropy calculation
@@ -28,7 +32,7 @@ for filename in filenames_all:
         beta = float(parameters[6]) # imaginary time length (K_B*T)**(-1)
         bins_wanted = int(parameters[7]) # number of bins saved in file
         filetype = parameters[8] # identifies the data stored in file
-    #     seed = parameters[9].split(".")[0] # random seed used
+        seed = int(parameters[9].split(".")[0]) # random seed used
 
         if filetype=='SWAP':
             # Set parameters of simulations from differenet seeds we want to evaluate [D,L,N,l,U,t,beta,bins,type]
@@ -48,6 +52,9 @@ for filename in filenames_all:
                        count = sum(1 for _ in f)
                     if count == bins_wanted: # only consider files that managed to save number of bins wanted
                         files_SWAP.append(filename)
+                        seeds_measured.append(seed)
+                    else:
+                        incomplete_seeds.append(seed)
         
 # Sort SWAP files in ascending order of random seed
 files_SWAP.sort()
@@ -76,5 +83,7 @@ for l in range(columns_per_file):
     print(f"<S2(l={l})> = {S2_mean[l]:0.8f} +/- {S2_stderr[l]:0.8f}")
     
 print(number_of_seeds)
+print("incomplete seeds: ",[int(i) for i in incomplete_seeds])
 
-
+seeds_measured.sort()
+print([x for x in range(seeds_measured[0],seeds_measured[-1]+1) if x not in seeds_measured])
