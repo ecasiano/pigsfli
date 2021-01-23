@@ -10,7 +10,7 @@
 #PBS -l walltime=24:00:00
 #PBS -j oe
 #PBS -o out_pimc
-#PBS -t 100-999
+#PBS -t 7,15,16,25,48,60,62,66,74,75,81,82,89
 
 # Do not send email
 #PBS -M ecasiano@vols.utk.edu
