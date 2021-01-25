@@ -736,11 +736,11 @@ cout << "U: " << U << endl;
                                                n_resolved_SWAP_histogram_file));
         }
         
-        // Open mA-sector resolved local particle number distribution files
-        // for (int i=1; i<=m_A; i++){
-        //     Pn_file.open(Pn_names[i-1]);
-        //     Pn_files.push_back(std::move(Pn_file));
-        // }
+//         Open mA-sector resolved local particle number distribution files
+         for (int i=1; i<=m_A; i++){
+             Pn_file.open(Pn_names[i-1]);
+             Pn_files.push_back(std::move(Pn_file));
+         }
         
         // Open...
         for (int i=1; i<=m_A; i++){
@@ -1074,7 +1074,7 @@ cout << "U: " << U << endl;
                         // Add count to histogram of number of swapped sites
                         SWAP_histogram[num_swaps]+=1;
                         
-                        // Build subsystem particle number distribution P(n)^2?
+                        // Build subsystem particle number distribution P(n)
                         if (num_swaps==0){
                             for (int REP=0; REP<num_replicas; REP++){
                                 std::fill(n_A[REP].begin(),n_A[REP].end(),0);
@@ -1083,13 +1083,17 @@ cout << "U: " << U << endl;
                                 for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
                                     n_A_last+=fock_state_at_half_plus[REP][sub_sites[m_A_primed-1]];
                                     n_A[REP][m_A_primed-1]=n_A_last;
-                                    // Pn[m_A_primed-1][n_A[REP][m_A_primed-1]]+=1;
-                                    if (n_A[0][m_A_primed-1]==n_A[1][m_A_primed-1]){
-                                        Pn_squared[m_A_primed-1][n_A[0][m_A_primed-1]]+=1;
-                                    }
+                                    Pn[m_A_primed-1][n_A[REP][m_A_primed-1]]+=1;
                                 }
                             }
                              
+                            // Build P(n)
+                            for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
+                                if (n_A[0][m_A_primed-1]==n_A[1][m_A_primed-1]){
+                                    Pn_squared[m_A_primed-1][n_A[0][m_A_primed-1]]+=1;
+                                }
+                            }
+                            
                         }
                         
                         else{ // num_swaps>0
@@ -1127,19 +1131,19 @@ cout << "U: " << U << endl;
                     std::fill(SWAP_histogram.begin(),
                               SWAP_histogram.end(),0);
                     
-                    // Save current swapped-resolved Pn to file
-                    // for (int i=1; i<=m_A; i++){
-                    //     for (int j=0; j<=N; j++){
-                    //         Pn_files[i-1]<<
-                    //         fixed<<setprecision(17)<<
-                    //         Pn[i-1][j]<<" ";
-                    //     }
-                    //     Pn_files[i-1]<<endl;
+                     // Save current swapped-resolved Pn to file
+                     for (int i=1; i<=m_A; i++){
+                         for (int j=0; j<=N; j++){
+                             Pn_files[i-1]<<
+                             fixed<<setprecision(17)<<
+                             Pn[i-1][j]<<" ";
+                         }
+                         Pn_files[i-1]<<endl;
                         
-                        // Restart histogram
-                    //     std::fill(Pn[i-1].begin(),
-                    //               Pn[i-1].end(),0);  
-                    // }
+                         // Restart histogram
+                         std::fill(Pn[i-1].begin(),
+                                   Pn[i-1].end(),0);
+                     }
                     
                     // Save current swapped-resolved Pn^2 to file
                     for (int i=1; i<=m_A; i++){
@@ -1195,7 +1199,7 @@ cout << "U: " << U << endl;
             n_resolved_SWAP_histogram_files[i].close();
         }
         for (int i=1; i<=m_A; i++){
-            // Pn_files[i-1].close();
+            Pn_files[i-1].close();
             Pn_squared_files[i-1].close();
         }
     }
