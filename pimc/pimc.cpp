@@ -557,8 +557,8 @@ cout << "U: " << U << endl;
             eta=1/sqrt(N_flats_mean);
         }
         else{ // Fine tuning (want 0.10 < Z-frac < 0.15 to get more data quick)
-            if (Z_frac>=0.10 && Z_frac<=0.15){eta_fine_tuning_complete=true;}
-            else if (Z_frac>0.15){eta*=1.45;eta_fine_tuning_complete=false;}
+            if (Z_frac>=0.40 && Z_frac<=0.45){eta_fine_tuning_complete=true;}
+            else if (Z_frac>0.45){eta*=1.45;eta_fine_tuning_complete=false;}
             else {eta*=0.5;eta_fine_tuning_complete=false;} // if Z_frac<0.10
         }
 
