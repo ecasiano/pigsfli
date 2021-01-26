@@ -1087,7 +1087,9 @@ cout << "U: " << U << endl;
                                 }
                             }
                              
-                            // Build P(n)
+                            // Build P(n)^2
+                            // Joint Prob Dist of both replicas having same n
+                            // and no SWAP
                             for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
                                 if (n_A[0][m_A_primed-1]==n_A[1][m_A_primed-1]){
                                     Pn_squared[m_A_primed-1][n_A[0][m_A_primed-1]]+=1;
