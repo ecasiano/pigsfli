@@ -9,7 +9,7 @@ seeds_list = list(range(1000))
 seeds_measured = []
 
 # Save all the file names in the path as strings to a list
-path = '../Data/'
+path = path="/Users/ecasiano/Desktop/PrototypeScripts/Data/"
 filenames_all = os.listdir(path)
 
 # Saves the files relevant to the Renyi Entanglement Entropy calculation
@@ -40,10 +40,10 @@ for filename in filenames_all:
                                       4,
                                       4,
                                       2,
-                                      10.000000,
+                                      3.300000,
                                       1.000000,
                                       4.000000,
-                                      1000,
+                                      10000,
                                       'SWAP']
 
             if [D,L,N,l,U,t,beta,bins_wanted,filetype] == parameters_to_evaluate:
@@ -85,5 +85,5 @@ for l in range(columns_per_file):
 print(number_of_seeds)
 print("incomplete seeds: ",[int(i) for i in incomplete_seeds])
 
-seeds_measured.sort()
-print([x for x in range(seeds_measured[0],seeds_measured[-1]+1) if x not in seeds_measured])
+#seeds_measured.sort()
+#print([x for x in range(seeds_measured[0],seeds_measured[-1]+1) if x not in seeds_measured])
