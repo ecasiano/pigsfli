@@ -1,27 +1,37 @@
 # Takes average <S2> from many random seeds
 # and combines them into one file
 
+# What we're doing on one file:
+# 1) Loading P(n) for desired swapped sector mA
+# 2) Load SWAP(n) files
+# 3) Taking column sum for P(n) file for desired mA 
+# 4) Taking column sum for SWAP(n) file
+# 5) Dividing column sums of P(n) over column sums of SWAP(n)
+# 6) Taking negative log of above result
+# 7) Taking the average over seeds of above results
+# 8) Take the standard error of above average
+
 import os
 import numpy as np
 
-# 1) Get file names of P(n) data corresponding to desired m_A file
-# 2) While you're at it, get file names of corresponding SWAPn files
-# 3) Maybe sort them such that random seeds match
-
-# 4) Finish the above steps first...
-
 # Save all the file names in the path as strings to a list
-path = '/Users/ecasiano/XCode/pimc/pimc/Data/'
+path = path="/Users/ecasiano/Desktop/PrototypeScripts/Data/"
 filenames_all = os.listdir(path)
 
-N = 4
-# Saves the files relevant to the Renyi Entanglement Entropy calculation
+# Set desired total number of particles
+L_want = 4
+N_want = 4
+l_want = 2
+beta_want = 4.000000
+bins_want = 10000
+
+# Saves the files relevant to P(n) & S2(n) calculation
 files_Pn = []
 files_SWAPn = []
-for i in range(N+1):
+for i in range(N_want+1):
     files_SWAPn.append([])
 
-# Iterate over all filenames
+# Iterate over all filenames in path
 for filename in filenames_all:
     
     # Extract parameter information from file name
@@ -41,17 +51,18 @@ for filename in filenames_all:
         seed = int(parameters[9].split(".")[0]) # random seed used
         
         mA_sector_wanted = 2
+        
         if filetype[0]=='PnSquared' and int(filetype[1])==mA_sector_wanted:
             
             # Set parameters of simulations from differenet seeds we want to evaluate [D,L,N,l,U,t,beta,bins,type]
             parameters_to_evaluate = [1,
-                                      4,
-                                      N,
-                                      2,
+                                      L_want,
+                                      N_want,
+                                      l_want,
                                       3.300000,
                                       1.000000,
-                                      4.000000,
-                                      1000,
+                                      beta_want,
+                                      bins_want,
                                       'PnSquared']
 
             if [D,L,N,l,U,t,beta,bins_wanted,filetype[0]] == parameters_to_evaluate:
@@ -68,57 +79,33 @@ for filename in filenames_all:
                             
                             files_SWAPn[i].append(filename_SWAPn)
 
-# Get total number of seeds and total columns per data file
+# Get total number of seeds 
 number_of_seeds = len(files_Pn)
+            
+# Get column sum of P(n) files for each seed
+print('number of seeds: ',number_of_seeds)
+Pn_squared_l_col_sums = np.zeros((number_of_seeds,N_want+1))
+for s in range(number_of_seeds):
+    data = np.loadtxt(path+files_Pn[s])
+    Pn_squared_l_col_sums[s] = np.mean(data,axis=0)
+       
+SWAP_col_sums = np.zeros((number_of_seeds,N_want+1))
+for s in range(number_of_seeds):
+    for n in range(N_want+1):
+        data = np.loadtxt(path+files_SWAPn[n][s])
+        data = data[:,mA_sector_wanted]
+        SWAP_col_sums[s][n] = (np.mean(data))
 
-# Stores the mean Pn for each Pn-mA file
-Pn_raw = np.zeros((number_of_seeds,N+1))
-SWAPn_raw = np.zeros((number_of_seeds,N+1))
-for i,filename in enumerate(files_Pn):
-    data_Pn = np.loadtxt(path+filename)
-    
-#     data_Pn_norms = np.sum(data_Pn,axis=1) # bin norms
-        
-#     # Normalize (some bins might be all zeros. Don't divide these)
-#     data_Pn /= data_Pn_norms[:,None]
-#     if 0 in data_Pn_norms:
-#         x = np.where(data_Pn_norms==0)
-#         data_Pn[x] = 0
-        
-    Pn_raw[i] = np.mean(data_Pn,axis=0)
-    Pn_raw[i] /= np.sum(Pn_raw[i]) 
-    
-    for j in range(len(files_SWAPn)): # iterates over N+1 list elements
-        for k,file_SWAPn in enumerate(files_SWAPn[j]): # iterates over number_of_seeds list elements
-            
-            data_SWAPn_raw = np.loadtxt(path+file_SWAPn)
-            data_SWAPn_mean = np.mean(data_SWAPn_raw,axis=0) # now we only have one 1D array
-            
-            data_SWAPn_unswapped_prob = data_SWAPn_mean[0] # mean prob of no swap
-            
-            if data_SWAPn_unswapped_prob != 0:
-                SWAPn_mean = -np.log(data_SWAPn_mean/data_SWAPn_unswapped_prob)
-            else:
-                SWAPn_mean = np.zeros(mA_sector_wanted+1)
-            
-            SWAPn_raw[k][j] = SWAPn_mean[mA_sector_wanted]
-            
-# combined_SWAP_data = np.zeros((number_of_seeds,columns_per_file))
-# for i,filename in enumerate(files_SWAP):
-#     data = np.loadtxt(path+filename)
-#     data_mean = np.mean(data,axis=0)
-#     combined_SWAP_data[i] = data_mean
+# Calculate expectation value of SWAP operator for each n-sector & seed
+SWAP = SWAP_col_sums/Pn_squared_l_col_sums
 
-# # Calculate S2 of each bin
-# SWAP_0 = combined_SWAP_data[:,0]
-# S2_data = -np.log(combined_SWAP_data / SWAP_0[:,None])
+# Calculate Second Renyi Entanglement Entropy for each n-sector & seed
+S2 = -np.log(SWAP)
 
-# # Get mean and std dev,err of S2
-# S2_mean = np.mean(S2_data,axis=0)
-# S2_stderr = np.std(S2_data,axis=0)/np.sqrt(number_of_seeds)
+# Get mean of S2 and std errors
+S2_mean = np.mean(S2,axis=0)
+S2_err = np.std(S2,axis=0) / np.sqrt(number_of_seeds)
 
-# # Print out <S2> +/- error
-# for l in range(columns_per_file):
-#     print(f"<S2(l={l})> = {S2_mean[l]:0.8f} +/- {S2_stderr[l]:0.8f}")
-    
-# print(number_of_seeds)
+# Print S2 for each sector to screen
+for i in range(len(S2_mean)):
+    print("S2(n=%d) = %.6f +/- %.6f"%(i,S2_mean[i],S2_err[i]))
