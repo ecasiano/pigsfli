@@ -43,7 +43,7 @@ for filename in filenames_all:
                                       3.300000,
                                       1.000000,
                                       4.000000,
-                                      10000,
+                                      1000,
                                       'SWAP']
 
             if [D,L,N,l,U,t,beta,bins_wanted,filetype] == parameters_to_evaluate:
