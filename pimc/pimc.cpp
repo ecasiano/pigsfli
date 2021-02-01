@@ -34,7 +34,7 @@ int main(int argc, char** argv){
             cxxopts::value<bool>()->default_value("true"))
         ("seed","Random seed value",cxxopts::value<int>()->default_value("0"))
         ("sweeps-pre","Number pre-equilibration sweeps",
-            cxxopts::value<unsigned long long int>()->default_value("2000000"))
+            cxxopts::value<unsigned long long int>()->default_value("1000000"))
         ("bin-size","Number of measurements per bin",cxxopts::value<int>())
         ("bins-wanted","Number of bins desired in data file",cxxopts::value<int>())
 //        ("conventionals", "set to take conventional measurements (E,N,...)")
@@ -1163,7 +1163,6 @@ cout << "U: " << U << endl;
                         writing_ctr+=1;
                     }
                 }
-                    
             
                 if (writing_ctr==bin_size){
 
