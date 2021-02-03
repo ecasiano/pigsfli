@@ -15,23 +15,26 @@ import os
 import numpy as np
 
 # Save all the file names in the path as strings to a list
-path = path="/Users/ecasiano/Desktop/PrototypeScripts/Data/"
+path = path="/Users/ecasiano/Desktop/PrototypeScripts/U3.300000/"
+path = path="/Users/ecasiano/Xcode/pimc/pimc/"
 filenames_all = os.listdir(path)
 
 # Set desired total number of particles
-L_want = 4
-N_want = 4
-l_want = 2
+L_want = 20
+N_want = 400
+l_want = 10
 beta_want = 4.000000
 bins_want = 10000
+D_want = 2
+U_want = 16.666667
+t_want = 1.000000
 
 # Saves the files relevant to P(n) & S2(n) calculation
 files_PnSquared = []
 files_SWAPn = []
 files_Pn = []
-for i in range(N_want+1):
-    files_SWAPn.append([])
 
+ctr =0
 # Iterate over all filenames in path
 for filename in filenames_all:
     
@@ -39,6 +42,7 @@ for filename in filenames_all:
     parameters = filename.split("_")
     
     if parameters[0]=='1D' or parameters[0]=='2D' or parameters[0]=='3D':
+        ctr+=1
     
         D = int((parameters[0])[0]) # hypercube dimension
         L = int(parameters[1]) # hypercube linear size
@@ -56,12 +60,12 @@ for filename in filenames_all:
         if filetype[0]=='PnSquared' and int(filetype[1])==mA_sector_wanted:
             
             # Set parameters of simulations from differenet seeds we want to evaluate [D,L,N,l,U,t,beta,bins,type]
-            parameters_to_evaluate = [1,
+            parameters_to_evaluate = [D_want,
                                       L_want,
                                       N_want,
                                       l_want,
-                                      3.300000,
-                                      1.000000,
+                                      U_want,
+                                      t_want,
                                       beta_want,
                                       bins_want,
                                       'PnSquared']
@@ -73,18 +77,16 @@ for filename in filenames_all:
                     if count == bins_wanted: # only consider files that managed to save number of bins wanted
                         files_PnSquared.append(filename)
                         
-                        for i in range(N+1):
-                            filename_splitted = filename.split('_')
-                            filename_splitted[8] = 'SWAP-n'+str(i)
-                            filename_SWAPn = "_".join(filename_splitted)
-                            
-                            files_SWAPn[i].append(filename_SWAPn)
-                        
                         filename_splitted = filename.split('_')
                         filename_splitted[8] = 'Pn-mA'+str(mA_sector_wanted)
                         filename_Pn = "_".join(filename_splitted)
                         files_Pn.append(filename_Pn)
-
+                        
+                        filename_splitted = filename.split('_')
+                        filename_splitted[8] = 'SWAPn-mA'+str(mA_sector_wanted)
+                        filename_SWAPn = "_".join(filename_splitted)
+                        files_SWAPn.append(filename_SWAPn)
+                        
 # Get total number of seeds 
 number_of_seeds = len(files_PnSquared)
             
@@ -92,19 +94,16 @@ number_of_seeds = len(files_PnSquared)
 print('number of seeds: ',number_of_seeds)
 Pn_squared_l_col_sums = np.zeros((number_of_seeds,N_want+1))
 Pn_l_col_sums = np.zeros((number_of_seeds,N_want+1))
+SWAP_col_sums = np.zeros((number_of_seeds,N_want+1))
 for s in range(number_of_seeds):
     data = np.loadtxt(path+files_PnSquared[s])
     Pn_squared_l_col_sums[s] = np.mean(data,axis=0)
     
     data = np.loadtxt(path+files_Pn[s])
     Pn_l_col_sums[s] = np.mean(data,axis=0)
-       
-SWAP_col_sums = np.zeros((number_of_seeds,N_want+1))
-for s in range(number_of_seeds):
-    for n in range(N_want+1):
-        data = np.loadtxt(path+files_SWAPn[n][s])
-        data = data[:,mA_sector_wanted]
-        SWAP_col_sums[s][n] = (np.mean(data))
+    
+    data = np.loadtxt(path+files_SWAPn[s])
+    SWAP_col_sums[s] = np.mean(data,axis=0)
 
 # Calculate expectation value of SWAP operator for each n-sector & seed
 SWAP = SWAP_col_sums/Pn_squared_l_col_sums
@@ -136,3 +135,6 @@ for i in range(len(S2_mean)):
     print("S2(n=%d) = %.6f +/- %.6f"%(i,S2_mean[i],S2_err[i]))
     
 print("Final num_seeds: ",SWAP.shape)
+print(ctr, " files created")
+
+
