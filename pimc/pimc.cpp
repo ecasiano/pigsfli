@@ -672,17 +672,6 @@ cout << "U: " << U << endl;
             to_string(U)+"_"+to_string(t)+"_"+
             to_string(beta)+"_"+to_string(bins_wanted)+"_"+
             "SWAP_"+to_string(seed)+".dat";
-
-//            // Create filenames of SWAP histograms for each n-Sector
-//            for (int i=0; i<=N; i++){
-//                SWAPn_histogram_names.push_back(
-//                to_string(D)+"D_"+to_string(L)+"_"+
-//                to_string(N)+"_"+to_string(l_A)+"_"+
-//                to_string(U)+"_"+to_string(t)+"_"+
-//                to_string(beta)+"_"+to_string(bins_wanted)+"_"+
-//                "SWAP-n"+to_string(i)+"_"+
-//                to_string(seed)+".dat");
-//            }
             
             // Create filenames of SWAP histograms for each partition size mA
             for (int i=1; i<=m_A; i++){
@@ -1132,7 +1121,7 @@ cout << "U: " << U << endl;
                                     n_A[REP][i]=n_A_last;
                                 }
                             }
-                            if (n_A[0][num_swaps-1]==n_A[1][num_swaps-1]){
+                            if (n_A[0][num_swaps-1]==n_A[1][num_swaps-1]){ // Not necessary. When there are SWAPs, n0 and n1 are the same.
                                 SWAPn_histograms[num_swaps-1][n_A[0][num_swaps-1]]+=1;
                             }
                         
