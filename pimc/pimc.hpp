@@ -3626,7 +3626,7 @@ void swap_timeshift_head(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     }
     
     // Determine the total particle change based on wormend to be shifted
-    dN_src = 1.0 * l_path_src/beta;
+    dN_src  = 1.0 * l_path_src/beta;
     dN_dest = 1.0 * l_path_dest/beta;
     
     // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
@@ -3642,12 +3642,10 @@ void swap_timeshift_head(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     n_after_swap_kink = paths[dest_replica][kink_out_of_dest].n;
     n_before_swap_kink = paths[dest_replica][prev_dest].n;
         
-    // Get number of kinks in source and destination replicas
+    // Get number of kinks in source and destination replicas (before update)
     num_kinks_src = num_kinks[src_replica];
     num_kinks_dest = num_kinks[dest_replica];
-    
-//    if (!is_advance && is_over_swap){cout<<n_before_swap_kink<<endl;}
-    
+        
     // Build the Metropolis condition (R)
     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
 
@@ -3662,40 +3660,6 @@ void swap_timeshift_head(vector<vector<Kink> > &paths, vector<int> &num_kinks,
         else{ // We go Over Swap
 
             if (is_advance){ // advance OVER SWAP
-                
-                int n_left,n_right;
-
-//                /*---------------------------------------*/
-                // DEBUGGING (ONly allow flats to differ by one particle)
-                n_right=paths[src_replica][next_src].n;
-                n_left=paths[src_replica][worm_end_idx].n+1;
-//                if (n_right==2||n_left==2){return;}
-//                cout<<"Advanced head over swap AFTER (left/right fock state)"<<endl;
-//                for (int i=0; i<1; i++){
-//                    cout<<n_left;
-//                }
-//                cout << " || ";
-//                for (int i=0; i<1; i++){
-//                    cout<<n_right;
-//                }
-//                cout << endl;
-
-//                /*---------------------------------------*/
-//                /*---------------------------------------*/
-                // DEBUGGING (ONly allow flats to differ by one particle)
-                n_right=paths[dest_replica][kink_out_of_dest].n+1;
-                n_left=paths[dest_replica][prev_dest].n;
-//                if (n_right==2||n_left==2){return;}
-//                for (int i=0; i<1; i++){
-//                    cout<<n_left;
-//                }
-//                cout << " || ";
-//                for (int i=0; i<1; i++){
-//                    cout<<n_right;
-//                }
-
-//                cout << endl << endl;
-////                /*---------------------------------------*/
 
                 /*--------- Deletion of worm end from SOURCE replica ---------*/
                 
@@ -3767,41 +3731,6 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                                 
             }
             else{ // Recede OVER SWAP
-                
-                int n_left,n_right;
-
-//                /*---------------------------------------*/
-                // DEBUGGING (ONly allow flats to differ by one particle)
-                n_right=n_after_worm_end;
-                n_left=paths[src_replica][paths[src_replica][prev_src].prev].n;
-//                if (n_right==2||n_left==2){return;}
-//                cout<<"Recede head over swap AFTER (left/right fock state)"<<endl;
-//                for (int i=0; i<1; i++){
-//                    cout<<n_left;
-//                }
-//                cout << " || ";
-//                for (int i=0; i<1; i++){
-//                    cout<<n_right;
-//                }
-//                cout << endl;
-
-//                /*---------------------------------------*/
-//                /*---------------------------------------*/
-                // DEBUGGING (ONly allow flats to differ by one particle)
-                n_right=paths[dest_replica][kink_out_of_dest].n;
-                n_left=paths[dest_replica][prev_dest].n-1;
-//                if (n_right==2||n_left==2){return;}
-//                for (int i=0; i<1; i++){
-//                    cout<<n_left;
-//                }
-//                cout << " || ";
-//                for (int i=0; i<1; i++){
-//                    cout<<n_right;
-//                }
-
-//                cout << endl << endl;
-                
-//                /*---------------------------------------*/
 
                 // Cannot recede head over swap if no particles on destination
                 if (n_before_swap_kink==0){return;}
@@ -3895,6 +3824,337 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
 //                cout << endl;
                 
 //                cout << "2 (recede)" << endl;
+            }
+        }
+        return;
+    }
+    else // Reject
+        return;
+}
+
+/*----------------------------------------------------------------------------*/
+
+void swap_timeshift_tail(vector<vector<Kink> > &paths, vector<int> &num_kinks,
+               int num_replicas, int replica_idx,
+               vector<int> &sub_sites, vector <int> &swapped_sites,
+               vector<int> &swap_kinks, int &num_swaps,
+               int l_A, int m_A,
+               vector<int> &head_idx,vector<int> &tail_idx,
+               int M, int N, double U, double mu, double t,
+               vector<vector<int> > &adjacency_matrix, int total_nn,
+               double beta,double eta,bool canonical,vector<double> &N_tracker,
+               vector<int> &N_zero,vector<int> &N_beta,
+               vector<vector<int> > &last_kinks,
+               unsigned long long int &swap_advance_tail_attempts,
+               unsigned long long int &swap_advance_tail_accepts,
+               unsigned long long int &swap_recede_tail_attempts,
+               unsigned long long int &swap_recede_tail_accepts,
+               boost::random::mt19937 &rng){
+    
+    // Variable declarations
+    int n,worm_end_idx,src_replica,dest_replica,tail_idx_0,
+    tail_idx_1,prev_src,next_src,prev_dest,next_dest,worm_end_site,
+    kink_out_of_dest,n_after_worm_end,n_after_swap_kink,
+    num_kinks_src,num_kinks_dest,current_kink,n_before_swap_kink,
+    n_before_worm_end;
+    double tau,tau_prev,tau_next,tau_flat,dV,R,tau_new,Z,l_path_src,
+    l_path_dest,dN_src,dN_dest;
+    bool swap_in_front,is_advance,is_over_swap;
+    vector<Kink> paths_src,paths_dest;
+    
+    // Need at least two replicas to perform a spaceshift
+    if (paths.size()<2){return;}
+    
+    // Need at least one swap kink to perform a timeshift through swap kink
+    if (num_swaps==0){return;}
+    
+    // Retrieve worm tail indices. -1 means no worm tail
+    tail_idx_0 = tail_idx[0];
+    tail_idx_1 = tail_idx[1];
+    
+    // There had to be STRICTLY ONE worm tail to timeshift over swap kink
+    if (tail_idx_0!=-1 && tail_idx_1!=-1){return;} // two worms present
+    if (tail_idx_0==-1 && tail_idx_1==-1){return;} // no worms present
+    
+    // Choose the "source" and "destination" replica
+    if (tail_idx_0!=-1){src_replica=0;}
+    else{src_replica=1;}
+    dest_replica = 1-src_replica;
+    
+    // Get index of the worm tail to be moved
+    worm_end_idx=tail_idx[src_replica];
+        
+    // Extract worm tail time and site
+    tau = paths[src_replica][worm_end_idx].tau;
+    worm_end_site = paths[src_replica][worm_end_idx].src;
+    n = paths[src_replica][worm_end_idx].n;
+    
+    // Get lower and upper adjacent kinks of worm tail to be moved
+    // NOTE: One of the two bounds might be the swap kink.
+    prev_src=paths[src_replica][worm_end_idx].prev;
+    next_src=paths[src_replica][worm_end_idx].next;
+    
+    // Check if worm tail is adjacent to a swap kink
+    if (next_src!=-1){
+        if (paths[src_replica][next_src].src_replica!=
+            paths[src_replica][next_src].dest_replica){swap_in_front=true;}
+        else if (paths[src_replica][prev_src].src_replica!=
+                 paths[src_replica][prev_src].dest_replica){swap_in_front=false;}
+        else {return;}
+    }
+    else{
+        if (paths[src_replica][prev_src].src_replica!=
+            paths[src_replica][prev_src].dest_replica){swap_in_front=false;}
+        else {return;}
+    }
+                
+    // Get index of central time slice at destination replica
+    current_kink = worm_end_site; // next refers to index of next kink on site
+    while (paths[dest_replica][current_kink].dest_replica==
+           paths[dest_replica][current_kink].src_replica){
+        current_kink = paths[dest_replica][current_kink].next;
+    }
+    kink_out_of_dest = current_kink;
+    
+    // Get indices of kinks before & after swap kink in destination replica
+    prev_dest = paths[dest_replica][kink_out_of_dest].prev;
+    next_dest = paths[dest_replica][kink_out_of_dest].next;
+    
+    // Determine the lower and upper bounds of the worm end to be timeshifted
+    if (swap_in_front){
+        if (next_dest!=-1)
+            tau_next = paths[dest_replica][next_dest].tau;
+        else
+            tau_next = beta;
+        tau_prev = paths[src_replica][prev_src].tau;
+    }
+    else{ // swap kink behind
+        if (next_src!=-1)
+            tau_next = paths[src_replica][next_src].tau;
+        else
+            tau_next=beta;
+        tau_prev = paths[dest_replica][prev_dest].tau;
+    }
+    
+    // Calculate length of flat interval
+    tau_flat = tau_next - tau_prev;
+
+    // Calculate change in diagonal energy
+//    shift_tail=true; // we are always moving tail in this update. set to true.
+//    dV=U*(n-!shift_head)-mu;
+    dV=U*(n-1)-mu;
+    
+    // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
+    dV *= -1; // dV=eps-eps_w
+    
+    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    // Sample the new time of the worm end from truncated exponential dist.
+    /*:::::::::::::::::::: Truncated Exponential RVS :::::::::::::::::::::::::*/
+    Z = 1.0 - exp(-dV*(tau_next-tau_prev));
+    tau_new = tau_prev - log(1.0-Z*rnum(rng))  / dV;
+    /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    
+    // Check if advance or recede
+    if (tau_new>tau){
+        is_advance=true;
+        swap_advance_tail_attempts+=1;
+    }
+    else {
+        is_advance=false;
+        swap_recede_tail_attempts+=1;
+    }
+    
+    // Check if timeshift takes the worm end over the swap kink
+    is_over_swap=false;
+    if ( (is_advance && swap_in_front && tau_new>beta/2) ||
+         (!is_advance && !swap_in_front && tau_new<beta/2) ){is_over_swap=true;}
+        
+    // Determine the length of path to be modified in each replica
+    if (is_over_swap){
+        l_path_src = beta/2 - tau;
+        l_path_dest = tau_new - beta/2;
+    }
+    else{ // did not go over swap
+        l_path_src = tau_new - tau;
+        l_path_dest = 0;
+    }
+    
+    // Determine the total particle change based on wormend to be shifted
+    dN_src  = -1.0 * l_path_src/beta;
+    dN_dest = -1.0 * l_path_dest/beta;
+    
+    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    if (canonical){
+        if ((N_tracker[src_replica]+dN_src)   < (N-1)  || (N_tracker[src_replica]+dN_src)   > (N+1)  ||
+            (N_tracker[dest_replica]+dN_dest) < (N-1)  ||
+            (N_tracker[dest_replica]+dN_dest) > (N+1)){return;}
+    }
+    
+    // Get number of particles after: worm end @ src & central kink @ dest
+    n_after_worm_end = paths[src_replica][worm_end_idx].n;
+    n_before_worm_end = paths[src_replica][prev_src].n;
+    n_after_swap_kink = paths[dest_replica][kink_out_of_dest].n;
+    n_before_swap_kink = paths[dest_replica][prev_dest].n;
+        
+    // Get number of kinks in source and destination replicas (before update)
+    num_kinks_src = num_kinks[src_replica];
+    num_kinks_dest = num_kinks[dest_replica];
+        
+    // Build the Metropolis condition (R)
+    R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
+
+    // Metropolis sampling
+    if (rnum(rng) < R){
+        if (!is_over_swap){ // worm end does not go over swap kink
+            paths[src_replica][worm_end_idx].tau = tau_new;
+            N_tracker[src_replica] += dN_src;
+            if (is_advance){swap_advance_tail_accepts+=1;}
+            else {swap_recede_tail_accepts+=1;}
+        }
+        else{ // We go Over Swap
+
+            if (is_advance){ // advance OVER SWAP
+                
+                // Cannot advance tail over swap if no particles on destination
+                if (n_after_swap_kink==0){return;}
+
+                /*--------- Deletion of worm end from SOURCE replica ---------*/
+                
+                // num_kinks_src-1 will be swapped. Modify links to it
+                if (paths[src_replica][num_kinks_src-1].next!=-1){
+paths[src_replica][paths[src_replica][num_kinks_src-1].next].prev=worm_end_idx;
+                }
+paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
+                
+                swap(paths[src_replica][worm_end_idx],
+                     paths[src_replica][num_kinks_src-1]);
+                
+                // Upper or lower bound of flat could've been swapped. Correct.
+                if (next_src==num_kinks_src-1){next_src=worm_end_idx;}
+                else if (prev_src==num_kinks_src-1){prev_src=worm_end_idx;}
+                else {;}
+                
+                // Head could've been swapped. Correct if so.
+                if (head_idx[src_replica]==num_kinks_src-1)
+                    head_idx[src_replica]=worm_end_idx;
+                
+                // Whatever kink was swapped could've been the last on its site
+                if (paths[src_replica][worm_end_idx].next==-1){
+                  last_kinks[src_replica][paths[src_replica][worm_end_idx].src]
+                    =worm_end_idx;
+                }
+
+                // Reconnect upper and lower bounds of the flat
+                if (next_src!=-1)
+                    paths[src_replica][next_src].prev = prev_src;
+                paths[src_replica][prev_src].next = next_src;
+                
+                // Deactivate the worm end
+                tail_idx[src_replica]=-1;
+                                
+                // Update trackers for: no. of active kinks,total particles
+                num_kinks[src_replica]-=1;
+                N_tracker[src_replica] += dN_src;
+
+                /*------- Insertion of worm end in DESTINATION replica -------*/
+                
+                // Activate first available kink
+                paths[dest_replica][num_kinks_dest]=
+                Kink(tau_new,n_after_swap_kink,worm_end_site,worm_end_site,
+                     kink_out_of_dest,next_dest,dest_replica,dest_replica);
+                
+                // Save tail index
+                tail_idx[dest_replica]=num_kinks_dest;
+                
+                // Update number of particles after swap kink in dest replica
+                paths[dest_replica][kink_out_of_dest].n=n_after_swap_kink-1;
+                
+                // Add to acceptance counter
+                swap_advance_tail_accepts+=1;
+                
+                // Modify links of swap kink and next_dest kink
+                if (next_dest!=-1)
+                    paths[dest_replica][next_dest].prev=num_kinks_dest;
+                paths[dest_replica][kink_out_of_dest].next=num_kinks_dest;
+                
+                // Update trackers for: no. of active kinks,total particles
+                num_kinks[dest_replica] += 1;
+                N_tracker[dest_replica] += dN_dest;
+
+                // Created kink might be last on its site
+                if (next_dest==-1)
+                    last_kinks[dest_replica][worm_end_site]=
+                    num_kinks_dest;
+                                
+            }
+            else{ // Recede OVER SWAP
+                
+                /*--------- Deletion of worm end from SOURCE replica ---------*/
+                // num_kinks_src-1 will be swapped. Modify links to it
+                if (paths[src_replica][num_kinks_src-1].next!=-1){
+paths[src_replica][paths[src_replica][num_kinks_src-1].next].prev=worm_end_idx;
+                }
+paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
+                
+                swap(paths[src_replica][worm_end_idx],
+                     paths[src_replica][num_kinks_src-1]);
+                
+                // Upper or lower bound of flat could've been swapped. Correct.
+                if (next_src==num_kinks_src-1){next_src=worm_end_idx;}
+                else if (prev_src==num_kinks_src-1){prev_src=worm_end_idx;}
+                else {;}
+                
+                // Head could've been swapped. Correct if so.
+                if (head_idx[src_replica]==num_kinks_src-1)
+                    head_idx[src_replica]=worm_end_idx;
+                
+                // Whatever kink was swapped could've been the last on its site
+                if (paths[src_replica][worm_end_idx].next==-1){
+                  last_kinks[src_replica][paths[src_replica][worm_end_idx].src]
+                    =worm_end_idx;
+                }
+                
+                // Modify particles in prev_src
+                paths[src_replica][prev_src].n=n_after_worm_end;
+
+                // Reconnect upper and lower bounds of the flat
+                if (next_src!=-1)
+                    paths[src_replica][next_src].prev = prev_src;
+                paths[src_replica][prev_src].next = next_src;
+                
+                // Deactivate the worm end
+                tail_idx[src_replica]=-1;
+                                
+                // Update trackers for: no. of active kinks,total particles
+                num_kinks[src_replica]-=1;
+                N_tracker[src_replica] += dN_src;
+                
+                // Swap kink on src might be last kink on it's site
+                if (next_src==-1){
+                    last_kinks[src_replica][worm_end_site]=prev_src;
+                }
+                
+
+                /*------- Insertion of worm end in DESTINATION replica -------*/
+
+                // Activate first available kink
+                paths[dest_replica][num_kinks_dest]=
+                Kink(tau_new,n_before_swap_kink+1,worm_end_site,worm_end_site,
+                     prev_dest,kink_out_of_dest,dest_replica,dest_replica);
+                
+                // Save tail index
+                tail_idx[dest_replica]=num_kinks_dest;
+                
+                // Add to acceptance counter
+                swap_recede_tail_accepts+=1;
+                
+                // Modify links to worm head in destination replica
+                paths[dest_replica][kink_out_of_dest].prev=num_kinks_dest;
+                paths[dest_replica][prev_dest].next=num_kinks_dest;
+                
+                // Update trackers for: no. of active kinks,total particles
+                num_kinks[dest_replica] += 1;
+                N_tracker[dest_replica] += dN_dest;
             }
         }
         return;
