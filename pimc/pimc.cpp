@@ -55,7 +55,7 @@ int main(int argc, char** argv){
     boost::random::uniform_int_distribution<> updates(0,14);
     
     // Create integer distribution with support: [0,2]
-    boost::random::uniform_int_distribution<> swap_updates(0,2);
+    boost::random::uniform_int_distribution<> swap_updates(0,3);
     
     // Bose-Hubbard parameters
     int L,D,M,N;
@@ -171,6 +171,9 @@ int main(int argc, char** argv){
     
     unsigned long long int swap_advance_head_attempts=0,swap_advance_head_accepts=0;
     unsigned long long int swap_recede_head_attempts=0,swap_recede_head_accepts=0;
+    
+    unsigned long long int swap_advance_tail_attempts=0,swap_advance_tail_accepts=0;
+    unsigned long long int swap_recede_tail_attempts=0,swap_recede_tail_accepts=0;
         
 /*------------------------- Initialize variables -----------------------------*/
 
@@ -670,7 +673,8 @@ cout << "U: " << U << endl;
             SWAP_histogram_name=to_string(D)+"D_"+to_string(L)+
             "_"+to_string(N)+"_"+to_string(l_A)+"_"+
             to_string(U)+"_"+to_string(t)+"_"+
-            to_string(beta)+"_"+to_string(bins_wanted)+"_"+
+            to_string(beta)+"_"+to_string(bin_size)+"_"+
+            to_string(bins_wanted)+"_"+
             "SWAP_"+to_string(seed)+".dat";
             
             // Create filenames of SWAP histograms for each partition size mA
@@ -679,7 +683,8 @@ cout << "U: " << U << endl;
                 to_string(D)+"D_"+to_string(L)+"_"+
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
-                to_string(beta)+"_"+to_string(bins_wanted)+"_"+
+                to_string(beta)+"_"+to_string(bin_size)+"_"+
+                to_string(bins_wanted)+"_"+
                 "SWAPn-mA"+to_string(i)+"_"+
                 to_string(seed)+".dat");
             }
@@ -690,7 +695,8 @@ cout << "U: " << U << endl;
                 to_string(D)+"D_"+to_string(L)+"_"+
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
-                to_string(beta)+"_"+to_string(bins_wanted)+"_"+
+                to_string(beta)+"_"+to_string(bin_size)+"_"+
+                to_string(bins_wanted)+"_"+
                 "Pn-mA"+to_string(i)+"_"+
                 to_string(seed)+".dat");
             }
@@ -701,7 +707,8 @@ cout << "U: " << U << endl;
                 to_string(D)+"D_"+to_string(L)+"_"+
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
-                to_string(beta)+"_"+to_string(bins_wanted)+"_"+
+                to_string(beta)+"_"+to_string(bin_size)+"_"+
+                to_string(bins_wanted)+"_"+
                 "PnSquared-mA"+to_string(i)+"_"+
                 to_string(seed)+".dat");
             }
@@ -729,18 +736,13 @@ cout << "U: " << U << endl;
             
         // Open SWAP histograms file
         SWAP_histogram_file.open(SWAP_histogram_name);
-//        for (int i=0; i<=N; i++){
-//            SWAPn_histogram_file.open(
-//                                            SWAPn_histogram_names[i]);
-//            SWAPn_histogram_files.push_back(std::move(
-//                                               SWAPn_histogram_file));
-//        }
+
         
-//         Open mA-sector resolved local particle number distribution files
-         for (int i=1; i<=m_A; i++){
-             Pn_file.open(Pn_names[i-1]);
-             Pn_files.push_back(std::move(Pn_file));
-         }
+        // Open mA-sector resolved local particle number distribution files
+        for (int i=1; i<=m_A; i++){
+            Pn_file.open(Pn_names[i-1]);
+            Pn_files.push_back(std::move(Pn_file));
+        }
         
         // Open...
         for (int i=1; i<=m_A; i++){
@@ -992,6 +994,24 @@ cout << "U: " << U << endl;
                              swap_advance_head_accepts,
                              swap_recede_head_attempts,
                              swap_recede_head_accepts,
+                             rng);
+         }
+         else if (label==3) {
+             swap_timeshift_tail(paths, num_kinks,
+                             num_replicas, 0,
+                             sub_sites, swapped_sites,
+                             swap_kinks, num_swaps,
+                             l_A, m_A,
+                             head_idx,tail_idx,
+                             M, N, U, mu, t,
+                             adjacency_matrix, total_nn,
+                             beta, eta, canonical, N_tracker,
+                             N_zero, N_beta,
+                             last_kinks,
+                             swap_advance_tail_attempts,
+                             swap_advance_tail_accepts,
+                             swap_recede_tail_attempts,
+                             swap_recede_tail_accepts,
                              rng);
          }
          else{
@@ -1311,6 +1331,11 @@ cout << "U: " << U << endl;
                                swap_advance_head_attempts<<endl;
     cout <<"SWAP Recede Head: "<<swap_recede_head_accepts<<"/"<<
                                swap_recede_head_attempts<<endl;
+    
+    cout<< endl <<"SWAP Advance Tail: "<<swap_advance_tail_accepts<<"/"<<
+                               swap_advance_tail_attempts<<endl;
+    cout <<"SWAP Recede Tail: "<<swap_recede_tail_accepts<<"/"<<
+                               swap_recede_tail_attempts<<endl;
     
     auto end = high_resolution_clock::now();
 
