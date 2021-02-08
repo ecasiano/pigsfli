@@ -37,6 +37,8 @@ int main(int argc, char** argv){
             cxxopts::value<unsigned long long int>()->default_value("1000000"))
         ("bin-size","Number of measurements per bin",cxxopts::value<int>())
         ("bins-wanted","Number of bins desired in data file",cxxopts::value<int>())
+        ("subgeometry","Shape of subregion: square OR strip",
+            cxxopts::value<string>()->default_value("square"))
 //        ("conventionals", "set to take conventional measurements (E,N,...)")
     ;
 
@@ -95,6 +97,7 @@ int main(int argc, char** argv){
     int num_swaps;
     vector<int> SWAP_histogram;
     vector<vector<int> > SWAPn_histograms,Pn,Pn_squared;
+    string subgeometry;
     
     // Measurement settings
     double measurement_center,measurement_plus_minus;
@@ -189,12 +192,14 @@ int main(int argc, char** argv){
     U=result["U"].as<double>();
     mu=result["mu"].as<double>();
     boundary_condition="pbc";
-   
+    subgeometry=result["subgeometry"].as<string>();
+
     // Subsystem settings
     l_A = result["l"].as<int>(); // subsystem linear size
     if (l_A>=L){cout << "ERROR: Please choose l < L" << endl;exit(1);}
-    m_A = pow(l_A,D);
-    create_sub_sites(sub_sites,l_A,L,D,M);
+    if (subgeometry=="square"){m_A = pow(l_A,D);}
+    else if (subgeometry=="strip"){m_A = L*l_A;} // l_A: max width of rectangle
+    create_sub_sites(sub_sites,l_A,L,D,M,subgeometry);
     num_swaps=0;
     
     // Initialize Fock State
@@ -675,7 +680,7 @@ cout << "U: " << U << endl;
             to_string(U)+"_"+to_string(t)+"_"+
             to_string(beta)+"_"+to_string(bin_size)+"_"+
             to_string(bins_wanted)+"_"+
-            "SWAP_"+to_string(seed)+".dat";
+            "SWAP_"+to_string(seed)+"_"+subgeometry+".dat";
             
             // Create filenames of SWAP histograms for each partition size mA
             for (int i=1; i<=m_A; i++){
@@ -686,7 +691,7 @@ cout << "U: " << U << endl;
                 to_string(beta)+"_"+to_string(bin_size)+"_"+
                 to_string(bins_wanted)+"_"+
                 "SWAPn-mA"+to_string(i)+"_"+
-                to_string(seed)+".dat");
+                to_string(seed)+"_"+subgeometry+".dat");
             }
             
             // Create filenames of P(n) for each partition size mA
@@ -698,7 +703,7 @@ cout << "U: " << U << endl;
                 to_string(beta)+"_"+to_string(bin_size)+"_"+
                 to_string(bins_wanted)+"_"+
                 "Pn-mA"+to_string(i)+"_"+
-                to_string(seed)+".dat");
+                to_string(seed)+"_"+subgeometry+".dat");
             }
             
             // Create filenames of P(n)^2? for each partition size mA
@@ -710,7 +715,7 @@ cout << "U: " << U << endl;
                 to_string(beta)+"_"+to_string(bin_size)+"_"+
                 to_string(bins_wanted)+"_"+
                 "PnSquared-mA"+to_string(i)+"_"+
-                to_string(seed)+".dat");
+                to_string(seed)+"_"+subgeometry+".dat");
             }
         }
         else { // name of file if grand canonical simulation
@@ -1144,29 +1149,6 @@ cout << "U: " << U << endl;
                             if (n_A[0][num_swaps-1]==n_A[1][num_swaps-1]){ // Not necessary. When there are SWAPs, n0 and n1 are the same.
                                 SWAPn_histograms[num_swaps-1][n_A[0][num_swaps-1]]+=1;
                             }
-                        
-//                            for (int REP=0; REP<num_replicas; REP++){
-//                                std::fill(n_A[REP].begin(),n_A[REP].end(),0);
-//                                get_fock_state(beta/2.0,M,fock_state_at_half_plus[REP],paths[REP]);
-//                                n_A_last=0; // tracks total n in subsystem of varying size m_A_primed
-//                                for (int m_A_primed=1; m_A_primed<=num_swaps; m_A_primed++){
-//                                    n_A_last+=fock_state_at_half_plus[REP][sub_sites[m_A_primed-1]];
-//                                    n_A[REP][m_A_primed-1]=n_A_last; // needed to eventually compare if both replicas are on same local particle number sector
-//                                }
-//                            }
-//
-//                            if (n_A[0][num_swaps-1]==n_A[1][num_swaps-1]){
-//                            SWAPn_histograms[num_swaps-1][n_A[0][num_swaps-1]]+=1;
-//                            }
-                            // Add counts to histograms of number of swaps resolved
-                            // by varying partition size
-//                            for (int m_A_primed=1; m_A_primed<=num_swaps; m_A_primed++){
-//                                if (n_A[0][m_A_primed-1]==n_A[1][m_A_primed-1]){
-//                                    SWAPn_histograms[m_A_primed-1][n_A[0][m_A_primed-1]]+=1;
-//                                    // Track how many measurements are in the bin
-////                                    writing_ctr+=1;
-//                                }
-//                            }
                         }
                         // Track how many measurements are in the bin
                         writing_ctr+=1;
