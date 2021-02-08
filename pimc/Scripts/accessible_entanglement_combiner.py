@@ -34,7 +34,6 @@ files_PnSquared = []
 files_SWAPn = []
 files_Pn = []
 
-ctr =0
 # Iterate over all filenames in path
 for filename in filenames_all:
     
@@ -42,7 +41,6 @@ for filename in filenames_all:
     parameters = filename.split("_")
     
     if parameters[0]=='1D' or parameters[0]=='2D' or parameters[0]=='3D':
-        ctr+=1
     
         D = int((parameters[0])[0]) # hypercube dimension
         L = int(parameters[1]) # hypercube linear size
@@ -135,6 +133,3 @@ for i in range(len(S2_mean)):
     print("S2(n=%d) = %.6f +/- %.6f"%(i,S2_mean[i],S2_err[i]))
     
 print("Final num_seeds: ",SWAP.shape)
-print(ctr, " files created")
-
-

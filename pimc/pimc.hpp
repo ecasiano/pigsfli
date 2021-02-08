@@ -305,39 +305,71 @@ void build_adjacency_matrix(int L,int D,string boundary_condition,
 
 /*----------------------------------------------------------------------------*/
 
-void create_sub_sites(vector<int> &sub_sites,int l_max,int L,int D,int M){
+void create_sub_sites(vector<int> &sub_sites,int l_max,int L,int D,int M,
+                      string geometry){
     // Hard coded to cluster of sites in 1D and to SQUARE region in 2D, for now.
     // Doesn't work for 3D yet.
     
     int m_max,ctr,next_sub_site,horizontal_direction,vertical_direction,
     horizontal_direction_old,x,y;
     
-    m_max = pow(l_max,D); // maximum number of total subsystem sites
-        
     if (D==1 || L==2){ // cluster
         for (int i=0; i<l_max; i++){sub_sites.push_back(i);}
     }
     else if (D==2){
-        ctr=0; // unused at the moment
-        x=0; // might not need this
-        y=0;
-        for (int l=0; l<l_max; l++){
-            next_sub_site = l;
-            sub_sites.push_back(next_sub_site);
-            
-            for (int j=1; j<=l; j++){
-                next_sub_site = l+j*L;
+        
+        if (geometry=="square"){
+            m_max = pow(l_max,D); // maximum number of total subsystem sites
+            ctr=0; // unused at the moment
+            x=0; // might not need this
+            y=0;
+            for (int l=0; l<l_max; l++){
+                next_sub_site = l;
                 sub_sites.push_back(next_sub_site);
-                if (j==l){
-                    for (int i=1; i<=l; i++){
-                        next_sub_site -= 1;
-                        sub_sites.push_back(next_sub_site);
+                
+                for (int j=1; j<=l; j++){
+                    next_sub_site = l+j*L;
+                    sub_sites.push_back(next_sub_site);
+                    if (j==l){
+                        for (int i=1; i<=l; i++){
+                            next_sub_site -= 1;
+                            sub_sites.push_back(next_sub_site);
+                        }
                     }
                 }
+                y += L;
+                ctr+=1; // unused at the moment
             }
-            y += L;
-            ctr+=1; // unused at the moment
         }
+        
+        else if (geometry=="strip"){
+            m_max = L*l_max;
+            next_sub_site = -1;
+            horizontal_direction = +1;
+            horizontal_direction_old = +1;
+            vertical_direction = 0;
+            ctr = 0;
+            while (sub_sites.size()!=m_max){
+                if (ctr==L){
+                    vertical_direction = +L;
+                    horizontal_direction = 0;
+                    ctr=0;
+                }
+                else if (sub_sites.size()>2 && ctr==1){
+                    vertical_direction = 0;
+                    horizontal_direction = (-1)*horizontal_direction_old;
+                    horizontal_direction_old = horizontal_direction;
+                }
+                else {
+                    // nothing
+                }
+                next_sub_site += (horizontal_direction+vertical_direction);
+                sub_sites.push_back(next_sub_site);
+                ctr++;
+            }
+        }
+        
+        
     }
     
 //    if (L>=2 && m_A>M){cout<<"ERROR: l_A needs to be smaller than L"<<endl; exit(1);}
