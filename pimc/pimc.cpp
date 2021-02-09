@@ -1136,8 +1136,12 @@ cout << "U: " << U << endl;
                             // Get total local particle number for partitions of
                             // sizes m_A_primed=0 up to m_A_primed=m_A_primed
                             
+                            // 1. get fock state for one replica
+                            // 2. sum particles for subsites to get n_A
+                            //
+                            
                             // Add count to swapped sites histogram of n-sector
-                            for (int REP=0; REP<num_replicas; REP++){
+                            for (int REP=0; REP<num_replicas; REP++){ // THIS LOOP IS ACTUALLY NOT NECESSARY. If we made it here, n[0]==n[1].
                                 std::fill(n_A[REP].begin(),n_A[REP].end(),0);
                                 get_fock_state(beta/2.0,M,fock_state_at_half_plus[REP],paths[REP]);
                                 n_A_last=0; // tracks subsystem n
@@ -1148,7 +1152,9 @@ cout << "U: " << U << endl;
                             }
                             if (n_A[0][num_swaps-1]==n_A[1][num_swaps-1]){ // Not necessary. When there are SWAPs, n0 and n1 are the same.
                                 SWAPn_histograms[num_swaps-1][n_A[0][num_swaps-1]]+=1;
+                                // SWAPn_histograms[num_swaps-1][number of particles in the subregion]+=1;
                             }
+                            else{cout << "DEATH!" << endl;}
                         }
                         // Track how many measurements are in the bin
                         writing_ctr+=1;
