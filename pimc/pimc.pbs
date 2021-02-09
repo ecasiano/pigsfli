@@ -18,4 +18,4 @@
 
 cd $PBS_O_WORKDIR
 module load gcc/10.1.0
-./pimc.e -D 1 -L 4 -N 4 -l 2 --beta 5.0 --bin-size 1000 --bins-wanted 1000 -U 3.3 --seed ${PBS_ARRAYID}
+./pimc.e -D 1 -L 4 -N 4 -l 2 --beta 4.0 --bin-size 10000 --bins-wanted 1000 -U 3.3 --mu 6 --subgeometry square --seed ${PBS_ARRAYID}
