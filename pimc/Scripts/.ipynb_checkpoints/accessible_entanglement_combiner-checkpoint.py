@@ -14,19 +14,23 @@
 import os
 import numpy as np
 
+incomplete_seeds = [] 
+seeds_list = list(range(1000))
+seeds_measured = []
+
 # Save all the file names in the path as strings to a list
-path = path="/Users/ecasiano/Desktop/PrototypeScripts/U3.300000/"
-path = path="/Users/ecasiano/Xcode/pimc/pimc/"
+path = path="/Users/ecasiano/Desktop/PrototypeScripts/TestSystematicErrorv3/"
 filenames_all = os.listdir(path)
 
 # Set desired total number of particles
-L_want = 20
-N_want = 400
-l_want = 10
+L_want = 4
+N_want = 4
+l_want = 4
 beta_want = 4.000000
-bins_want = 10000
-D_want = 2
-U_want = 16.666667
+bin_size_want = 10000
+bins_want = 1000
+D_want = 1
+U_want = 3.300000
 t_want = 1.000000
 
 # Saves the files relevant to P(n) & S2(n) calculation
@@ -34,9 +38,11 @@ files_PnSquared = []
 files_SWAPn = []
 files_Pn = []
 
+seed_min = 285
+seed_max = 285
 # Iterate over all filenames in path
 for filename in filenames_all:
-    
+
     # Extract parameter information from file name
     parameters = filename.split("_")
     
@@ -49,14 +55,14 @@ for filename in filenames_all:
         U = float(parameters[4]) # interaction potential
         t = float(parameters[5]) # tunneling parameter
         beta = float(parameters[6]) # imaginary time length (K_B*T)**(-1)
-        bins_wanted = int(parameters[7]) # number of bins saved in file
-        filetype = (parameters[8]).split("-mA") # identifies the data stored in file
-        seed = int(parameters[9].split(".")[0]) # random seed used
-        
+        bin_size = int(parameters[7])
+        bins_wanted = int(parameters[8]) # number of bins saved in file
+        filetype = (parameters[9]).split("-mA") # identifies the data stored in file
+        seed = int(parameters[10].split(".")[0]) # random seed used
+            
         mA_sector_wanted = 2
         
         if filetype[0]=='PnSquared' and int(filetype[1])==mA_sector_wanted:
-            
             # Set parameters of simulations from differenet seeds we want to evaluate [D,L,N,l,U,t,beta,bins,type]
             parameters_to_evaluate = [D_want,
                                       L_want,
@@ -65,10 +71,11 @@ for filename in filenames_all:
                                       U_want,
                                       t_want,
                                       beta_want,
+                                      bin_size_want,
                                       bins_want,
                                       'PnSquared']
 
-            if [D,L,N,l,U,t,beta,bins_wanted,filetype[0]] == parameters_to_evaluate:
+            if [D,L,N,l,U,t,beta,bin_size,bins_wanted,filetype[0]] == parameters_to_evaluate:
                 if os.stat(path+filename).st_size > 0:
                     with open(path+filename) as f:
                        count = sum(1 for _ in f)
@@ -76,43 +83,69 @@ for filename in filenames_all:
                         files_PnSquared.append(filename)
                         
                         filename_splitted = filename.split('_')
-                        filename_splitted[8] = 'Pn-mA'+str(mA_sector_wanted)
+                        filename_splitted[9] = 'Pn-mA'+str(mA_sector_wanted)
                         filename_Pn = "_".join(filename_splitted)
                         files_Pn.append(filename_Pn)
                         
                         filename_splitted = filename.split('_')
-                        filename_splitted[8] = 'SWAPn-mA'+str(mA_sector_wanted)
+                        filename_splitted[9] = 'SWAPn-mA'+str(mA_sector_wanted)
                         filename_SWAPn = "_".join(filename_splitted)
                         files_SWAPn.append(filename_SWAPn)
+                            
+                        seeds_measured.append(seed)
+                            
+                    else: 
+                        incomplete_seeds.append(seed)
                         
 # Get total number of seeds 
 number_of_seeds = len(files_PnSquared)
-            
+
 # Get column sum of P(n) files for each seed
-print('number of seeds: ',number_of_seeds)
-Pn_squared_l_col_sums = np.zeros((number_of_seeds,N_want+1))
-Pn_l_col_sums = np.zeros((number_of_seeds,N_want+1))
+print('Initial number of seeds: ',number_of_seeds)
+PnSquared_col_sums = np.zeros((number_of_seeds,N_want+1))
+Pn_col_sums = np.zeros((number_of_seeds,N_want+1))
 SWAP_col_sums = np.zeros((number_of_seeds,N_want+1))
 for s in range(number_of_seeds):
+#     print(path+files_PnSquared[s])
     data = np.loadtxt(path+files_PnSquared[s])
-    Pn_squared_l_col_sums[s] = np.mean(data,axis=0)
-    
+    PnSquared_col_sums[s] = np.mean(data,axis=0)
+ 
+#     print(path+files_Pn[s])
     data = np.loadtxt(path+files_Pn[s])
-    Pn_l_col_sums[s] = np.mean(data,axis=0)
+    Pn_col_sums[s] = np.mean(data,axis=0)
     
+#     print(path+files_SWAPn[s])    
     data = np.loadtxt(path+files_SWAPn[s])
     SWAP_col_sums[s] = np.mean(data,axis=0)
+    
+#     print("\n")
+
+# Get invalid row indices where there is a zero.
+# This avoids division by zero and/or log(0)=inf errors.
+invalid_rows = []
+for i in range(len(SWAP_col_sums)):
+    if 0 in SWAP_col_sums[i]: 
+        invalid_rows.append(i)
+        print("!!!!!")
+    if 0 in PnSquared_col_sums[i]: 
+        invalid_rows.append(i)
+        print("?????") # IF THIS PRINTS, THE IF ABOVE SHOULD HAVE PRINTED TOO
+invalid_rows = np.unique(np.array(invalid_rows))
+print(invalid_rows)
+
+# Eliminate invalid rows
+SWAP_col_sums = np.delete(SWAP_col_sums,invalid_rows,axis=0)
+PnSquared_col_sums = np.delete(PnSquared_col_sums,invalid_rows,axis=0)
 
 # Calculate expectation value of SWAP operator for each n-sector & seed
-SWAP = SWAP_col_sums/Pn_squared_l_col_sums
-invalid_rows = np.where(SWAP==0)[0] # Get rid of rows with SWAP(n)=0 to avoid log(0)=inf error
-SWAP = np.delete(SWAP, invalid_rows, axis=0)
+SWAP = SWAP_col_sums/PnSquared_col_sums
+# SWAP = np.delete(SWAP, invalid_rows, axis=0)
 
 # Calculate Second Renyi Entanglement Entropy for each n-sector & seed
 S2 = -np.log(SWAP)
 
 # Get Pn
-Pn = Pn_l_col_sums / np.sum(Pn_l_col_sums,axis=1)[:,None]
+Pn = Pn_col_sums / np.sum(Pn_col_sums,axis=1)[:,None]
 
 # Some seeds might have been thrown away
 number_of_seeds = SWAP.shape[0]
@@ -132,4 +165,14 @@ print("\n")
 for i in range(len(S2_mean)):
     print("S2(n=%d) = %.6f +/- %.6f"%(i,S2_mean[i],S2_err[i]))
     
-print("Final num_seeds: ",SWAP.shape)
+print("\nFinal num_seeds: ",number_of_seeds)
+print("incomplete seeds: ",[int(i) for i in incomplete_seeds])
+
+# print("Seeds not included for some reason: ")
+
+# for i in seeds_list:
+#     if not(i in seeds_measured):
+#         print(i,end=",")
+        
+print("len")
+

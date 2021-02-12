@@ -4,48 +4,102 @@
 import os
 import numpy as np
 
+incomplete_seeds = []
+seeds_list = list(range(1000))
+seeds_measured = []
+
 # Save all the file names in the path as strings to a list
-path = '../Data/'
+path = path="/Users/ecasiano/Desktop/PrototypeScripts/BetaScaling/"
 filenames_all = os.listdir(path)
 
-# Only keep the files that contain the string 'SWAP' in their name,
-# the desired "U" in their name, and that were able to collect all bins
-string_to_keep = '_SWAP_'  # The string that kept files will contain
-U_to_keep = '3.300000'
-bins_wanted = 1000
-files_SWAP = []
-for filename in filenames_all:
-    if (string_to_keep in filename) and (U_to_keep in filename):
-        if os.stat(path+filename).st_size > 0:
-            with open(path+filename) as f:
-               count = sum(1 for _ in f)
-            if count == bins_wanted:
-                files_SWAP.append(filename)
-        
-# Sort SWAP files in ascending order of random seed
-files_SWAP.sort()
+for BETA in [0.100000 , 0.200000 , 0.350000, 0.600000 , 1.000000  , 2.000000  , 3.000000  , 4.000000  , 5.000000  , 6.000000]:
+    print("BETA=",BETA)
+    # Set desired total number of particles
+    L_want = 4
+    N_want = 4
+    l_want = 2
+    beta_want = BETA
+    bin_size_want = 10000
+    bins_want = 1000
+    D_want = 1
+    U_want = 0.1 # For U=0.1, there is one beta that I forgot to simulate. Figure out which one it was then run it.
+    t_want = 1.000000
 
-# Get total number of seeds and total columns per data file
-reference_file = np.loadtxt(path+files_SWAP[0])
-number_of_seeds = len(files_SWAP)
-columns_per_file = reference_file.shape[1]
+    # Saves the files relevant to the Renyi Entanglement Entropy calculation
+    files_SWAP = []
 
-combined_SWAP_data = np.zeros((number_of_seeds,columns_per_file))
-for i,filename in enumerate(files_SWAP):
-    data = np.loadtxt(path+filename)
-    data_mean = np.mean(data,axis=0)
-    combined_SWAP_data[i] = data_mean
+    # Iterate over all filenames
+    for filename in filenames_all:
 
-# Calculate S2 of each bin
-SWAP_0 = combined_SWAP_data[:,0]
-S2_data = -np.log(combined_SWAP_data / SWAP_0[:,None])
+        # Extract parameter information from file name
+        parameters = filename.split("_")
 
-# Get mean and std dev,err of S2
-S2_mean = np.mean(S2_data,axis=0)
-S2_stderr = np.std(S2_data,axis=0)/number_of_seeds
+        if parameters[0]=='1D' or parameters[0]=='2D' or parameters[0]=='3D':
 
-# Print out <S2> +/- error
-for l in range(columns_per_file):
-    print(f"<S2(l={l})> = {S2_mean[l]} +/- {S2_stderr[l]:0.8f}")
-    
-print(number_of_seeds)
+            D = int((parameters[0])[0]) # hypercube dimension
+            L = int(parameters[1]) # hypercube linear size
+            N = int(parameters[2]) # total particles
+            l = int(parameters[3]) # subsystem linear size (actually l_max)
+            U = float(parameters[4]) # interaction potential
+            t = float(parameters[5]) # tunneling parameter
+            beta = float(parameters[6]) # imaginary time length (K_B*T)**(-1)
+            bin_size = int(parameters[7])
+            bins_wanted = int(parameters[8]) # number of bins saved in file
+            filetype = (parameters[9]) # identifies the data stored in file
+            seed = int(parameters[10].split(".")[0]) # random seed used
+
+            if filetype=='SWAP':
+
+                # Set parameters of simulations from differenet seeds we want to evaluate [D,L,N,l,U,t,beta,bins,type]
+                parameters_to_evaluate = [D_want,
+                                          L_want,
+                                          N_want,
+                                          l_want,
+                                          U_want,
+                                          t_want,
+                                          beta_want,
+                                          bin_size_want,
+                                          bins_want,
+                                          'SWAP']
+
+                if [D,L,N,l,U,t,beta,bin_size,bins_wanted,filetype] == parameters_to_evaluate:
+                    if os.stat(path+filename).st_size > 0:
+                        with open(path+filename) as f:
+                           count = sum(1 for _ in f)
+                        if count == bins_wanted: # only consider files that managed to save number of bins wanted
+                            files_SWAP.append(filename)
+                            seeds_measured.append(seed)
+                        else:
+                            incomplete_seeds.append(seed)
+
+    # Sort SWAP files in ascending order of random seed
+    files_SWAP.sort()
+
+    # Get total number of seeds and total columns per data file
+    reference_file = np.loadtxt(path+files_SWAP[0])
+    number_of_seeds = len(files_SWAP)
+    columns_per_file = reference_file.shape[1]
+
+    combined_SWAP_data = np.zeros((number_of_seeds,columns_per_file))
+    for i,filename in enumerate(files_SWAP):
+        data = np.loadtxt(path+filename)
+        data_mean = np.mean(data,axis=0)
+        combined_SWAP_data[i] = data_mean
+
+    # Calculate S2 of each bin
+    SWAP_0 = combined_SWAP_data[:,0]
+    S2_data = -np.log(combined_SWAP_data / SWAP_0[:,None])
+
+    # Get mean and std dev,err of S2
+    S2_mean = np.mean(S2_data,axis=0)
+    S2_stderr = np.std(S2_data,axis=0)/np.sqrt(number_of_seeds)
+
+    # Print out <S2> +/- error
+    for l in range(columns_per_file):
+        print(f"<S2(l={l})> = {S2_mean[l]:0.8f} +/- {S2_stderr[l]:0.8f}")
+
+    print(number_of_seeds)
+    print("incomplete seeds: ",[int(i) for i in incomplete_seeds])
+
+#seeds_measured.sort()
+#print([x for x in range(seeds_measured[0],seeds_measured[-1]+1) if x not in seeds_measured])
