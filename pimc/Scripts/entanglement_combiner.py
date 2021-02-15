@@ -8,11 +8,15 @@ incomplete_seeds = []
 seeds_list = list(range(1000))
 seeds_measured = []
 
+# Append sweep results to same list so we can copy paste to plotting script
+all_S2_results = []
+all_S2_errors = []
+
 # Save all the file names in the path as strings to a list
 path = path="/Users/ecasiano/Desktop/PrototypeScripts/BetaScaling/"
 filenames_all = os.listdir(path)
 
-for BETA in [0.100000 , 0.200000 , 0.350000, 0.600000 , 1.000000  , 2.000000  , 3.000000  , 4.000000  , 5.000000  , 6.000000]:
+for BETA in [0.6 , 0.7, 0.8, 0.9, 1., 1.15, 1.3,1.5, 1.75, 2.  , 3.  , 4.  , 5.  , 6. ]:
     print("BETA=",BETA)
     # Set desired total number of particles
     L_want = 4
@@ -22,7 +26,7 @@ for BETA in [0.100000 , 0.200000 , 0.350000, 0.600000 , 1.000000  , 2.000000  , 
     bin_size_want = 10000
     bins_want = 1000
     D_want = 1
-    U_want = 0.1 # For U=0.1, there is one beta that I forgot to simulate. Figure out which one it was then run it.
+    U_want = 10.0 # For U=0.1, there is one beta that I forgot to simulate. Figure out which one it was then run it.
     t_want = 1.000000
 
     # Saves the files relevant to the Renyi Entanglement Entropy calculation
@@ -97,9 +101,20 @@ for BETA in [0.100000 , 0.200000 , 0.350000, 0.600000 , 1.000000  , 2.000000  , 
     # Print out <S2> +/- error
     for l in range(columns_per_file):
         print(f"<S2(l={l})> = {S2_mean[l]:0.8f} +/- {S2_stderr[l]:0.8f}")
+        
+    # Save the l=2 results
+    all_S2_results.append(S2_mean[l_want])
+    all_S2_errors.append(S2_stderr[l_want])
 
     print(number_of_seeds)
     print("incomplete seeds: ",[int(i) for i in incomplete_seeds])
+
+print("\n\n")
+for result in all_S2_results:
+    print(f"{result:0.8f}",end=",")
+print("\n\n")
+for error in all_S2_errors:
+    print(f"{error:0.8f}",end=",")
 
 #seeds_measured.sort()
 #print([x for x in range(seeds_measured[0],seeds_measured[-1]+1) if x not in seeds_measured])
