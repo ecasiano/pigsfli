@@ -378,29 +378,8 @@ void create_sub_sites(vector<int> &sub_sites,int l_max,int L,int D,int M,
 //        for (int i=0; i<l_A; i++){sub_sites.push_back(i);}
 //    }
 //    else if (D==2){
-//        next_sub_site = -1;
-//        horizontal_direction = +1;
-//        horizontal_direction_old = +1;
-//        vertical_direction = 0;
-//        ctr = 0;
-//        while (sub_sites.size()!=m_A){
-//            if (ctr==l_A){
-//                vertical_direction = +L;
-//                horizontal_direction = 0;
-//                ctr=0;
-//            }
-//            else if (sub_sites.size()>2 && ctr==1){
-//                vertical_direction = 0;
-//                horizontal_direction = (-1)*horizontal_direction_old;
-//                horizontal_direction_old = horizontal_direction;
-//            }
-//            else {
-//                // nothing
-//            }
-//            next_sub_site += (horizontal_direction+vertical_direction);
-//            sub_sites.push_back(next_sub_site);
-//            ctr++;
-//        }
+
+    
 //    }
 //    else if (D==3){
 //        cout << "ERROR: create_sub_sites does not support 3D yet" << endl;
@@ -3663,7 +3642,8 @@ void swap_timeshift_head(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     
     // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
     if (canonical){
-        if ((N_tracker[src_replica]+dN_src)   < (N-1)  || (N_tracker[src_replica]+dN_src)   > (N+1)  ||
+        if ((N_tracker[src_replica]+dN_src)   < (N-1)  ||
+            (N_tracker[src_replica]+dN_src)   > (N+1)  ||
             (N_tracker[dest_replica]+dN_dest) < (N-1)  ||
             (N_tracker[dest_replica]+dN_dest) > (N+1)){return;}
     }
@@ -4017,7 +3997,8 @@ void swap_timeshift_tail(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     
     // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
     if (canonical){
-        if ((N_tracker[src_replica]+dN_src)   < (N-1)  || (N_tracker[src_replica]+dN_src)   > (N+1)  ||
+        if ((N_tracker[src_replica]+dN_src)   < (N-1)  ||
+            (N_tracker[src_replica]+dN_src)   > (N+1)  ||
             (N_tracker[dest_replica]+dN_dest) < (N-1)  ||
             (N_tracker[dest_replica]+dN_dest) > (N+1)){return;}
     }

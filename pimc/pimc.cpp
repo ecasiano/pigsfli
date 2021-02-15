@@ -196,7 +196,8 @@ int main(int argc, char** argv){
 
     // Subsystem settings
     l_A = result["l"].as<int>(); // subsystem linear size
-    if (l_A>=L){cout << "ERROR: Please choose l < L" << endl;exit(1);}
+    if (l_A>L){cout << "ERROR: Please choose l <= L" << endl;exit(1);}
+    m_A = pow(l_A,D);
     if (subgeometry=="square"){m_A = pow(l_A,D);}
     else if (subgeometry=="strip"){m_A = L*l_A;} // l_A: max width of rectangle
     create_sub_sites(sub_sites,l_A,L,D,M,subgeometry);
@@ -1152,12 +1153,13 @@ cout << "U: " << U << endl;
                             }
                             if (n_A[0][num_swaps-1]==n_A[1][num_swaps-1]){ // Not necessary. When there are SWAPs, n0 and n1 are the same.
                                 SWAPn_histograms[num_swaps-1][n_A[0][num_swaps-1]]+=1;
+                                if (num_swaps==m_A/2){writing_ctr+=1;}
                                 // SWAPn_histograms[num_swaps-1][number of particles in the subregion]+=1;
                             }
                             else{cout << "DEATH!" << endl;}
                         }
                         // Track how many measurements are in the bin
-                        writing_ctr+=1;
+//                        writing_ctr+=1;
                     }
                 }
             
