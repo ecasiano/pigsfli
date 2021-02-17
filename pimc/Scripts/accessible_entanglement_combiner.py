@@ -19,22 +19,21 @@ seeds_list = list(range(1000))
 seeds_measured = []
 
 # Save all the file names in the path as strings to a list
-path = path="/Users/ecasiano/Desktop/PrototypeScripts/TestSystematicErrorv4/"
+path = path="/Users/ecasiano/Desktop/PrototypeScripts/TestSystematicError/"
 filenames_all = os.listdir(path)
 
 # Set desired total number of particles
-L_want = 6
-N_want = 6
-l_want = 6
-beta_want = 2.000000
+L_want = 4
+N_want = 4
+l_want = 2
+beta_want = 4.000000
 bin_size_want = 10000
 bins_want = 1000
 D_want = 1
 U_want = 3.300000
 t_want = 1.000000
 
-mA_sector_wanted = l_want**D_want//2
-for mA_sector_wanted in range(l_want**D_want//2,l_want**D_want//2+1):
+for mA_sector_wanted in range(1,l_want**D_want+1):
 
     # Saves the files relevant to P(n) & S2(n) calculation
     files_PnSquared = []
@@ -130,7 +129,7 @@ for mA_sector_wanted in range(l_want**D_want//2,l_want**D_want//2+1):
         S2_i[i] = -np.log ( SWAP_jacknifed_sum / PnSquared_jacknifed_sum ) 
         S2_acc_i[i] = np.sum(Pn_jacknifed_sum * S2_i[i]) / np.sum(Pn_jacknifed_sum)
 
-    S2 = S2_i 
+    S2 = S2_i
     
     # Get Pn
     Pn = Pn_col_sums / np.sum(Pn_col_sums,axis=1)[:,None]
