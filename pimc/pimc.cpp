@@ -1153,7 +1153,7 @@ cout << "U: " << U << endl;
                             }
                             if (n_A[0][num_swaps-1]==n_A[1][num_swaps-1]){ // Not necessary. When there are SWAPs, n0 and n1 are the same.
                                 SWAPn_histograms[num_swaps-1][n_A[0][num_swaps-1]]+=1;
-                                if (num_swaps==m_A/2){writing_ctr+=1;}
+                                if (num_swaps==m_A){writing_ctr+=1;}
                                 // SWAPn_histograms[num_swaps-1][number of particles in the subregion]+=1;
                             }
                             else{cout << "DEATH!" << endl;}
