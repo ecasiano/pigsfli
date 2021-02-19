@@ -15,34 +15,33 @@ import os
 import numpy as np
 
 incomplete_seeds = [] 
-seeds_list = list(range(1000))
+seeds_list = list(range(10))
 seeds_measured = []
 
 # Save all the file names in the path as strings to a list
 path = path="/Users/ecasiano/Desktop/PrototypeScripts/PhaseDiagramN100/"
-path = path="/Users/ecasiano/Desktop/PrototypeScripts/TestSystematicErrorv5/"
-# path = path="/Users/ecasiano/Desktop/PrototypeScripts/TestAccuracy100binsN4/"
-
 filenames_all = os.listdir(path)
 
 # Set desired total number of particles
-L_want = 10
-N_want = 10
-l_want = 5
-beta_want = 4.000000
-bin_size_want = 1000
-bins_want = 1000
+L_want = 100
+N_want = 100
+l_want = 50
+beta_want = 2.000000
+bin_size_want = 100
+bins_want = 100
 D_want = 1
-U_want = 3.300000
+# U_want = 3.300000
 t_want = 1.000000
 
 mA_sector_wanted = l_want # 1D
 
-U_list = np.round(np.geomspace(0.01,100,20),4)
-U_list = np.array([0.01,3.3])
+U_sweep = np.round(np.geomspace(0.01,100,20),4)
+
+S2acc_sweep = []
+S2acc_err_sweep = []
 
 # for mA_sector_wanted in range(l_want**D_want,l_want**D_want+1):
-for U_want in U_list:
+for U_want in U_sweep:
 
     # Saves the files relevant to P(n) & S2(n) calculation
     files_PnSquared = []
@@ -142,12 +141,11 @@ for U_want in U_list:
 
         # Accessible Renyi Entropy for data poin i (ASK ADRIAN & CHRIS about correctness of nan_to_num)
     #     S2acc_jacknifed[i] = np.sum(Pn_jacknifed_sum * S2n_jacknifed[i]) / np.sum(Pn_jacknifed_sum)
-        S2acc_jacknifed[i] = np.sum(Pn_jacknifed_sum * np.nan_to_num(S2n_jacknifed[i],posinf=0)) / np.sum(Pn_jacknifed_sum)
-
+        S2acc_jacknifed[i] = np.sum(Pn_jacknifed_sum * np.nan_to_num(S2n_jacknifed[i],neginf=0))/np.sum(Pn_jacknifed_sum)
 
         # Local particle number distribution for data poin i
         Pn_jacknifed[i] = Pn_jacknifed_sum / np.sum(Pn_jacknifed_sum)
-
+        
     print("\nFinal number of seeds: ",number_of_seeds)
 
     # Calculate Renyi Entropies of each local particle number sector
@@ -166,18 +164,29 @@ for U_want in U_list:
     Pn_mean = np.mean(Pn_jacknifed,axis=0)
     Pn_err = np.std(Pn_jacknifed,axis=0) * np.sqrt(number_of_seeds)
 
-    print("\npartition size: ", mA_sector_wanted,"\n")
-    # Print P(n),S2(n) for each sector to screen
-    for i in range(len(S2n_mean)):
-        print("P(n=%d) = %.4f +/- %.4f"%(i,Pn_mean[i],Pn_err[i]))
-    print("\n")
-    for i in range(len(S2n_mean)):
-        print("S2(n=%d) = %.4f +/- %.4f"%(i,S2n_mean[i],S2n_err[i]))
+#     print("\npartition size: ", mA_sector_wanted,"\n")
+#     # Print P(n),S2(n) for each sector to screen
+#     for i in range(len(S2n_mean)):
+#         print("P(n=%d) = %.4f +/- %.4f"%(i,Pn_mean[i],Pn_err[i]))
+#     print("\n")
+#     for i in range(len(S2n_mean)):
+#         print("S2(n=%d) = %.4f +/- %.4f"%(i,S2n_mean[i],S2n_err[i]))
 
     print("\nS2acc = %.4f +/- %.4f"%(S2acc_mean,S2acc_err))
     
-# print("Seeds not included for some reason: ")
+    S2acc_sweep.append(S2acc_mean)
+    S2acc_err_sweep.append(S2acc_err)
 
-# for i in seeds_list:
-#     if not(i in seeds_measured):
-#         print(i,end=",")
+print("--Accessible entanglement sweep--")
+
+print("U: ")
+for U in U_sweep:
+    print("%.4f"%U,end=",")
+    
+print("\nS2acc: ")
+for estimate in S2acc_sweep:
+    print("%.4f"%estimate,end=",")
+    
+print("\nerror: ")
+for err in S2acc_err_sweep:
+    print("%.4f"%err,end=",")
