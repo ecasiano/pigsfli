@@ -1224,8 +1224,8 @@ cout << "U: " << U << endl;
                     
                     // Restart counter that tracks when to save to file
                     writing_ctr=0;
-                }
-
+                } // end of "write-to-disk" if statement
+ 
             } // end of SWAP measurements if statement
         } // end of measurement after 25% equilibration if statement
         m+=1;
