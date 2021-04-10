@@ -1,8 +1,8 @@
 
 #!/bin/bash
-pimc_bin="$HOME/PATH/TO/pimc.e";
+pimc_bin="$HOME/pimc/pimc/pimc.e";
 
-pimc_args="-U 100.000 -D 1 -L 10 -N 10 -l 5 --beta 4.0 --bin-size 1000 --bins-wanted 1000 --mu 6 --subgeometry  square";
+pimc_args="-U 3.3 -D 1 -L 16 -N 16 -l 8 --beta 7 --bin-size 1000 --bins-wanted 1000 --mu 6 --subgeometry  square";
 
 command_file="pimc_commands";
 for i in {0..499}
