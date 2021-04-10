@@ -177,6 +177,8 @@ int main(int argc, char** argv){
     
     unsigned long long int swap_advance_tail_attempts=0,swap_advance_tail_accepts=0;
     unsigned long long int swap_recede_tail_attempts=0,swap_recede_tail_accepts=0;
+    
+    int energies_in_bin = 0; // counts energy measurements per bin
         
 /*------------------------- Initialize variables -----------------------------*/
 
@@ -627,24 +629,29 @@ cout << "U: " << U << endl;
     // Declare conventional estimator files
     if (num_replicas<2){
         
-        for (int r=0;r<num_replicas;r++){
+//        for (int r=0;r<num_replicas;r++){
+        for (int r=0;r<1;r++){
+
             
             ofstream K_out,V_out,tr_K_out,tr_V_out;
             string K_name,V_name,tr_K_name,tr_V_name,rep;
             
             rep=r+65; // rep=65='A'...rep=66='B'...rep=67='C'...
+
             
-            K_name=to_string(L)+"_"+to_string(M)+"_"+
-            to_string(U)+"_"+to_string(mu)+"_"+
-            to_string(t)+"_"+to_string(beta)+"_"+
-            to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-            "can_"+"K_"+"rep"+rep+"_.dat";
+            K_name=to_string(D)+"D_"+to_string(L)+
+            "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+            to_string(U)+"_"+to_string(t)+"_"+
+            to_string(beta)+"_"+to_string(bin_size)+"_"+
+            to_string(bins_wanted)+"_"+
+            "K_"+to_string(seed)+"_"+subgeometry+".dat";
             
-            V_name=to_string(L)+"_"+to_string(M)+"_"+
-            to_string(U)+"_"+to_string(mu)+"_"+
-            to_string(t)+"_"+to_string(beta)+"_"+
-            to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-            "can_"+"V_"+"rep"+rep+"_.dat";
+            V_name=to_string(D)+"D_"+to_string(L)+
+            "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+            to_string(U)+"_"+to_string(t)+"_"+
+            to_string(beta)+"_"+to_string(bin_size)+"_"+
+            to_string(bins_wanted)+"_"+
+            "V_"+to_string(seed)+"_"+subgeometry+".dat";
             
             tr_K_name=to_string(L)+"_"+to_string(M)+"_"+
             to_string(U)+"_"+to_string(mu)+"_"+
@@ -675,7 +682,33 @@ cout << "U: " << U << endl;
         string SWAP_histogram_name;
         vector<string> SWAPn_histogram_names,Pn_names,Pn_squared_names;
         
+        ofstream K_out,V_out;
+        string K_name,V_name;
+        
         if (canonical){ // name of file if canonical simulation
+            
+            // Energies
+            K_name=to_string(D)+"D_"+to_string(L)+
+            "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+            to_string(U)+"_"+to_string(t)+"_"+
+            to_string(beta)+"_"+to_string(bin_size)+"_"+
+            to_string(bins_wanted)+"_"+
+            "K_"+to_string(seed)+"_"+subgeometry+".dat";
+            
+            V_name=to_string(D)+"D_"+to_string(L)+
+            "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+            to_string(U)+"_"+to_string(t)+"_"+
+            to_string(beta)+"_"+to_string(bin_size)+"_"+
+            to_string(bins_wanted)+"_"+
+            "V_"+to_string(seed)+"_"+subgeometry+".dat";
+            
+            K_out.open(K_name);
+            V_out.open(V_name);
+            
+            kinetic_energy_file.push_back(std::move(K_out));
+            diagonal_energy_file.push_back(std::move(V_out));
+            
+            // SWAP related files
             SWAP_histogram_name=to_string(D)+"D_"+to_string(L)+
             "_"+to_string(N)+"_"+to_string(l_A)+"_"+
             to_string(U)+"_"+to_string(t)+"_"+
@@ -1118,6 +1151,25 @@ cout << "U: " << U << endl;
                                     n_A[REP][m_A_primed-1]=n_A_last; // needed to eventually compare if both replicas are on same local particle number sector
                                     Pn[m_A_primed-1][n_A_last]+=1;
                                 }
+                                
+                                // Energies measurement
+                                
+                                // Get Fock state at measurement center
+                                get_fock_state(measurement_center,M,fock_state_at_slice,
+                                               paths[REP]);
+                                
+                                // Measure and accumulate <K>
+                                kinetic_energy[0]+=
+                                pimc_kinetic_energy(paths[REP],num_kinks[REP],
+                                            measurement_center,measurement_plus_minus,M,t,beta);
+                                
+                                // Measure and accumulate <V>
+                                diagonal_energy[0]+=
+                                pimc_diagonal_energy(fock_state_at_slice,M,canonical,U,mu);
+                                
+                                // Count how many energies are in bin
+                                energies_in_bin+=1;
+    
                             }
                              
                             // Build P(n)^2
@@ -1222,6 +1274,17 @@ cout << "U: " << U << endl;
                         
                     }
                     
+                    // Write (averaged) energies to disk
+                    kinetic_energy_file[0]<<fixed<<setprecision(17)<<
+                    kinetic_energy[0]/energies_in_bin<<endl;
+                    diagonal_energy_file[0]<<fixed<<setprecision(17)<<
+                    diagonal_energy[0]/energies_in_bin<<endl;
+                    
+                    // Reset energy counters
+                    kinetic_energy[0]=0.0;
+                    diagonal_energy[0]=0.0;
+                    energies_in_bin = 0;
+                    
                     // Restart counter that tracks when to save to file
                     writing_ctr=0;
                 }
@@ -1246,6 +1309,8 @@ cout << "U: " << U << endl;
             Pn_files[i-1].close();
             Pn_squared_files[i-1].close();
             SWAPn_histogram_files[i-1].close();
+            kinetic_energy_file[0].close();
+            diagonal_energy_file[0].close();
         }
     }
 /*--------------------------------- FIN --------------------------------------*/
