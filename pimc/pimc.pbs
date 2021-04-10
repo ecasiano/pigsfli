@@ -10,7 +10,8 @@
 #PBS -l walltime=24:00:00
 #PBS -j oe
 #PBS -o out_pimc
-#PBS -t 0-999
+#PBS -t 0-499
+#PBS -l qos=
 
 # Do not send email
 #PBS -M ecasiano@vols.utk.edu
@@ -18,4 +19,7 @@
 
 cd $PBS_O_WORKDIR
 module load gcc/10.1.0
-./pimc.e -D 1 -L 4 -N 4 -l 2 --beta 4.0 --bin-size 10000 --bins-wanted 1000 -U 3.3 --mu 6 --subgeometry square --seed ${PBS_ARRAYID}
+
+./pimc.e -U 3.3 -D 1 -L 64 -N 64 -l 32 --beta 3.0 --bin-size 1000 --bins-wanted 1000 --mu 6 --subgeometry square --seed ${PBS_ARRAYID}
+
+
