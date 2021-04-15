@@ -39,6 +39,11 @@ int main(int argc, char** argv){
         ("bins-wanted","Number of bins desired in data file",cxxopts::value<int>())
         ("subgeometry","Shape of subregion: square OR strip",
             cxxopts::value<string>()->default_value("square"))
+        ("num-replicas","Number of replicas",cxxopts::value<int>())
+        ("measurement-frequency","Measurements will be performed every other this amount",cxxopts::value<int>()->default_value("1"))
+
+    
+
 //        ("conventionals", "set to take conventional measurements (E,N,...)")
     ;
 
@@ -86,7 +91,8 @@ int main(int argc, char** argv){
     vector<unsigned long long int> Z_ctr,measurement_attempts;
     
     // Replicated observables
-    vector<double> N_sum,diagonal_energy,kinetic_energy;
+    double diagonal_energy,kinetic_energy;
+    vector<double> N_sum;
     vector<vector<double> > tr_kinetic_energy,tr_diagonal_energy;
     
     // <SWAP> estimator settings and trackers
@@ -100,17 +106,19 @@ int main(int argc, char** argv){
     string subgeometry;
     
     // Measurement settings
+    int measurement_frequency = result["measurement-frequency"].as<int>();
     double measurement_center,measurement_plus_minus;
-    int measurement_frequency,bin_size,writing_ctr;
+    int bin_size,writing_ctr;
     vector<double> measurement_centers;
     vector<int> fock_state_at_slice;
     vector<vector<int> > fock_state_at_half_plus;
     unsigned long long int m; //iteration counter
     int bins_written; // tracks how many beens have been written
+    bool measure_tau_resolved_estimators = false;
  
     // Declare data files
-    vector<ofstream> kinetic_energy_file,diagonal_energy_file,total_energy_file,
-    tr_kinetic_energy_file,tr_diagonal_energy_file;
+    ofstream kinetic_energy_file,diagonal_energy_file,total_energy_file;
+    vector<ofstream> tr_kinetic_energy_file,tr_diagonal_energy_file;
     ofstream SWAP_histogram_file;
     vector<ofstream> SWAPn_histogram_files,Pn_files,Pn_squared_files;
     ofstream SWAPn_histogram_file,Pn_file,Pn_squared_file;
@@ -124,10 +132,6 @@ int main(int argc, char** argv){
     vector<double> P_N;
     int N_min,N_max,peak_idx,N_idx;
     unsigned long long int  dummy_counter,N_flats_samples;
-    
-    // SWAP
-    int num_replicas;
-    int n_A_last;
     
     // Related to accessible entanglement
     vector<vector<int> > n_A; // total particles in subsystem
@@ -177,14 +181,13 @@ int main(int argc, char** argv){
     
     unsigned long long int swap_advance_tail_attempts=0,swap_advance_tail_accepts=0;
     unsigned long long int swap_recede_tail_attempts=0,swap_recede_tail_accepts=0;
-    
-    int energies_in_bin = 0; // counts energy measurements per bin
-        
+            
 /*------------------------- Initialize variables -----------------------------*/
 
     // SWAP
-    num_replicas=2;
-    
+    int num_replicas = result["num-replicas"].as<int>();
+    int n_A_last;
+
     // Bose-Hubbard parameters
     D=result["D"].as<int>();
     L=result["L"].as<int>();
@@ -223,6 +226,10 @@ int main(int argc, char** argv){
     total_nn=0;
     for (int i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
     
+    // Initialize energies
+    diagonal_energy = 0.0;
+    kinetic_energy = 0.0;
+    
     // Replicated trackers
     for (int r=0;r<num_replicas;r++){
         num_kinks.push_back(M);
@@ -241,10 +248,7 @@ int main(int argc, char** argv){
         // Worldlines data structure
         paths.push_back(create_paths(initial_fock_state,M,r));
         
-        // Observables and other measurements
         N_sum.push_back(0);
-        diagonal_energy.push_back(0);
-        kinetic_energy.push_back(0);
         Z_ctr.push_back(0);
         measurement_attempts.push_back(0);
         fock_state_at_half_plus.push_back(vector<int> (M,0));
@@ -263,7 +267,6 @@ int main(int argc, char** argv){
     // Measurement settings
     measurement_center=beta/2.0;
     measurement_plus_minus=0.10*beta;
-    measurement_frequency=1;
     bin_size=result["bin-size"].as<int>();
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){
@@ -629,84 +632,62 @@ cout << "U: " << U << endl;
     // Declare conventional estimator files
     if (num_replicas<2){
         
-//        for (int r=0;r<num_replicas;r++){
-        for (int r=0;r<1;r++){
+        ofstream K_out,V_out,tr_K_out,tr_V_out;
+        string K_name,V_name,tr_K_name,tr_V_name,rep;
+                    
+        // Energies
+        K_name=to_string(D)+"D_"+to_string(L)+
+        "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+        to_string(U)+"_"+to_string(t)+"_"+
+        to_string(beta)+"_"+to_string(bin_size)+"_"+
+        to_string(bins_wanted)+"_"+
+        "K_"+to_string(seed)+"_"+subgeometry+".dat";
+        
+        V_name=to_string(D)+"D_"+to_string(L)+
+        "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+        to_string(U)+"_"+to_string(t)+"_"+
+        to_string(beta)+"_"+to_string(bin_size)+"_"+
+        to_string(bins_wanted)+"_"+
+        "V_"+to_string(seed)+"_"+subgeometry+".dat";
+        
+        tr_K_name=to_string(L)+"_"+to_string(M)+"_"+
+        to_string(U)+"_"+to_string(mu)+"_"+
+        to_string(t)+"_"+to_string(beta)+"_"+
+        to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+        "can_"+"tauResolvedK_"+"rep"+rep+".dat";
+        
+        tr_V_name=to_string(L)+"_"+to_string(M)+"_"+
+        to_string(U)+"_"+to_string(mu)+"_"+
+        to_string(t)+"_"+to_string(beta)+"_"+
+        to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
+        "can_"+"tauResolvedV_"+"rep"+rep+".dat";
+        
+//        K_out.open(K_name);
+//        V_out.open(V_name);
+        
+        kinetic_energy_file.open(K_name);
+        diagonal_energy_file.open(V_name);
 
-            
-            ofstream K_out,V_out,tr_K_out,tr_V_out;
-            string K_name,V_name,tr_K_name,tr_V_name,rep;
-            
-            rep=r+65; // rep=65='A'...rep=66='B'...rep=67='C'...
-
-            
-            K_name=to_string(D)+"D_"+to_string(L)+
-            "_"+to_string(N)+"_"+to_string(l_A)+"_"+
-            to_string(U)+"_"+to_string(t)+"_"+
-            to_string(beta)+"_"+to_string(bin_size)+"_"+
-            to_string(bins_wanted)+"_"+
-            "K_"+to_string(seed)+"_"+subgeometry+".dat";
-            
-            V_name=to_string(D)+"D_"+to_string(L)+
-            "_"+to_string(N)+"_"+to_string(l_A)+"_"+
-            to_string(U)+"_"+to_string(t)+"_"+
-            to_string(beta)+"_"+to_string(bin_size)+"_"+
-            to_string(bins_wanted)+"_"+
-            "V_"+to_string(seed)+"_"+subgeometry+".dat";
-            
-            tr_K_name=to_string(L)+"_"+to_string(M)+"_"+
-            to_string(U)+"_"+to_string(mu)+"_"+
-            to_string(t)+"_"+to_string(beta)+"_"+
-            to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-            "can_"+"tauResolvedK_"+"rep"+rep+".dat";
-            
-            tr_V_name=to_string(L)+"_"+to_string(M)+"_"+
-            to_string(U)+"_"+to_string(mu)+"_"+
-            to_string(t)+"_"+to_string(beta)+"_"+
-            to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
-            "can_"+"tauResolvedV_"+"rep"+rep+".dat";
-            
-            K_out.open(K_name);
-            V_out.open(V_name);
+        
+        if (measure_tau_resolved_estimators){
             tr_K_out.open(tr_K_name);
             tr_V_out.open(tr_V_name);
-            
-            kinetic_energy_file.push_back(std::move(K_out));
-            diagonal_energy_file.push_back(std::move(V_out));
+        }
+        
+        if (measure_tau_resolved_estimators){
+            //Append ofstream files to vector
             tr_kinetic_energy_file.push_back(std::move(tr_K_out));
             tr_diagonal_energy_file.push_back(std::move(tr_V_out));
         }
+        
     }
     
-    // Estimators in replicated configuration space
+    // Estimators in replicated configuration space (num_replicas>=2)
     else {
         string SWAP_histogram_name;
         vector<string> SWAPn_histogram_names,Pn_names,Pn_squared_names;
         
-        ofstream K_out,V_out;
-        string K_name,V_name;
-        
         if (canonical){ // name of file if canonical simulation
-            
-            // Energies
-            K_name=to_string(D)+"D_"+to_string(L)+
-            "_"+to_string(N)+"_"+to_string(l_A)+"_"+
-            to_string(U)+"_"+to_string(t)+"_"+
-            to_string(beta)+"_"+to_string(bin_size)+"_"+
-            to_string(bins_wanted)+"_"+
-            "K_"+to_string(seed)+"_"+subgeometry+".dat";
-            
-            V_name=to_string(D)+"D_"+to_string(L)+
-            "_"+to_string(N)+"_"+to_string(l_A)+"_"+
-            to_string(U)+"_"+to_string(t)+"_"+
-            to_string(beta)+"_"+to_string(bin_size)+"_"+
-            to_string(bins_wanted)+"_"+
-            "V_"+to_string(seed)+"_"+subgeometry+".dat";
-            
-            K_out.open(K_name);
-            V_out.open(V_name);
-            
-            kinetic_energy_file.push_back(std::move(K_out));
-            diagonal_energy_file.push_back(std::move(V_out));
             
             // SWAP related files
             SWAP_histogram_name=to_string(D)+"D_"+to_string(L)+
@@ -776,7 +757,6 @@ cout << "U: " << U << endl;
         // Open SWAP histograms file
         SWAP_histogram_file.open(SWAP_histogram_name);
 
-        
         // Open mA-sector resolved local particle number distribution files
         for (int i=1; i<=m_A; i++){
             Pn_file.open(Pn_names[i-1]);
@@ -1059,7 +1039,7 @@ cout << "U: " << U << endl;
         
 /*----------------------------- Measurements ---------------------------------*/
         
-        if (m%(sweep*measurement_frequency)==0 && m>=sweeps*0.25){
+        if (m%(sweep*measurement_frequency)==0 && m>=sweeps*1.00){
  
             if (not_equilibrated){
                 not_equilibrated=false;
@@ -1075,37 +1055,38 @@ cout << "U: " << U << endl;
                     N_sum[r] += N_tracker[r];
                     Z_ctr[r] += 1;
                                
-                    if (N_beta[r]==N){ // canonical measurement
+                    if (N_zero[r]==N && N_beta[r]==N){ // canonical measurement
                         
                     // Get fock state at desired measurement center
                     get_fock_state(measurement_center,M,fock_state_at_slice,
                                    paths[r]);
                         
                     // Measure and accumulate <K>
-                    kinetic_energy[r]+=pimc_kinetic_energy(paths[r],num_kinks[r],
-                                measurement_center,measurement_plus_minus,M,t,beta);
+                    kinetic_energy+=pimc_kinetic_energy(paths[r],num_kinks[r],measurement_center,
+                        measurement_plus_minus,M,t,beta);
                         
                     // Measure and accumulate <V>
-                    diagonal_energy[r]+=pimc_diagonal_energy(fock_state_at_slice,
-                                                          M,canonical,U,mu);
+                    diagonal_energy+=pimc_diagonal_energy(fock_state_at_slice,M,canonical,U,mu);
                         
-                    tau_resolved_kinetic_energy(paths[r],num_kinks[r],M,t,beta,
-                                                measurement_centers,
+                        if (measure_tau_resolved_estimators){
+                    tau_resolved_kinetic_energy(paths[r],num_kinks[r],M,t,beta,measurement_centers,
                                                 tr_kinetic_energy[r]);
                         
                     tau_resolved_diagonal_energy(paths[r],num_kinks[r],
                                                 M,canonical,U,mu,beta,
                                                 measurement_centers,
                                                 tr_diagonal_energy[r]);
+                        }
                         
-                    bin_ctr[r]+=1;
+                    writing_ctr+=1;
                     // Take binned averages and write to disk
-                    if (bin_ctr[r]==bin_size){
-                        kinetic_energy_file[r]<<fixed<<setprecision(17)<<
-                        kinetic_energy[r]/bin_size<<endl;
-                        diagonal_energy_file[r]<<fixed<<setprecision(17)<<
-                        diagonal_energy[r]/bin_size<<endl;
+                    if (writing_ctr==bin_size){
+                        kinetic_energy_file<<fixed<<setprecision(17)<<
+                        kinetic_energy/bin_size<<endl;
+                        diagonal_energy_file<<fixed<<setprecision(17)<<
+                        diagonal_energy/bin_size<<endl;
                         
+                        if (measure_tau_resolved_estimators){
                         // Save tau resolved estimators
                         for (int i=0; i<measurement_centers.size(); i++){
                             tr_kinetic_energy_file[r]<<fixed<<setprecision(17)<<
@@ -1116,14 +1097,21 @@ cout << "U: " << U << endl;
                         }
                         tr_kinetic_energy_file[r]<<endl;
                         tr_diagonal_energy_file[r]<<endl;
+                        }
                         
-                        bin_ctr[r]=0;
-                        kinetic_energy[r]=0.0;
-                        diagonal_energy[r]=0.0;
-                        std::fill(tr_kinetic_energy[r].begin(),
-                                  tr_kinetic_energy[r].end(),0);
-                        std::fill(tr_diagonal_energy[r].begin(),
-                                  tr_diagonal_energy[r].end(),0);
+//                        bin_ctr[r]=0;
+                        writing_ctr=0;
+                        kinetic_energy=0.0;
+                        diagonal_energy=0.0;
+                        bins_written+=1;
+                        
+                        if (measure_tau_resolved_estimators){
+                            std::fill(tr_kinetic_energy[r].begin(),
+                                      tr_kinetic_energy[r].end(),0);
+                            std::fill(tr_diagonal_energy[r].begin(),
+                                      tr_diagonal_energy[r].end(),0);
+                        }
+                        
                         }
                     }
                 }
@@ -1157,18 +1145,6 @@ cout << "U: " << U << endl;
                                 // Get Fock state at measurement center
                                 get_fock_state(measurement_center,M,fock_state_at_slice,
                                                paths[REP]);
-                                
-                                // Measure and accumulate <K>
-                                kinetic_energy[0]+=
-                                pimc_kinetic_energy(paths[REP],num_kinks[REP],
-                                            measurement_center,measurement_plus_minus,M,t,beta);
-                                
-                                // Measure and accumulate <V>
-                                diagonal_energy[0]+=
-                                pimc_diagonal_energy(fock_state_at_slice,M,canonical,U,mu);
-                                
-                                // Count how many energies are in bin
-                                energies_in_bin+=1;
     
                             }
                              
@@ -1274,17 +1250,6 @@ cout << "U: " << U << endl;
                         
                     }
                     
-                    // Write (averaged) energies to disk
-                    kinetic_energy_file[0]<<fixed<<setprecision(17)<<
-                    kinetic_energy[0]/energies_in_bin<<endl;
-                    diagonal_energy_file[0]<<fixed<<setprecision(17)<<
-                    diagonal_energy[0]/energies_in_bin<<endl;
-                    
-                    // Reset energy counters
-                    kinetic_energy[0]=0.0;
-                    diagonal_energy[0]=0.0;
-                    energies_in_bin = 0;
-                    
                     // Restart counter that tracks when to save to file
                     writing_ctr=0;
                 }
@@ -1297,10 +1262,12 @@ cout << "U: " << U << endl;
     // Close data files
     if (num_replicas<2){
         for (int r=0;r<num_replicas;r++){
-            kinetic_energy_file[r].close();
-            diagonal_energy_file[r].close();
-            tr_kinetic_energy_file[r].close();
-            tr_diagonal_energy_file[r].close();
+            kinetic_energy_file.close();
+            diagonal_energy_file.close();
+            if (measure_tau_resolved_estimators){
+                tr_kinetic_energy_file[r].close();
+                tr_diagonal_energy_file[r].close();
+            }
         }
     }
     else {
@@ -1309,8 +1276,6 @@ cout << "U: " << U << endl;
             Pn_files[i-1].close();
             Pn_squared_files[i-1].close();
             SWAPn_histogram_files[i-1].close();
-            kinetic_energy_file[0].close();
-            diagonal_energy_file[0].close();
         }
     }
 /*--------------------------------- FIN --------------------------------------*/
