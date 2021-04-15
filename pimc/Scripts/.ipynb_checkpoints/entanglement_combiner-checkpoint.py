@@ -26,12 +26,12 @@ U_list = np.array([3.3])
 beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
              1.75,2.0,2.25,2.50,2.75,3.0,3.25,
              3.50,3.75,4.0,5.0,6.0]
-# beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
-#              1.75,2.0,2.5,3.0,3.5,
-#              4.0,4.5,5.0,5.5,6.0]
 beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
-             1.75,2.0,3.0,4.0]
-beta_list = [7.0]
+             1.75,2.0,2.5,3.0,3.5,
+             4.0,4.5,5.0,5.5,6.0]
+# beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
+#              1.75,2.0,3.0,4.0]
+# beta_list = [7.0]
 
 
 # Append sweep results to same list so we can copy paste to plotting script
@@ -39,7 +39,7 @@ S2_plot = []
 S2_err_plot = []
 for U in U_list:
     for beta in beta_list:
-        for mA_sector_wanted in [8]:
+        for mA_sector_wanted in [2]:
             
             incomplete_seeds = [] 
             seeds_list = list(range(1000))
@@ -50,7 +50,7 @@ for U in U_list:
             N = "%d"%(2*mA_sector_wanted)
             l_max = "%d"%mA_sector_wanted
             beta = "%.6f"%beta
-            bin_size = "1000"
+            bin_size = "10000"
             bins_wanted = "1000"
             D = "1"
             U = "%.6f"%(U)
