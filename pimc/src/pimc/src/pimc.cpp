@@ -9,6 +9,40 @@
 #include "pimc.hpp"
 #include "cxxopts.hpp"
 
+/**************************************************************************//**
+ * Create a comma separated list from a vector of strings
+ *
+ * @param option the stl vector of options
+ * @return a comma separated list of options
+******************************************************************************/
+string getList(const vector<string> &options) {
+
+    ostringstream optionList;
+    std::copy(options.begin(),options.end()-1,
+            std::ostream_iterator<string>(optionList, ", "));
+    optionList << options.back();
+    return optionList.str();
+}
+
+//FIXME There has to be a better way to do this -NSN
+std::unique_ptr<RNG> get_rng_ptr(string rng_type, const uint32 seed) {
+std::unique_ptr<RNG> rng_ptr;
+    
+if (rng_type == "pimc_mt19937")
+        rng_ptr = std::make_unique<MTFromPIMC>(seed);
+           
+else if (rng_type == "std_mt19937")
+        rng_ptr = std::make_unique<MTFromSTL>(seed);
+                   
+else if (rng_type == "boost_mt19937")
+        rng_ptr = std::make_unique<MTFromBOOST>(seed);
+        
+else if (rng_type == "PCG")
+        rng_ptr = std::make_unique<MTFromPCG>(seed);
+        
+return rng_ptr ;
+}
+
 // Main
 int main(int argc, char** argv){
 
@@ -42,6 +76,8 @@ int main(int argc, char** argv){
         ("num-replicas","Number of replicas",cxxopts::value<int>())
         ("measurement-frequency","Measurements will be performed every other this amount",cxxopts::value<int>()->default_value("1"))
         ("rng","Random Number Generator type",cxxopts::value<string>()->default_value("pimc_mt19937"))
+        ("restart", "continue simulation from a loaded rng state",
+        cxxopts::value<bool>()->default_value("true"))
 
 
 //        ("conventionals", "set to take conventional measurements (E,N,...)")
@@ -50,22 +86,47 @@ int main(int argc, char** argv){
     auto result = options.parse(argc, argv);
 
   /*-----------------------------------------------------------------------------*/
+    
+    bool restart=result["restart"].as<bool>();
 
+    /* Define the allowed random number generator names */
+    vector<string> randomGeneratorName = {"boost_mt19937", "std_mt19937", "pimc_mt19937", "PCG"};
+    string randomGeneratorNames = getList(randomGeneratorName);
+
+    string rng_type = result["rng"].as<string>();
+    /* Make sure we have selected a valid random number generator */
+    if (std::find(randomGeneratorName.begin(), randomGeneratorName.end(),
+                rng_type) == randomGeneratorName.end()) {
+        cerr << endl << "ERROR: Invalid random Number Generator!" << endl << endl;
+        cerr << "Action: set random Generator (G) to one of:" << endl
+             << "\t[" << randomGeneratorNames << "]" <<  endl;
+        return true;
+    }
     
     // Initialize a Mersenne Twister RNG
     int seed = result["seed"].as<int>();
-    boost::random::mt19937 rng(seed);
+    std::unique_ptr<RNG> rng_ptr = get_rng_ptr(rng_type, seed);
+
+    if (restart){
+        cout << "loooool" << endl;
+        string rng_filename = "rng_state.dat";
+        std::ifstream ifs(rng_filename.c_str(), std::ios_base::in);
+        rng_ptr->load(ifs);
+        ifs.close();
+    }
+//    boost::random::mt19937 rng(seed);
     
     // Create a uniform distribution with support: [0.0,1.0)
-    boost::random::uniform_real_distribution<double> rnum(0.0,1.0);
+    
+//    boost::random::uniform_real_distribution<double> rnum(0.0,1.0);
 
     // NOTE: Might wanna make 14 and 3 static variables. Give them names.
     
     // Create integer distribution with support: [0,14]
-    boost::random::uniform_int_distribution<> updates(0,14);
+//    boost::random::uniform_int_distribution<> updates(0,14);
     
     // Create integer distribution with support: [0,2]
-    boost::random::uniform_int_distribution<> swap_updates(0,3);
+//    boost::random::uniform_int_distribution<> swap_updates(0,3);
     
     // Bose-Hubbard parameters
     int L,D,M,N;
@@ -212,7 +273,7 @@ int main(int argc, char** argv){
     num_swaps=0;
     
     // Initialize Fock State
-    initial_fock_state = random_boson_config(M,N,rng);
+    initial_fock_state = random_boson_config(M,N,*rng_ptr);
     
     // Simulation parameters
     eta=1/sqrt(M);
@@ -375,32 +436,32 @@ cout << "U: " << U << endl;
         Z_frac=0.0; // think about making this a vector too
         std::fill(measurement_attempts.begin(),measurement_attempts.end(),0);
         
-        boost::random::uniform_int_distribution<> updates(0, 14);
+//        boost::random::uniform_int_distribution<> updates(0, 14);
 
         for (unsigned long long int m_pre=0;m_pre<sweeps_pre;m_pre++){
 
-              label = updates(rng);
+              label = rng_ptr->randInt(14);
 
               if (label==0){     // worm_insert
                   insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                               N_zero[0],N_beta[0],last_kinks[0],
                               dummy_counter,dummy_counter,
-                              dummy_counter,dummy_counter,rng);
+                              dummy_counter,dummy_counter,*rng_ptr);
               }
               else if (label==1){ // worm_delete
                   delete_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                               M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                               N_zero[0],N_beta[0],last_kinks[0],
                               dummy_counter,dummy_counter,
-                              dummy_counter,dummy_counter,rng);
+                              dummy_counter,dummy_counter,*rng_ptr);
               }
               else if (label==2){ // insertZero
                   insertZero(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                              M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                              N_zero[0],N_beta[0],last_kinks[0],
                              dummy_counter,dummy_counter,
-                             dummy_counter,dummy_counter,rng);
+                             dummy_counter,dummy_counter,*rng_ptr);
 
               }
               else if (label==3){ // deleteZero
@@ -408,21 +469,21 @@ cout << "U: " << U << endl;
                              M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                              N_zero[0],N_beta[0],last_kinks[0],
                              dummy_counter,dummy_counter,
-                             dummy_counter,dummy_counter,rng);
+                             dummy_counter,dummy_counter,*rng_ptr);
               }
               else if (label==4){ // insertBeta
                   insertBeta(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                              M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                              N_zero[0],N_beta[0],last_kinks[0],
                              dummy_counter,dummy_counter,
-                             dummy_counter,dummy_counter,rng);
+                             dummy_counter,dummy_counter,*rng_ptr);
               }
               else if (label==5){ // deleteBeta
                   deleteBeta(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                              M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                              N_zero[0],N_beta[0],last_kinks[0],
                              dummy_counter,dummy_counter,
-                             dummy_counter,dummy_counter,rng);
+                             dummy_counter,dummy_counter,*rng_ptr);
               }
               else if (label==6){ // timeshift
                   timeshift(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -431,7 +492,7 @@ cout << "U: " << U << endl;
                              dummy_counter,dummy_counter,
                              dummy_counter,dummy_counter,
                              dummy_counter,dummy_counter,
-                             dummy_counter,dummy_counter,rng);
+                             dummy_counter,dummy_counter,*rng_ptr);
               }
               else if (label==7){ // insert kink before head
                   insert_kink_before_head(paths[0],num_kinks[0],
@@ -439,7 +500,7 @@ cout << "U: " << U << endl;
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker[0],
                              N_zero[0],N_beta[0],last_kinks[0],
-                             dummy_counter,dummy_counter,rng);
+                             dummy_counter,dummy_counter,*rng_ptr);
               }
               else if (label==8){ // delete kink before head
                   delete_kink_before_head(paths[0],num_kinks[0],
@@ -447,7 +508,7 @@ cout << "U: " << U << endl;
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker[0],
                              N_zero[0],N_beta[0],last_kinks[0],
-                             dummy_counter,dummy_counter,rng);
+                             dummy_counter,dummy_counter,*rng_ptr);
               }
               else if (label==9){ // insert kink after head
                   insert_kink_after_head(paths[0],num_kinks[0],
@@ -455,7 +516,7 @@ cout << "U: " << U << endl;
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker[0],
                              N_zero[0],N_beta[0],last_kinks[0],
-                             dummy_counter,dummy_counter,rng);
+                             dummy_counter,dummy_counter,*rng_ptr);
               }
               else if (label==10){ // delete kink after head
                   delete_kink_after_head(paths[0],num_kinks[0],
@@ -463,7 +524,7 @@ cout << "U: " << U << endl;
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker[0],
                              N_zero[0],N_beta[0],last_kinks[0],
-                             dummy_counter,dummy_counter,rng);
+                             dummy_counter,dummy_counter,*rng_ptr);
                       }
               else if (label==11){ // insert kink before tail
                   insert_kink_before_tail(paths[0],num_kinks[0],
@@ -471,7 +532,7 @@ cout << "U: " << U << endl;
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker[0],
                              N_zero[0],N_beta[0],last_kinks[0],
-                             dummy_counter,dummy_counter,rng);
+                             dummy_counter,dummy_counter,*rng_ptr);
               }
               else if (label==12){ // delete kink before tail
                   delete_kink_before_tail(paths[0],num_kinks[0],
@@ -479,7 +540,7 @@ cout << "U: " << U << endl;
                              M,N,U,mu,t,adjacency_matrix,total_nn,
                              beta,eta,canonical,N_tracker[0],
                              N_zero[0],N_beta[0],last_kinks[0],
-                             dummy_counter,dummy_counter,rng);
+                             dummy_counter,dummy_counter,*rng_ptr);
               }
               else if (label==13){ // insert kink after tail
                    insert_kink_after_tail(paths[0],num_kinks[0],
@@ -487,7 +548,7 @@ cout << "U: " << U << endl;
                               M,N,U,mu,t,adjacency_matrix,total_nn,
                               beta,eta,canonical,N_tracker[0],
                               N_zero[0],N_beta[0],last_kinks[0],
-                              dummy_counter,dummy_counter,rng);
+                              dummy_counter,dummy_counter,*rng_ptr);
                }
                else if (label==14){ // delete kink after tail
                    delete_kink_after_tail(paths[0],num_kinks[0],
@@ -495,7 +556,7 @@ cout << "U: " << U << endl;
                               M,N,U,mu,t,adjacency_matrix,total_nn,
                               beta,eta,canonical,N_tracker[0],
                               N_zero[0],N_beta[0],last_kinks[0],
-                              dummy_counter,dummy_counter,rng);
+                              dummy_counter,dummy_counter,*rng_ptr);
                }
               else{
                   // lol
@@ -852,28 +913,28 @@ cout << "U: " << U << endl;
     while(bins_written<bins_wanted){
     for (int r=0;r<num_replicas;r++){
         
-        label = updates(rng);
+        label = rng_ptr->randInt(14);
 
         if (label==0){     // worm_insert
             insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                         N_zero[r],N_beta[r],last_kinks[r],
                         insert_worm_attempts,insert_worm_accepts,
-                        insert_anti_attempts,insert_anti_accepts,rng);
+                        insert_anti_attempts,insert_anti_accepts,*rng_ptr);
         }
         else if (label==1){ // worm_delete
             delete_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                         N_zero[r],N_beta[r],last_kinks[r],
                         delete_worm_attempts,delete_worm_accepts,
-                        delete_anti_attempts,delete_anti_accepts,rng);
+                        delete_anti_attempts,delete_anti_accepts,*rng_ptr);
         }
         else if (label==2){ // insertZero
             insertZero(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertZero_worm_attempts,insertZero_worm_accepts,
-                       insertZero_anti_attempts,insertZero_anti_accepts,rng);
+                       insertZero_anti_attempts,insertZero_anti_accepts,*rng_ptr);
             
         }
         else if (label==3){ // deleteZero
@@ -881,21 +942,21 @@ cout << "U: " << U << endl;
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteZero_worm_attempts,deleteZero_worm_accepts,
-                       deleteZero_anti_attempts,deleteZero_anti_accepts,rng);
+                       deleteZero_anti_attempts,deleteZero_anti_accepts,*rng_ptr);
         }
         else if (label==4){ // insertBeta
             insertBeta(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertBeta_worm_attempts,insertBeta_worm_accepts,
-                       insertBeta_anti_attempts,insertBeta_anti_accepts,rng);
+                       insertBeta_anti_attempts,insertBeta_anti_accepts,*rng_ptr);
         }
         else if (label==5){ // deleteBeta
             deleteBeta(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteBeta_worm_attempts,deleteBeta_worm_accepts,
-                       deleteBeta_anti_attempts,deleteBeta_anti_accepts,rng);
+                       deleteBeta_anti_attempts,deleteBeta_anti_accepts,*rng_ptr);
         }
         else if (label==6){ // timeshift
             timeshift(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -904,69 +965,69 @@ cout << "U: " << U << endl;
                        advance_head_attempts,advance_head_accepts,
                        recede_head_attempts,recede_head_accepts,
                        advance_tail_attempts,advance_tail_accepts,
-                       recede_tail_attempts,recede_tail_accepts,rng);
+                       recede_tail_attempts,recede_tail_accepts,*rng_ptr);
         }
         else if (label==7){ // insert kink before head
             insert_kink_before_head(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
-                       ikbh_attempts,ikbh_accepts,rng);
+                       ikbh_attempts,ikbh_accepts,*rng_ptr);
         }
         else if (label==8){ // delete kink before head
             delete_kink_before_head(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
-                       dkbh_attempts,dkbh_accepts,rng);
+                       dkbh_attempts,dkbh_accepts,*rng_ptr);
         }
         else if (label==9){ // insert kink after head
             insert_kink_after_head(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
-                       ikah_attempts,ikah_accepts,rng);
+                       ikah_attempts,ikah_accepts,*rng_ptr);
         }
         else if (label==10){ // delete kink after head
             delete_kink_after_head(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
-                       dkah_attempts,dkah_accepts,rng);
+                       dkah_attempts,dkah_accepts,*rng_ptr);
                 }
         else if (label==11){ // insert kink before tail
             insert_kink_before_tail(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
-                       ikbt_attempts,ikbt_accepts,rng);
+                       ikbt_attempts,ikbt_accepts,*rng_ptr);
         }
         else if (label==12){ // delete kink before tail
             delete_kink_before_tail(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
-                       dkbt_attempts,dkbt_accepts,rng);
+                       dkbt_attempts,dkbt_accepts,*rng_ptr);
         }
         else if (label==13){ // insert kink after tail
              insert_kink_after_tail(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,adjacency_matrix,total_nn,
                         beta,eta,canonical,N_tracker[r],
                         N_zero[r],N_beta[r],last_kinks[r],
-                        ikat_attempts,ikat_accepts,rng);
+                        ikat_attempts,ikat_accepts,*rng_ptr);
          }
          else if (label==14){ // delete kink after tail
              delete_kink_after_tail(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,adjacency_matrix,total_nn,
                         beta,eta,canonical,N_tracker[r],
                         N_zero[r],N_beta[r],last_kinks[r],
-                        dkat_attempts,dkat_accepts,rng);
+                        dkat_attempts,dkat_accepts,*rng_ptr);
          }
     } // end of replica loop
 
         
         // SWAP Updates
-        label = swap_updates(rng);
+        label = rng_ptr->randInt(3);
 
         if (label==0){ // insert_swap_kink
          insert_swap_kink(paths, num_kinks,
@@ -982,7 +1043,7 @@ cout << "U: " << U << endl;
                          last_kinks,
                          insert_swap_kink_attempts,
                          insert_swap_kink_accepts,
-                         rng);
+                         *rng_ptr);
          }
          else if (label==1) { // delete_swap_kink
              delete_swap_kink(paths, num_kinks,
@@ -998,7 +1059,7 @@ cout << "U: " << U << endl;
                              last_kinks,
                              delete_swap_kink_attempts,
                              delete_swap_kink_accepts,
-                             rng);
+                             *rng_ptr);
          }
          else if (label==2) {
              swap_timeshift_head(paths, num_kinks,
@@ -1016,7 +1077,7 @@ cout << "U: " << U << endl;
                              swap_advance_head_accepts,
                              swap_recede_head_attempts,
                              swap_recede_head_accepts,
-                             rng);
+                             *rng_ptr);
          }
          else if (label==3) {
              swap_timeshift_tail(paths, num_kinks,
@@ -1034,7 +1095,7 @@ cout << "U: " << U << endl;
                              swap_advance_tail_accepts,
                              swap_recede_tail_attempts,
                              swap_recede_tail_accepts,
-                             rng);
+                             *rng_ptr);
          }
          else{
              // lol
@@ -1375,6 +1436,22 @@ cout << "U: " << U << endl;
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
 
+    // Saving RNG
+    string rng_filename = "rng_state.dat";
+    std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
+    ofs << rng_ptr->save().str() << std::endl;
+    ofs.close();
+    
+    // Similarly, implement saving state to file, then loading it.
+    
+    // Want to skip equilibration in restarts.
+    
+    // To test: run job for 100 mc steps, look at estimators,
+    // run a different job (not restarted) but with same seed for
+    // 50 mc steps, restart this second job and run for an extra of
+    // 50 mc steps. Compare estimators, state, etc.. results should be
+    // same for the long run and the composite run.
+    
     return 0;
     
 }
