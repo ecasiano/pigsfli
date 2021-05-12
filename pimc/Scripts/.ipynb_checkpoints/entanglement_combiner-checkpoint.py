@@ -39,7 +39,7 @@ S2_plot = []
 S2_err_plot = []
 for U in U_list:
     for beta in beta_list:
-        for mA_sector_wanted in [2]:
+        for mA_sector_wanted in [4]:
             
             incomplete_seeds = [] 
             seeds_list = list(range(1000))
