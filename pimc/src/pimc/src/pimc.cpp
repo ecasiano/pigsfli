@@ -41,8 +41,8 @@ int main(int argc, char** argv){
             cxxopts::value<string>()->default_value("square"))
         ("num-replicas","Number of replicas",cxxopts::value<int>())
         ("measurement-frequency","Measurements will be performed every other this amount",cxxopts::value<int>()->default_value("1"))
+        ("rng","Random Number Generator type",cxxopts::value<string>()->default_value("pimc_mt19937"))
 
-    
 
 //        ("conventionals", "set to take conventional measurements (E,N,...)")
     ;
@@ -51,14 +51,17 @@ int main(int argc, char** argv){
 
   /*-----------------------------------------------------------------------------*/
 
-    // Initialize a Mersenne Twister RNG for each replica
+    
+    // Initialize a Mersenne Twister RNG
     int seed = result["seed"].as<int>();
     boost::random::mt19937 rng(seed);
     
     // Create a uniform distribution with support: [0.0,1.0)
     boost::random::uniform_real_distribution<double> rnum(0.0,1.0);
 
-    // Create integer distribution with support: [0,16]
+    // NOTE: Might wanna make 14 and 3 static variables. Give them names.
+    
+    // Create integer distribution with support: [0,14]
     boost::random::uniform_int_distribution<> updates(0,14);
     
     // Create integer distribution with support: [0,2]
@@ -1163,11 +1166,8 @@ cout << "U: " << U << endl;
                         else{ // num_swaps>0
                         
                             // Get total local particle number for partitions of
-                            // sizes m_A_primed=0 up to m_A_primed=m_A_primed
-                            
-                            // 1. get fock state for one replica
-                            // 2. sum particles for subsites to get n_A
-                            //
+                            // sizes m_A_primed=0 up to m_A_primed=\
+                            vnm/
                             
                             // Add count to swapped sites histogram of n-sector
                             for (int REP=0; REP<num_replicas; REP++){ // THIS LOOP IS ACTUALLY NOT NECESSARY. If we made it here, n[0]==n[1].
@@ -1184,7 +1184,7 @@ cout << "U: " << U << endl;
                                 if (num_swaps==m_A){writing_ctr+=1;}
                                 // SWAPn_histograms[num_swaps-1][number of particles in the subregion]+=1;
                             }
-                            else{cout << "DEATH!" << endl;}
+                            else{cout << "ERROR!" << endl;}
                         }
                         // Track how many measurements are in the bin
 //                        writing_ctr+=1;
