@@ -42,12 +42,11 @@ beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
 # beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
 #              1.75,2.0,3.0,4.0]
 # beta_list = [7.0]
-
 S2_plot = []
 S2_err_plot = []
 for U in U_list:
     for beta in beta_list:
-        for l_sector_wanted in [2]:
+        for l_sector_wanted in [4]:
         
             incomplete_seeds = [] 
             seeds_list = list(range(1000))
