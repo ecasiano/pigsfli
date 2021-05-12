@@ -18,6 +18,7 @@
 #include<iomanip>  // for std::setprecision
 #include <fstream>
 #include <cstdlib> // for exit function
+#include "RNG.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -99,18 +100,18 @@ int binaryToDecimal(vector<int> binary_word){
 
 /*----------------------------------------------------------------------------*/
 
-vector<int> random_boson_config(int M,int N,boost::random::mt19937 &rng){
+vector<int> random_boson_config(int M,int N,RNG &rng){
     // Generates random Fock state of N bosons in M=L^D sites
     
     vector<int> alpha (M,0);
     int src;
     
     // Initialize the distribution object. Note: Support is fully closed [0,M-1]
-    boost::random::uniform_int_distribution<> sites(0, M-1);
+    //boost::random::uniform_int_distribution<> sites(0, M-1);
     
     // Randomly sprinkle the N particles among sites
     for (int n=1; n<=N; n++){
-        src = sites(rng);
+        src = rng.randInt(M-1);
         alpha[src] += 1;
     }
     return alpha;
@@ -404,7 +405,7 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
                  unsigned long long int &insert_worm_accepts,
                  unsigned long long int &insert_anti_attempts,
                  unsigned long long int &insert_anti_accepts,
-                 boost::random::mt19937 &rng){
+                 RNG &rng){
     
     // Variable declarations
     int k,n,src,dest,prev,next,n_head,n_tail,src_replica,dest_replica;
@@ -415,8 +416,8 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (head_idx != -1 || tail_idx != -1){return;}
         
     // Randomly sample a flat interval (or kink if you like)
-    boost::random::uniform_int_distribution<> flats(0, num_kinks-1);
-    k = flats(rng);
+    //boost::random::uniform_int_distribution<> flats(0, num_kinks-1);
+    k = rng.randInt(num_kinks-1);
     
     // Extract the attributes of the kink at the bottom of the flat interval
     tau = paths[k].tau;
@@ -437,9 +438,9 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     tau_flat = tau_next - tau_prev;
     
     // Randomly choose where to insert worm ends in the flat interval
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    tau_h = tau_prev + tau_flat*rnum(rng);
-    tau_t = tau_prev + tau_flat*rnum(rng);
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    tau_h = tau_prev + tau_flat*rng.rand();
+    tau_t = tau_prev + tau_flat*rng.rand();
     
     // Based on worm end time, determine worm type: antiworm or worm
     if (tau_h > tau_t){
@@ -484,7 +485,7 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     num_kinks * tau_flat * tau_flat;
 
     // Metropolis sampling
-    if (rnum(rng) < R){ // Accept
+    if (rng.rand() < R){ // Accept
 
         // Activate the first two available kinks
         if (is_worm){
@@ -546,7 +547,7 @@ void delete_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
                  unsigned long long int &delete_worm_accepts,
                  unsigned long long int &delete_anti_attempts,
                  unsigned long long int &delete_anti_accepts,
-                 boost::random::mt19937 &rng){
+                 RNG &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail;
@@ -639,8 +640,8 @@ void delete_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     R = 1.0/R;
     
     // Metropolis sampling
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    if (rnum(rng) < R){ // Accept
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rng.rand() < R){ // Accept
         
         // Add to Acceptance counter
         if (is_worm)
@@ -723,7 +724,7 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertZero_worm_accepts,
                 unsigned long long int &insertZero_anti_attempts,
                 unsigned long long int &insertZero_anti_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,i,N_b,src_replica,dest_replica;
@@ -735,8 +736,8 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (head_idx != -1 and tail_idx != -1){return;}
         
     // Randomly select site on which to insert worm/antiworm from tau=0
-    boost::random::uniform_int_distribution<> sites(0, M-1);
-    i = sites(rng);
+    //boost::random::uniform_int_distribution<> sites(0, M-1);
+    i = rng.randInt(M-1);
     
     // Extract attributes of insertion flat
     tau_prev = paths[i].tau; // tau is just zero
@@ -755,14 +756,14 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
         tau_flat = beta;
     
     // Choose worm/antiworm insertion based on worm ends present
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     if (head_idx==-1 and tail_idx==-1){ // no worm ends present
         if (n==0){ // can only insert worm, not antiworm
             is_worm = true;
             p_type = 1.0;
         }
         else{ // choose worm or antiworm insertion with equal probability
-            if (rnum(rng) < 0.5)
+            if (rng.rand() < 0.5)
                 is_worm = true;
             else
                 is_worm = false;
@@ -789,7 +790,7 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     else {insertZero_anti_attempts += 1;}
     
     // Randomly choose where to insert worm end on the flat interval
-    tau_new = tau_flat*rnum(rng);
+    tau_new = tau_flat*rng.rand();
     
     // Determine the no. of particles after each worm end
     if (is_worm){
@@ -857,7 +858,7 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     R = W * (p_dz/p_iz) * M * p_wormend * tau_flat / p_type;
 
     // Metropolis sampling
-    if (rnum(rng) < R){ // Accept
+    if (rng.rand() < R){ // Accept
         
         // Activate the first available kink
         if (is_worm){
@@ -925,7 +926,7 @@ void deleteZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteZero_worm_accepts,
                 unsigned long long int &deleteZero_anti_attempts,
                 unsigned long long int &deleteZero_anti_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
@@ -948,11 +949,10 @@ void deleteZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
 
     // Decide which worm end to delete
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     if (head_idx!=-1 && tail_idx!=-1){ // both wormends present
         if (paths[paths[head_idx].prev].tau == 0 &&
             paths[paths[tail_idx].prev].tau == 0){ //both near 0
-            if (rnum(rng) < 0.5)
+            if (rng.rand() < 0.5)
                 delete_head = true;
             else
                 delete_head = false;
@@ -1060,7 +1060,7 @@ void deleteZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     R = 1.0/R;
     
     // Metropolis sampling
-    if (rnum(rng) < R){ // accept
+    if (rng.rand() < R){ // accept
         
         // Update the number of particles in the initial kink of worm end site
         paths[paths[worm_end_idx].prev].n = n;
@@ -1135,7 +1135,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertBeta_worm_accepts,
                 unsigned long long int &insertBeta_anti_attempts,
                 unsigned long long int &insertBeta_anti_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,i,N_b,src_replica,dest_replica;
@@ -1147,8 +1147,8 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (head_idx != -1 and tail_idx != -1){return;}
         
     // Randomly select site on which to insert worm/antiworm from tau=0
-    boost::random::uniform_int_distribution<> sites(0, M-1);
-    i = sites(rng);
+    //boost::random::uniform_int_distribution<> sites(0, M-1);
+    i = rng.randInt(M-1);
     
     // Extract the flat interval where insertion is proposed & its attributes
     tau_prev = paths[last_kinks[i]].tau;
@@ -1164,14 +1164,13 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     tau_flat = beta - tau_prev;
     
     // Choose worm/antiworm insertion based on worm ends present
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     if (head_idx==-1 and tail_idx==-1){ // no worm ends present
         if (n==0){ // can only insert worm, not antiworm
             is_worm = true;
             p_type = 1.0;
         }
         else{ // choose worm or antiworm insertion with equal probability
-            if (rnum(rng) < 0.5)
+            if (rng.rand() < 0.5)
                 is_worm = true;
             else
                 is_worm = false;
@@ -1198,7 +1197,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     else {insertBeta_anti_attempts += 1;}
     
     // Randomly choose where to insert worm end on the flat interval
-    tau_new = tau_prev + tau_flat*rnum(rng);
+    tau_new = tau_prev + tau_flat*rng.rand();
     
     // Determine the no. of particles after each worm end
     if (is_worm){
@@ -1266,7 +1265,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     R = W * (p_db/p_ib) * M * p_wormend * tau_flat / p_type;
 
     // Metropolis sampling
-    if (rnum(rng) < R){ // Accept
+    if (rng.rand() < R){ // Accept
         
         // Activate the first available kink
         if (is_worm){
@@ -1326,7 +1325,7 @@ void deleteBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteBeta_worm_accepts,
                 unsigned long long int &deleteBeta_anti_attempts,
                 unsigned long long int &deleteBeta_anti_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
@@ -1349,11 +1348,11 @@ void deleteBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     
     // Decide which worm end to delete
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     if (head_idx!=-1 && tail_idx!=-1){ // both wormends present
         if (paths[head_idx].next == -1 &&
             paths[tail_idx].next == -1){ // both last
-            if (rnum(rng) < 0.5)
+            if (rng.rand() < 0.5)
                 delete_head = true;  // delete antiworm
             else
                 delete_head = false; // delete worm
@@ -1458,7 +1457,7 @@ void deleteBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     R = 1.0/R;
     
     // Metropolis sampling
-    if (rnum(rng) < R){ // accept
+    if (rng.rand() < R){ // accept
                 
         // num_kinks-1 (last available kink) will be swapped. Modify links to it
         if (paths[num_kinks-1].next!=-1) // avoids access with -1 index
@@ -1532,7 +1531,7 @@ void timeshift_uniform(vector<Kink> &paths, int &num_kinks,int &head_idx,
                 unsigned long long int &advance_tail_accepts,
                 unsigned long long int &recede_tail_attempts,
                 unsigned long long int &recede_tail_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,worm_end_idx;
@@ -1543,13 +1542,13 @@ void timeshift_uniform(vector<Kink> &paths, int &num_kinks,int &head_idx,
     if (head_idx==-1 && tail_idx==-1){return;}
 
     // Choose which worm end to move
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     if (head_idx!=-1 && tail_idx!=-1){ // both worm ends present
         tau_h = paths[head_idx].tau;
         tau_t = paths[tail_idx].tau;
 
         // Randomly choose to shift HEAD or TAIL
-        if (rnum(rng) < 0.5)
+        if (rng.rand() < 0.5)
             shift_head = true;
         else
             shift_head = false;
@@ -1592,7 +1591,7 @@ void timeshift_uniform(vector<Kink> &paths, int &num_kinks,int &head_idx,
     tau_flat = tau_next - tau_prev;
 
     // Sample the new time of the worm end from uniform distribution
-    tau_new = tau_prev + tau_flat*rnum(rng);
+    tau_new = tau_prev + tau_flat*rng.rand();
     
     // Add to PROPOSAL counter
     if (shift_head){
@@ -1627,7 +1626,7 @@ void timeshift_uniform(vector<Kink> &paths, int &num_kinks,int &head_idx,
     R = W; // recall that timeshift is it's own inverse
 
     // Metropolis sampling
-    if (rnum(rng) < R){
+    if (rng.rand() < R){
         
         // Add to ACCEPTANCE counter
         if (shift_head){
@@ -1665,7 +1664,7 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &advance_tail_accepts,
                 unsigned long long int &recede_tail_attempts,
                 unsigned long long int &recede_tail_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int n,src,dest,prev,next,worm_end_idx;
@@ -1676,13 +1675,13 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (head_idx==-1 && tail_idx==-1){return;}
 
     // Choose which worm end to move
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     if (head_idx!=-1 && tail_idx!=-1){ // both worm ends present
         tau_h = paths[head_idx].tau;
         tau_t = paths[tail_idx].tau;
 
         // Randomly choose to shift HEAD or TAIL
-        if (rnum(rng) < 0.5)
+        if (rng.rand() < 0.5)
             shift_head = true;
         else
             shift_head = false;
@@ -1727,7 +1726,7 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Sample the new time of the worm end from truncated exponential dist.
     /*:::::::::::::::::::: Truncated Exponential RVS :::::::::::::::::::::::::*/
     Z = 1.0 - exp(-dV*(tau_next-tau_prev));
-    tau_new = tau_prev - log(1.0-Z*rnum(rng))  / dV;
+    tau_new = tau_prev - log(1.0-Z*rng.rand())  / dV;
     /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     
 //    cout << tau << " " << tau_new << endl;
@@ -1760,7 +1759,7 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
 
     // Metropolis sampling
-    if (rnum(rng) < R){
+    if (rng.rand() < R){
         
         // Add to ACCEPTANCE counter
         if (shift_head){
@@ -1794,7 +1793,7 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikbh_attempts,
                 unsigned long long int &ikbh_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
 //    if (t==0.0){return;}
     // Variable declarations
@@ -1818,8 +1817,8 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
     dest_replica = paths[head_idx].dest_replica;
     
     // Randomly choose a nearest neighbor site
-    boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
-    j = adjacency_matrix[i][random_nn(rng)];
+    //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
+    j = adjacency_matrix[i][rng.randInt(total_nn-1)];
     p_site = 1.0/total_nn;
     
     // Retrieve the time of the worm head
@@ -1853,8 +1852,8 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
     else {tau_min=tau_prev_j;}
     
     // Randomly choose the time of the kink
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    tau_kink = tau_min + rnum(rng)*(tau_h-tau_min);
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    tau_kink = tau_min + rng.rand()*(tau_h-tau_min);
     if (tau_kink == tau_min){return;}
     
     // Extract no. of particles in the flats adjacent to the new kink
@@ -1876,7 +1875,7 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
     R = W * (p_dkbh/p_ikbh) * (tau_h-tau_min)/p_site;
     
     // Metropolis Sampling
-    if (rnum(rng) < R){ // Accept
+    if (rng.rand() < R){ // Accept
         
         // Add to acceptance counter
         ikbh_accepts += 1;
@@ -1927,7 +1926,7 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkbh_attempts,
                 unsigned long long int &dkbh_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2018,8 +2017,8 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
     R = 1.0/R;
 
     // Metropolis Sampling
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    if (rnum(rng) < R){ // Accept
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rng.rand() < R){ // Accept
 
         // Add to acceptance counter
         dkbh_accepts += 1;
@@ -2137,7 +2136,7 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikah_attempts,
                 unsigned long long int &ikah_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2160,8 +2159,8 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
     dest_replica = paths[head_idx].dest_replica;
 
     // Randomly choose a nearest neighbor site
-    boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
-    j = adjacency_matrix[i][random_nn(rng)];
+    //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
+    j = adjacency_matrix[i][rng.randInt(total_nn-1)];
     p_site = 1.0/total_nn;
     
     // Retrieve the time of the worm head
@@ -2204,8 +2203,8 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
     else {tau_max=tau_next_j;}
     
     // Randomly choose the time of the kink
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    tau_kink = tau_h + rnum(rng)*(tau_max-tau_h);
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    tau_kink = tau_h + rng.rand()*(tau_max-tau_h);
     if (tau_kink==tau_h){return;}
     
      // Extract no. of particles in the flats adjacent to the new kink
@@ -2230,7 +2229,7 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
     R = W * (p_dkah/p_ikah) * (tau_max-tau_h)/p_site;
     
     // Metropolis Sampling
-    if (rnum(rng) < R){ // Accept
+    if (rng.rand() < R){ // Accept
         
         // Add to acceptance counter
         ikah_accepts += 1;
@@ -2280,7 +2279,7 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkah_attempts,
                 unsigned long long int &dkah_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2375,8 +2374,8 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
     R = 1.0/R;
 
     // Metropolis Sampling
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    if (rnum(rng) < R){ // Accept
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rng.rand() < R){ // Accept
 
         // Add to acceptance counter
         dkah_accepts += 1;
@@ -2490,7 +2489,7 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikbt_attempts,
                 unsigned long long int &ikbt_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2510,8 +2509,8 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
     dest_replica = paths[tail_idx].dest_replica;
     
     // Randomly choose a nearest neighbor site
-    boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
-    j = adjacency_matrix[i][random_nn(rng)];
+    //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
+    j = adjacency_matrix[i][rng.randInt(total_nn-1)];
     p_site = 1.0/total_nn;
     
     // Retrieve the time of the worm tail
@@ -2553,8 +2552,8 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
     else {tau_min=tau_prev_j;}
     
     // Randomly choose the time of the kink
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    tau_kink = tau_min + rnum(rng)*(tau_t-tau_min);
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    tau_kink = tau_min + rng.rand()*(tau_t-tau_min);
     if (tau_kink == tau_min){return;}
     
      // Extract no. of particles in the flats adjacent to the new kink
@@ -2582,7 +2581,7 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
     R = W * (p_dkbt/p_ikbt) * (tau_t-tau_min)/p_site;
     
     // Metropolis Sampling
-    if (rnum(rng) < R){ // Accept
+    if (rng.rand() < R){ // Accept
         
         // Add to acceptance counter
         ikbt_accepts += 1;
@@ -2633,7 +2632,7 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkbt_attempts,
                 unsigned long long int &dkbt_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2724,8 +2723,8 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
     R = 1.0/R;
     
     // Metropolis Sampling
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    if (rnum(rng) < R){ // Accept
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rng.rand() < R){ // Accept
 
         // Add to acceptance counter
         dkbt_accepts += 1;
@@ -2839,7 +2838,7 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikat_attempts,
                 unsigned long long int &ikat_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -2862,8 +2861,8 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
     dest_replica = paths[tail_idx].dest_replica;
     
     // Randomly choose a nearest neighbor site
-    boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
-    j = adjacency_matrix[i][random_nn(rng)];
+    //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
+    j = adjacency_matrix[i][rng.randInt(total_nn-1)];
     p_site = 1.0/total_nn;
     
     // Retrieve the time of the worm tail
@@ -2905,8 +2904,8 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
     else {tau_max=tau_next_j;}
     
     // Randomly choose the time of the kink
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    tau_kink = tau_t + rnum(rng)*(tau_max-tau_t);
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    tau_kink = tau_t + rng.rand()*(tau_max-tau_t);
     if (tau_kink==tau_t){return;}
     
      // Extract no. of particles in the flats adjacent to the new kink
@@ -2928,7 +2927,7 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
     R = W * (p_dkat/p_ikat) * (tau_max-tau_t)/p_site;
     
     // Metropolis Sampling
-    if (rnum(rng) < R){ // Accept
+    if (rng.rand() < R){ // Accept
         
         // Add to acceptance counter
         ikat_accepts += 1;
@@ -2979,7 +2978,7 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkat_attempts,
                 unsigned long long int &dkat_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -3074,8 +3073,8 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
     R = 1.0/R;
 
     // Metropolis Sampling
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    if (rnum(rng) < R){ // Accept
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rng.rand() < R){ // Accept
 
         // Add to acceptance counter
         dkat_accepts += 1;
@@ -3194,7 +3193,7 @@ void insert_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                 vector<vector<int> > &last_kinks,
                 unsigned long long int &insert_swap_kink_attempts,
                 unsigned long long int &insert_swap_kink_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Note: ONE AND TWO DIMENSIONAL FOR NOW
     
@@ -3326,7 +3325,7 @@ void delete_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                 vector<vector<int> > &last_kinks,
                 unsigned long long int &delete_swap_kink_attempts,
                 unsigned long long int &delete_swap_kink_accepts,
-                boost::random::mt19937 &rng){
+                RNG &rng){
     
     // Note: ONE AND TWO DIMENSIONAL FOR NOW
     
@@ -3506,7 +3505,7 @@ void swap_timeshift_head(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                unsigned long long int &swap_advance_head_accepts,
                unsigned long long int &swap_recede_head_attempts,
                unsigned long long int &swap_recede_head_accepts,
-               boost::random::mt19937 &rng){
+               RNG &rng){
     
     // Variable declarations
     int n,worm_end_idx,src_replica,dest_replica,head_idx_0,
@@ -3604,11 +3603,11 @@ void swap_timeshift_head(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
 //    if (!shift_head){dV *= -1;} // dV=eps-eps_w
     
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     // Sample the new time of the worm end from truncated exponential dist.
     /*:::::::::::::::::::: Truncated Exponential RVS :::::::::::::::::::::::::*/
     Z = 1.0 - exp(-dV*(tau_next-tau_prev));
-    tau_new = tau_prev - log(1.0-Z*rnum(rng))  / dV;
+    tau_new = tau_prev - log(1.0-Z*rng.rand())  / dV;
     /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     
     // Check if advance or recede
@@ -3662,7 +3661,7 @@ void swap_timeshift_head(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
 
     // Metropolis sampling
-    if (rnum(rng) < R){
+    if (rng.rand() < R){
         if (!is_over_swap){ // worm end does not go over swap kink
             paths[src_replica][worm_end_idx].tau = tau_new;
             N_tracker[src_replica] += dN_src;
@@ -3861,7 +3860,7 @@ void swap_timeshift_tail(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                unsigned long long int &swap_advance_tail_accepts,
                unsigned long long int &swap_recede_tail_attempts,
                unsigned long long int &swap_recede_tail_accepts,
-               boost::random::mt19937 &rng){
+               RNG &rng){
     
     // Variable declarations
     int n,worm_end_idx,src_replica,dest_replica,tail_idx_0,
@@ -3959,11 +3958,11 @@ void swap_timeshift_tail(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
     dV *= -1; // dV=eps-eps_w
     
-    boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     // Sample the new time of the worm end from truncated exponential dist.
     /*:::::::::::::::::::: Truncated Exponential RVS :::::::::::::::::::::::::*/
     Z = 1.0 - exp(-dV*(tau_next-tau_prev));
-    tau_new = tau_prev - log(1.0-Z*rnum(rng))  / dV;
+    tau_new = tau_prev - log(1.0-Z*rng.rand())  / dV;
     /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     
     // Check if advance or recede
@@ -4017,7 +4016,7 @@ void swap_timeshift_tail(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
 
     // Metropolis sampling
-    if (rnum(rng) < R){
+    if (rng.rand() < R){
         if (!is_over_swap){ // worm end does not go over swap kink
             paths[src_replica][worm_end_idx].tau = tau_new;
             N_tracker[src_replica] += dN_src;
