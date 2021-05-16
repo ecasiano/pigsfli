@@ -58,9 +58,13 @@ Kink::Kink (double time,int particles,int source_site,int destination_site,
 // Overload "<<" operator
 ostream& operator<<(ostream& os, const Kink& dt)
 {
-    os << '<' << dt.tau << ',' << dt.n << ',' << dt.src << ','
-    << dt.dest << ',' << dt.prev << ',' << dt.next <<'>'
-    << dt.src_replica << dt.dest_replica;
+//    os << '<' << dt.tau << ',' << dt.n << ',' << dt.src << ','
+//    << dt.dest << ',' << dt.prev << ',' << dt.next <<'>'
+//    << dt.src_replica << dt.dest_replica;
+    
+        os << dt.tau << ' ' << dt.n << ' ' << dt.src << ' '
+        << dt.dest << ' ' << dt.prev << ' ' << dt.next << ' '
+        << dt.src_replica << ' ' << dt.dest_replica;
 
     return os;
 }
