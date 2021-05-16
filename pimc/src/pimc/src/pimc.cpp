@@ -732,7 +732,6 @@ cout << "U: " << U << endl;
         kinetic_energy_file.open(K_name);
         diagonal_energy_file.open(V_name);
 
-        
         if (measure_tau_resolved_estimators){
             tr_K_out.open(tr_K_name);
             tr_V_out.open(tr_V_name);
@@ -1435,7 +1434,39 @@ cout << "U: " << U << endl;
     }
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
-
+    
+    // Saving last worldline configuration
+    ofstream state_file;
+    string state_name;
+    
+    state_name = "system_state_0.dat";
+    
+    state_file.open(state_name);
+    
+    std::copy(paths[0].begin(), paths[0].end(), std::ostream_iterator<Kink>(state_file, "\n"));
+    
+    state_file.close();
+    
+    // Saving trackers
+    // last_kinks[r]
+    // head_idx[r],tail_idx[r],num_kinks[r],N_zero[r],N_beta[r]
+    ofstream trackers_file;
+    string trackers_name;
+    
+    // Maybe reserve the first M columns of each line in the file
+    // for the last_kinks tracker.
+    
+    // Alternatively, all this information can be obtained from the
+    // loaded system state file. This might actually be preferable since
+    // it will be save disk space.
+    
+    // get_last_kinks(paths[r])
+    // get_head_idx(paths[r])
+    // get_tail_idx(paths[r])
+    // get_N_zero(paths[r])
+    // get_N_beta(paths[r])
+    // get_N_tracker(paths[r])
+    
     // Saving RNG
     string rng_filename = "rng_state.dat";
     std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
