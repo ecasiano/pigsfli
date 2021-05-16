@@ -1,0 +1,51 @@
+{
+  "buildCommand" : "prepareForIndexing",
+  "configuredTargets" : [
+    {
+      "guid" : "a9d53efaa6abb5481907f00131c44619ae95819bbcb5bdc36fda806ac52d528b"
+    }
+  ],
+  "continueBuildingAfterErrors" : true,
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "build",
+    "activeArchitecture" : "x86_64",
+    "activeRunDestination" : {
+      "disableOnlyActiveArch" : false,
+      "platform" : "macosx",
+      "sdk" : "macosx11.3",
+      "sdkVariant" : "macos",
+      "supportedArchitectures" : [
+        "x86_64h",
+        "x86_64"
+      ],
+      "targetArchitecture" : "x86_64"
+    },
+    "arenaInfo" : {
+      "buildIntermediatesPath" : "/Users/ecasiano/XCode/pimc/DerivedData/pimc/Build/Intermediates.noindex",
+      "buildProductsPath" : "/Users/ecasiano/XCode/pimc/DerivedData/pimc/Build/Products",
+      "derivedDataPath" : "/Users/ecasiano/XCode/pimc/DerivedData",
+      "indexDataStoreFolderPath" : "/Users/ecasiano/XCode/pimc/DerivedData/pimc/Index/DataStore",
+      "indexEnableDataStore" : true,
+      "indexPCHPath" : "/Users/ecasiano/XCode/pimc/DerivedData/pimc/Index/PrecompiledHeaders",
+      "pchPath" : "/Users/ecasiano/XCode/pimc/DerivedData/pimc/Build/Intermediates.noindex/PrecompiledHeaders"
+    },
+    "configurationName" : "Debug",
+    "overrides" : {
+      "synthesized" : {
+        "table" : {
+          "ENABLE_PREVIEWS" : "NO"
+        }
+      }
+    }
+  },
+  "qos" : "default",
+  "schemeCommand" : "launch",
+  "shouldCollectMetrics" : false,
+  "showNonLoggedProgress" : true,
+  "useDryRun" : true,
+  "useImplicitDependencies" : true,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : true
+}

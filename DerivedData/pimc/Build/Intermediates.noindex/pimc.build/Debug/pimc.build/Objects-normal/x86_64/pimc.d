@@ -1,5 +1,5 @@
-dependencies: /Users/ecasiano/XCode/pimc/pimc/pimc.cpp \
-  /Users/ecasiano/XCode/pimc/pimc/pimc.hpp \
+dependencies: /Users/ecasiano/XCode/pimc/pimc/src/pimc/src/pimc.cpp \
+  /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/pimc.hpp \
   /usr/local/Cellar/boost/1.73.0/include/boost/random.hpp \
   /usr/local/Cellar/boost/1.73.0/include/boost/random/additive_combine.hpp \
   /usr/local/Cellar/boost/1.73.0/include/boost/config.hpp \
@@ -526,4 +526,24 @@ dependencies: /Users/ecasiano/XCode/pimc/pimc/pimc.cpp \
   /usr/local/Cellar/boost/1.73.0/include/boost/random/uniform_on_sphere.hpp \
   /usr/local/Cellar/boost/1.73.0/include/boost/random/uniform_smallint.hpp \
   /usr/local/Cellar/boost/1.73.0/include/boost/random/weibull_distribution.hpp \
-  /Users/ecasiano/XCode/pimc/pimc/cxxopts.hpp
+  /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/RNG.h \
+  /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/MersenneTwister.h \
+  /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/pcg_random.hpp \
+  /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/pcg_extras.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/generator_iterator.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/iterator/iterator_facade.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/iterator/interoperable.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/iterator/detail/facade_iterator_category.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/core/use_default.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/detail/indirect_traits.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/type_traits/is_pointer.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/type_traits/is_member_pointer.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/type_traits/remove_pointer.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/detail/select_type.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/iterator/detail/enable_if.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/type_traits/add_lvalue_reference.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/type_traits/is_pod.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/type_traits/is_scalar.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/ref.hpp \
+  /usr/local/Cellar/boost/1.73.0/include/boost/core/ref.hpp \
+  /usr/local/include/cxxopts.hpp
