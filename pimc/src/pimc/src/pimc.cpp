@@ -77,7 +77,7 @@ int main(int argc, char** argv){
         ("measurement-frequency","Measurements will be performed every other this amount",cxxopts::value<int>()->default_value("1"))
         ("rng","Random Number Generator type",cxxopts::value<string>()->default_value("pimc_mt19937"))
         ("restart", "continue simulation from a loaded rng state",
-        cxxopts::value<bool>()->default_value("true"))
+        cxxopts::value<bool>()->default_value("false"))
 
 
 //        ("conventionals", "set to take conventional measurements (E,N,...)")
@@ -1439,11 +1439,48 @@ cout << "U: " << U << endl;
     ofstream state_file;
     string state_name;
     
-    state_name = "system_state_0.dat";
+    state_name = "system_state.dat";
     
     state_file.open(state_name);
     
-    std::copy(paths[0].begin(), paths[0].end(), std::ostream_iterator<Kink>(state_file, "\n"));
+//    std::copy(paths[0].begin(), paths[0].end(), std::ostream_iterator<Kink>(state_file, "\n"));
+    
+//    std::copy(paths[0].begin(), paths[0].end(), std::ostream_iterator<Kink>(state_file, "\n"));
+    
+//    int num_attributes = 8;
+    // Find how many active kinks the replica with the most
+    // active kinks has
+    int max_num_kinks=-1;
+    for (int r=0; r<num_replicas; r++){
+        if (num_kinks[r]>max_num_kinks){max_num_kinks=num_kinks[r];}
+    }
+    for (int k=0; k<max_num_kinks; k++){
+        for (int r=0; r<num_replicas; r++){
+            if (k<num_kinks[r]){
+            state_file<<fixed<<paths[r][k].tau<<" ";
+            state_file<<fixed<<paths[r][k].n<<" ";
+            state_file<<fixed<<paths[r][k].src<<" ";
+            state_file<<fixed<<paths[r][k].dest<<" ";
+            state_file<<fixed<<paths[r][k].prev<<" ";
+            state_file<<fixed<<paths[r][k].next<<" ";
+            state_file<<fixed<<paths[r][k].src_replica<<" ";
+            state_file<<fixed<<paths[r][k].dest_replica<<" ";
+            }
+            else {
+            state_file<<fixed<<-1.0<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            }
+        }
+        state_file<<endl;
+    }
+    
+    cout << num_kinks[0] << " " << num_kinks[1] << endl;
     
     state_file.close();
     
