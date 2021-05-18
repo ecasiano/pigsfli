@@ -119,7 +119,16 @@ int main(int argc, char** argv){
         string state_file_in_line;
         
         while (getline(state_file_in,state_file_in_line)){
-            cout << state_file_in_line << endl;
+            istringstream ss(state_file_in_line);
+            string del;
+            
+            while(getline(ss,del,' ')){
+                cout << del << " ";
+            }
+            cout << endl;
+            cout << "------------------------------------------------";
+            cout << endl;
+            
         }
         
     }
@@ -339,6 +348,7 @@ int main(int argc, char** argv){
         
 /*------------------- Try drawing a pretty welcome message -------------------*/
 
+cout << "sub-sites: ";
 for (int i=0; i<sub_sites.size(); i++){
     cout << sub_sites[i] << " ";
 }

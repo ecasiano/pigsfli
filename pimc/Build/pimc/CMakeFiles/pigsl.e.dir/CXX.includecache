@@ -163,6 +163,10 @@ cstdlib
 -
 RNG.h
 /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/RNG.h
+sstream
+-
+string.h
+-
 
 /Users/ecasiano/XCode/pimc/pimc/src/pimc/src/pimc.cpp
 pimc.hpp
