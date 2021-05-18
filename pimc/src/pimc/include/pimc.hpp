@@ -19,6 +19,8 @@
 #include <fstream>
 #include <cstdlib> // for exit function
 #include "RNG.h"
+#include<sstream>
+#include<string.h>
 
 using namespace std;
 using namespace std::chrono;
