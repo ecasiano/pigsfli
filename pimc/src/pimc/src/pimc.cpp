@@ -46,7 +46,6 @@ return rng_ptr ;
 // Main
 int main(int argc, char** argv){
 
-
   /*------------------------- Command line arguments -----------------------------*/
 
     cxxopts::Options options("test", "A brief description");
@@ -108,25 +107,22 @@ int main(int argc, char** argv){
     std::unique_ptr<RNG> rng_ptr = get_rng_ptr(rng_type, seed);
 
     if (restart){
-        cout << "loooool" << endl;
+        // Load RNG state
+        cout << "This is a restarted run" << endl;
         string rng_filename = "rng_state.dat";
         std::ifstream ifs(rng_filename.c_str(), std::ios_base::in);
         rng_ptr->load(ifs);
         ifs.close();
+        
+        // Load system state
+        ifstream state_file_in("system_state.dat");
+        string state_file_in_line;
+        
+        while (getline(state_file_in,state_file_in_line)){
+            cout << state_file_in_line << endl;
+        }
+        
     }
-//    boost::random::mt19937 rng(seed);
-    
-    // Create a uniform distribution with support: [0.0,1.0)
-    
-//    boost::random::uniform_real_distribution<double> rnum(0.0,1.0);
-
-    // NOTE: Might wanna make 14 and 3 static variables. Give them names.
-    
-    // Create integer distribution with support: [0,14]
-//    boost::random::uniform_int_distribution<> updates(0,14);
-    
-    // Create integer distribution with support: [0,2]
-//    boost::random::uniform_int_distribution<> swap_updates(0,3);
     
     // Bose-Hubbard parameters
     int L,D,M,N;
@@ -378,7 +374,7 @@ cout << "U: " << U << endl;
     cout << endl << endl;
 
 /*----------------- Pre-equilibration 1: mu,eta calibration ------------------*/
-
+    
     bool at_least_one_iteration = false;
     bool eta_fine_tuning_stage = false;
     bool eta_fine_tuning_complete = false;
@@ -391,9 +387,10 @@ cout << "U: " << U << endl;
     else {sweeps_pre*=M;}
 
     cout << "Stage (1/3): Determining mu and eta..." << endl << endl;
-
+    
     // Iterate until particle distribution P(N) is peaked at target N
     for (int stage=0;stage<2;stage++){ // stage0:mu,eta stage1:eta fine tuning
+        
     while (true){
         
         if (!canonical){break;}
@@ -439,7 +436,7 @@ cout << "U: " << U << endl;
 //        boost::random::uniform_int_distribution<> updates(0, 14);
 
         for (unsigned long long int m_pre=0;m_pre<sweeps_pre;m_pre++){
-
+            
               label = rng_ptr->randInt(14);
 
               if (label==0){     // worm_insert
