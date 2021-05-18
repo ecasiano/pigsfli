@@ -99,39 +99,12 @@ int main(int argc, char** argv){
         cerr << endl << "ERROR: Invalid random Number Generator!" << endl << endl;
         cerr << "Action: set random Generator (G) to one of:" << endl
              << "\t[" << randomGeneratorNames << "]" <<  endl;
-        return true;
+        return 1;
     }
     
     // Initialize a Mersenne Twister RNG
     int seed = result["seed"].as<int>();
     std::unique_ptr<RNG> rng_ptr = get_rng_ptr(rng_type, seed);
-
-    if (restart){
-        // Load RNG state
-        cout << "This is a restarted run" << endl;
-        string rng_filename = "rng_state.dat";
-        std::ifstream ifs(rng_filename.c_str(), std::ios_base::in);
-        rng_ptr->load(ifs);
-        ifs.close();
-        
-        // Load system state
-        ifstream state_file_in("system_state.dat");
-        string state_file_in_line;
-        
-        while (getline(state_file_in,state_file_in_line)){
-            istringstream ss(state_file_in_line);
-            string del;
-            
-            while(getline(ss,del,' ')){
-                cout << del << " ";
-            }
-            cout << endl;
-            cout << "------------------------------------------------";
-            cout << endl;
-            
-        }
-        
-    }
     
     // Bose-Hubbard parameters
     int L,D,M,N;
@@ -396,10 +369,16 @@ cout << "U: " << U << endl;
     if (beta>=1.0){sweeps_pre*=(beta*M);}
     else {sweeps_pre*=M;}
 
+    if (!restart)
     cout << "Stage (1/3): Determining mu and eta..." << endl << endl;
+    else
+    cout << "Stage (1/3): RESTARTED SIMULATION: mu,eta calibration not needed." << endl << endl;
     
     // Iterate until particle distribution P(N) is peaked at target N
     for (int stage=0;stage<2;stage++){ // stage0:mu,eta stage1:eta fine tuning
+        
+        // Do not perform mu,eta equilibration for restarted simulation
+        if (restart){break;}
         
     while (true){
         
@@ -443,8 +422,6 @@ cout << "U: " << U << endl;
         Z_frac=0.0; // think about making this a vector too
         std::fill(measurement_attempts.begin(),measurement_attempts.end(),0);
         
-//        boost::random::uniform_int_distribution<> updates(0, 14);
-
         for (unsigned long long int m_pre=0;m_pre<sweeps_pre;m_pre++){
             
               label = rng_ptr->randInt(14);
@@ -859,26 +836,63 @@ cout << "U: " << U << endl;
     auto start = high_resolution_clock::now();
     
     // Restart data structure and trackers
-    num_kinks.clear();
-    N_tracker.clear();
-    head_idx.clear();
-    tail_idx.clear();
-    N_zero.clear();
-    N_beta.clear();
-    last_kinks.clear();
-    paths.clear();
-    for (int r=0;r<num_replicas;r++){
-        num_kinks.push_back(M);
-        N_tracker.push_back(N);
-        head_idx.push_back(-1);
-        tail_idx.push_back(-1);
-        N_zero.push_back(N);
-        N_beta.push_back(N);
+    if (!restart){
+        num_kinks.clear();
+        N_tracker.clear();
+        head_idx.clear();
+        tail_idx.clear();
+        N_zero.clear();
+        N_beta.clear();
+        last_kinks.clear();
+        paths.clear();
+        for (int r=0;r<num_replicas;r++){
+            num_kinks.push_back(M);
+            N_tracker.push_back(N);
+            head_idx.push_back(-1);
+            tail_idx.push_back(-1);
+            N_zero.push_back(N);
+            N_beta.push_back(N);
+            
+            last_kinks.push_back(vector<int> (M,-1));
+            for (int i=0;i<M;i++){last_kinks[r][i]=i;}
+            
+            paths.push_back(create_paths(initial_fock_state,M,r));
+        }
+    }
+    else{ // Restarted simulation
         
-        last_kinks.push_back(vector<int> (M,-1));
-        for (int i=0;i<M;i++){last_kinks[r][i]=i;}
+        // Load paths and trackers from state file
         
-        paths.push_back(create_paths(initial_fock_state,M,r));
+            // Load RNG state
+            string rng_filename = "rng_state.dat";
+            std::ifstream ifs(rng_filename.c_str(), std::ios_base::in);
+            rng_ptr->load(ifs);
+            ifs.close();
+    //
+    //        // Load system state
+    //        ifstream state_file_in("system_state.dat");
+    //        string state_file_in_line;
+    //
+    //        while (getline(state_file_in,state_file_in_line)){
+    //            istringstream state_file_in_ss(state_file_in_line);
+    //            string kink_attribute_string;
+    //
+    //            bool initialize_double_attribute=true;
+    //            while(getline(state_file_in_ss,kink_attribute_string,' ')){
+    //
+    //                if (initialize_double_attribute){
+    //                    double kink_attribute_double;
+    //                    kink_attribute_double << kink_attribu
+    //                    paths[r][kink_idx][0] =
+    //                }
+    //                else {
+    //                    int kink_attribute_int;
+    //                }
+    //
+    //                initialize_double_attribute=false;
+    //            }
+    //        }
+        
     }
 
     Z_frac=0.0;
@@ -911,7 +925,10 @@ cout << "U: " << U << endl;
         }
     }
 
+    if (!restart)
     cout << "Stage (2/3): Equilibrating..." << endl << endl;
+    else
+    cout << "Stage (2/3): RESTARTED SIMULATION: Equilibration not needed" << endl << endl;
     
 //    for (unsigned long long int m=0; m < sweeps; m++){
     m=0; //iteration counter
@@ -1109,7 +1126,8 @@ cout << "U: " << U << endl;
         
 /*----------------------------- Measurements ---------------------------------*/
         
-        if (m%(sweep*measurement_frequency)==0 && m>=sweeps*1.00){
+        if ((m%(sweep*measurement_frequency)==0 && m>=sweeps*1.00)
+            || restart){
  
             if (not_equilibrated){
                 not_equilibrated=false;
