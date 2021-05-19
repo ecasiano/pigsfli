@@ -874,6 +874,7 @@ cout << "U: " << U << endl;
         
         state_file_in_name = "system_state.dat";
         
+        // Initialize trackers from restarted system state
         paths = restart_paths(state_file_in_name,M,num_replicas);
         num_kinks = get_num_kinks(state_file_in_name,num_replicas);
         N_tracker = get_N_tracker(paths,num_replicas,M,beta);
@@ -881,6 +882,8 @@ cout << "U: " << U << endl;
         tail_idx = get_tail_idx(paths,num_replicas,M);
         N_zero = get_N_zero(paths,num_replicas,M);
         N_beta = get_N_beta(paths,num_replicas,M);
+        last_kinks = get_last_kinks(paths,num_replicas,M);
+        num_swaps = get_num_swaps(paths,num_replicas,M);
 
         cout << "num_replicas: " << num_replicas << endl;
         cout << "state_file_in_name: " << state_file_in_name << endl;
@@ -895,6 +898,14 @@ cout << "U: " << U << endl;
         " " << N_zero[1] << endl;
         cout << "N_beta after restart: " << N_beta[0] <<
         " " << N_beta[1] << endl;
+        cout << "num_swaps after restart: " << num_swaps << endl;
+        cout << "last_kinks after restart: " << endl;
+        for (int r=0; r<num_replicas; r++){
+            for (int site=0; site<M; site++){
+                cout << last_kinks[r][site] << " ";
+            }
+            cout << endl << "-----------------------------------------"<< endl;
+        }
         
         cout << "restarted paths: " << endl;
         for (int r=0; r<num_replicas; r++){
@@ -903,29 +914,9 @@ cout << "U: " << U << endl;
             }
             cout << "-----------------------------------------"<< endl;
         }
-    
-//            // Load system state
-//            string state_file_in_name;
-//            ifstream state_file_in("system_state.dat");
-//            string state_file_in_line;
-//
-//            while (getline(state_file_in,state_file_in_line)){
-//                istringstream state_file_in_ss(state_file_in_line);
-//                string kink_attribute_string;
-//
-//                bool initialize_double_attribute=true;
-//                while(getline(state_file_in_ss,kink_attribute_string,' ')){
-//
-//                    if (initialize_double_attribute){
-//                        double kink_attribute_double;
-//                    }
-//                    else {
-//                        int kink_attribute_int;
-//                    }
-//
-//                    initialize_double_attribute=false;
-//                }
-//            }
+        
+        mu = 0.905393;
+        eta = 0.0928067;
         
     }
 
@@ -1242,11 +1233,17 @@ cout << "U: " << U << endl;
             // Non-conventional (SWAP) measurements
             if (num_replicas>1) {
                 // add count to bin corresponding to number of swapped sites
+//                cout << "lololololo" << endl;
+//                cout << head_idx[0] << " " << head_idx[1] << endl;
+//                cout << tail_idx[0] << " " << tail_idx[1] << endl;
+//                cout << N_zero[0] << " " << N_zero[1] << endl;
+//                cout << N_beta[0] << " " << N_beta[1] << endl;
+                
                 if (head_idx[0]==-1&&head_idx[1]==-1&&
                     tail_idx[0]==-1&&tail_idx[1]==-1){
                     if (N_zero[0]==N && N_beta[0]==N
                         && N_zero[1]==N && N_beta[1]==N){
-                        
+
                         // Add count to histogram of number of swapped sites
                         SWAP_histogram[num_swaps]+=1;
                         
@@ -1591,6 +1588,14 @@ cout << "U: " << U << endl;
     " " << N_zero[1] << endl;
     cout << "N_beta before restart: " << N_beta[0] <<
     " " << N_beta[1] << endl;
+    cout << "num_swaps before restart: " << num_swaps << endl;
+    cout << "last_kinks before restart: " << endl;
+    for (int r=0; r<num_replicas; r++){
+        for (int site=0; site<M; site++){
+            cout << last_kinks[r][site] << " ";
+        }
+        cout << endl << "-----------------------------------------"<< endl;
+    }
 
     
     cout << "paths before restart: " << endl;
