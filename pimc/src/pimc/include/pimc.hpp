@@ -341,6 +341,43 @@ vector<int> get_tail_idx(vector<vector<Kink> > paths,
 
 /*----------------------------------------------------------------------------*/
 
+vector<int> get_N_zero(vector<vector<Kink> > paths,
+                             int num_replicas,int M){
+
+    vector<int> N_zero(num_replicas,0);
+    
+    for (int r=0; r<num_replicas; r++){
+        for (int site=0; site<M; site++){
+            N_zero[r] += paths[r][site].n;
+        }
+    }
+    return N_zero;
+}
+
+/*----------------------------------------------------------------------------*/
+
+vector<int> get_N_beta(vector<vector<Kink> > paths,
+                             int num_replicas,int M){
+
+    vector<int> N_beta(num_replicas,0);
+    int current,next;
+    
+    for (int r=0; r<num_replicas; r++){
+        for (int site=0; site<M; site++){
+            current=site;
+            next=paths[r][current].next;
+            while (next!=-1){
+                current = next;
+                next = paths[r][next].next;
+            }
+            N_beta[r] += paths[r][current].n;
+        }
+    }
+    return N_beta;
+}
+
+/*----------------------------------------------------------------------------*/
+
 
 // Create function that calculates vector norm given array
 double norm(vector<double> point){
