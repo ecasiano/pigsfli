@@ -879,6 +879,8 @@ cout << "U: " << U << endl;
         N_tracker = get_N_tracker(paths,num_replicas,M,beta);
         head_idx = get_head_idx(paths,num_replicas,M);
         tail_idx = get_tail_idx(paths,num_replicas,M);
+        N_zero = get_N_zero(paths,num_replicas,M);
+        N_beta = get_N_beta(paths,num_replicas,M);
 
         cout << "num_replicas: " << num_replicas << endl;
         cout << "state_file_in_name: " << state_file_in_name << endl;
@@ -889,6 +891,10 @@ cout << "U: " << U << endl;
         " " << head_idx[1] << endl;
         cout << "Tail indices after restart: " << tail_idx[0] <<
         " " << tail_idx[1] << endl;
+        cout << "N_zero after restart: " << N_zero[0] <<
+        " " << N_zero[1] << endl;
+        cout << "N_beta after restart: " << N_beta[0] <<
+        " " << N_beta[1] << endl;
         
         cout << "restarted paths: " << endl;
         for (int r=0; r<num_replicas; r++){
@@ -1581,6 +1587,10 @@ cout << "U: " << U << endl;
     " " << head_idx[1] << endl;
     cout << "Tail indices before restart: " << tail_idx[0] <<
     " " << tail_idx[1] << endl;
+    cout << "N_zero before restart: " << N_zero[0] <<
+    " " << N_zero[1] << endl;
+    cout << "N_beta before restart: " << N_beta[0] <<
+    " " << N_beta[1] << endl;
 
     
     cout << "paths before restart: " << endl;
