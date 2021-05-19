@@ -874,12 +874,29 @@ cout << "U: " << U << endl;
         
         state_file_in_name = "system_state.dat";
         
+        paths = restart_paths(state_file_in_name,M,num_replicas);
         num_kinks = get_num_kinks(state_file_in_name,num_replicas);
-        
+        N_tracker = get_N_tracker(paths,num_replicas,M,beta);
+        head_idx = get_head_idx(paths,num_replicas,M);
+        tail_idx = get_tail_idx(paths,num_replicas,M);
+
         cout << "num_replicas: " << num_replicas << endl;
         cout << "state_file_in_name: " << state_file_in_name << endl;
-        cout << "restarted num_kinks: " << num_kinks[0] << " " << num_kinks[1] << endl;
+        cout << "num_kinks after restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
+        cout << "N_tracker after restart: " << N_tracker[0] << " " <<
+        N_tracker[1] << endl;
+        cout << "Head indices after restart: " << head_idx[0] <<
+        " " << head_idx[1] << endl;
+        cout << "Tail indices after restart: " << tail_idx[0] <<
+        " " << tail_idx[1] << endl;
         
+        cout << "restarted paths: " << endl;
+        for (int r=0; r<num_replicas; r++){
+            for (int k=0; k<num_kinks[r]; k++){
+                cout << k << ": " << paths[r][k] << endl;
+            }
+            cout << "-----------------------------------------"<< endl;
+        }
     
 //            // Load system state
 //            string state_file_in_name;
@@ -1287,6 +1304,10 @@ cout << "U: " << U << endl;
                     }
                 }
             
+                if (bins_written==bins_wanted/2 && tail_idx[0]!=-1
+                    && tail_idx[1] != -1 && head_idx[0] !=-1 && head_idx[1] != -1){
+                    bins_written=bins_wanted;
+                }
                 if (writing_ctr==bin_size){
 
                     bins_written+=1;
@@ -1498,8 +1519,6 @@ cout << "U: " << U << endl;
     ofs << rng_ptr->save().str() << std::endl;
     ofs.close();
     
-    cout << "num_kinks before restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
-    
     // Similarly, implement saving state to file, then loading it.
     
     // Want to skip equilibration in restarts.
@@ -1555,7 +1574,22 @@ cout << "U: " << U << endl;
         state_file<<endl;
     }
     
-    cout << num_kinks[0] << " " << num_kinks[1] << endl;
+    cout << "num_kinks before restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
+    cout << "N_tracker before restart: " << N_tracker[0] << " " <<
+    N_tracker[1] << endl;
+    cout << "Head indices before restart: " << head_idx[0] <<
+    " " << head_idx[1] << endl;
+    cout << "Tail indices before restart: " << tail_idx[0] <<
+    " " << tail_idx[1] << endl;
+
+    
+    cout << "paths before restart: " << endl;
+    for (int r=0; r<num_replicas; r++){
+        for (int k=0; k<num_kinks[r]; k++){
+            cout << k << ": " << paths[r][k] << endl;
+        }
+        cout << "-----------------------------------------"<< endl;
+    }
     
     state_file.close();
     
