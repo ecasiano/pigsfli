@@ -145,6 +145,76 @@ vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
 
 /*----------------------------------------------------------------------------*/
 
+vector<vector<Kink> > restart_paths(string state_file_in_name,
+                           int M,int num_replicas){
+
+    // File containing previous worldline configurations (paths)
+    std::ifstream infile(state_file_in_name);
+
+    // For each replica, initialize vector containinig all kinks
+    vector<vector<Kink> > paths(num_replicas,vector<Kink> (M*1000,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1)));
+    
+    if (num_replicas==2){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
+        double a0,a8;
+        int k=0; // kink idx counter
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15){
+                
+            // Fill paths of first replica
+            paths[0][k].tau = a0;
+            paths[0][k].n = a1;
+            paths[0][k].src = a2;
+            paths[0][k].dest = a3;
+            paths[0][k].prev = a4;
+            paths[0][k].next = a5;
+            paths[0][k].src_replica = a6;
+            paths[0][k].dest_replica = a7;
+            
+            // Fill paths of second replica
+            paths[1][k].tau = a8;
+            paths[1][k].n = a9;
+            paths[1][k].src = a10;
+            paths[1][k].dest = a11;
+            paths[1][k].prev = a12;
+            paths[1][k].next = a13;
+            paths[1][k].src_replica = a14;
+            paths[1][k].dest_replica = a15;
+            
+            k++;
+        }
+    }
+    
+    if (num_replicas==1){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7;
+        double a0;
+        int k=0; // kink idx counter
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7){
+                
+            // Fill paths of first replica
+            paths[0][k].tau = a0;
+            paths[0][k].n = a1;
+            paths[0][k].src = a2;
+            paths[0][k].dest = a3;
+            paths[0][k].prev = a4;
+            paths[0][k].next = a5;
+            paths[0][k].src_replica = a6;
+            paths[0][k].dest_replica = a7;
+            
+            k++;
+        }
+    }
+    
+    infile.close();
+    
+    return paths;
+}
+
+/*----------------------------------------------------------------------------*/
+
 vector<int> get_num_kinks(string state_file_in_name,int num_replicas){
         
     std::ifstream infile(state_file_in_name);
@@ -180,6 +250,93 @@ vector<int> get_num_kinks(string state_file_in_name,int num_replicas){
     infile.close();
     
     return num_kinks;
+}
+
+/*----------------------------------------------------------------------------*/
+
+vector<double> get_N_tracker(vector<vector<Kink> > paths,
+                             int num_replicas,int M,double beta){
+
+    vector<double> N_tracker (num_replicas,0.0);
+    double l_path,dN;
+    int current,next;
+    
+    for (int r=0; r<num_replicas; r++){
+        for (int site=0; site<M; site++){
+            current=site;
+            next=paths[r][current].next;
+            while (next!=-1){
+                l_path = paths[r][next].tau - paths[r][current].tau;
+                dN = paths[r][current].n * l_path/beta;
+                
+                N_tracker[r] += dN;
+                
+                current = next;
+                next = paths[r][next].next;
+            }
+            l_path = beta - paths[r][current].tau;
+            dN = paths[r][current].n * l_path/beta;
+            
+            N_tracker[r] += dN;
+        }
+    }
+    return N_tracker;
+}
+
+/*----------------------------------------------------------------------------*/
+
+vector<int> get_head_idx(vector<vector<Kink> > paths,
+                             int num_replicas,int M){
+
+    vector<int> head_idx (num_replicas,-1);
+    int current,next;
+    
+    
+    for (int r=0; r<num_replicas; r++){
+        for (int site=0; site<M; site++){
+            current=site;
+            next=paths[r][current].next;
+            while (next!=-1){
+
+                if ((paths[r][next].src==paths[r][next].dest)
+                    && (paths[r][next].n-paths[r][current].n==-1
+                    && paths[r][next].src_replica==
+                       paths[r][next].dest_replica)){
+                    head_idx[r] = next;
+                }
+                current = next;
+                next = paths[r][next].next;
+            }
+        }
+    }
+    return head_idx;
+}
+
+/*----------------------------------------------------------------------------*/
+
+vector<int> get_tail_idx(vector<vector<Kink> > paths,
+                             int num_replicas,int M){
+
+    vector<int> tail_idx (num_replicas,-1);
+    int current,next;
+    
+    for (int r=0; r<num_replicas; r++){
+        for (int site=0; site<M; site++){
+            current=site;
+            next=paths[r][current].next;
+            while (next!=-1){
+                if ((paths[r][next].src==paths[r][next].dest)
+                    && (paths[r][next].n-paths[r][current].n==1
+                    && paths[r][next].src_replica==
+                       paths[r][next].dest_replica)){
+                    tail_idx[r] = next;
+                }
+                current = next;
+                next = paths[r][next].next;
+            }
+        }
+    }
+    return tail_idx;
 }
 
 /*----------------------------------------------------------------------------*/
