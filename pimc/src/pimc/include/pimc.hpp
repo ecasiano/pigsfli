@@ -378,6 +378,53 @@ vector<int> get_N_beta(vector<vector<Kink> > paths,
 
 /*----------------------------------------------------------------------------*/
 
+vector<vector<int> > get_last_kinks(vector<vector<Kink> > paths,
+                             int num_replicas,int M){
+
+    vector<vector<int> > last_kinks(num_replicas,vector<int> (M,-1));
+    int current,next;
+    
+    for (int r=0; r<num_replicas; r++){
+        for (int site=0; site<M; site++){
+            current=site;
+            next=paths[r][current].next;
+            while (next!=-1){
+                current = next;
+                next = paths[r][next].next;
+            }
+            last_kinks[r][site] = current;
+        }
+    }
+    return last_kinks;
+}
+
+
+/*----------------------------------------------------------------------------*/
+
+int get_num_swaps(vector<vector<Kink> > paths,
+                             int num_replicas,int M){
+
+    int num_swaps,current,next;
+    
+    num_swaps = 0;
+    
+    for (int site=0; site<M; site++){
+        current=site;
+        next=paths[0][current].next;
+        while (next!=-1){
+
+            if (paths[0][next].src_replica!=
+                paths[0][next].dest_replica){num_swaps+=1;}
+            current = next;
+            next = paths[0][next].next;
+        }
+    }
+    
+    return num_swaps;
+}
+
+/*----------------------------------------------------------------------------*/
+
 
 // Create function that calculates vector norm given array
 double norm(vector<double> point){
