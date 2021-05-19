@@ -145,6 +145,46 @@ vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
 
 /*----------------------------------------------------------------------------*/
 
+vector<int> get_num_kinks(string state_file_in_name,int num_replicas){
+        
+    std::ifstream infile(state_file_in_name);
+    
+    // Stores number of kinks in each replica
+    vector<int> num_kinks(num_replicas,0);
+    
+    if (num_replicas==2){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
+        double a0,a8;
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
+              >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15){
+                
+            // -1 elements indicate inactive kinks. Count only actives
+            if (a1!=-1){num_kinks[0]+=1;}
+            if (a9!=-1){num_kinks[1]+=1;}
+        }
+    }
+    
+    if (num_replicas==1){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7;
+        double a0;
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7){
+            // -1 elements indicate inactive kinks. Count only actives
+            if (a1!=-1){num_kinks[0]+=1;}
+        }
+    }
+    
+    infile.close();
+    
+    return num_kinks;
+}
+
+/*----------------------------------------------------------------------------*/
+
+
 // Create function that calculates vector norm given array
 double norm(vector<double> point){
     

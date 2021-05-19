@@ -863,35 +863,46 @@ cout << "U: " << U << endl;
         
         // Load paths and trackers from state file
         
-            // Load RNG state
-            string rng_filename = "rng_state.dat";
-            std::ifstream ifs(rng_filename.c_str(), std::ios_base::in);
-            rng_ptr->load(ifs);
-            ifs.close();
-    //
-    //        // Load system state
-    //        ifstream state_file_in("system_state.dat");
-    //        string state_file_in_line;
-    //
-    //        while (getline(state_file_in,state_file_in_line)){
-    //            istringstream state_file_in_ss(state_file_in_line);
-    //            string kink_attribute_string;
-    //
-    //            bool initialize_double_attribute=true;
-    //            while(getline(state_file_in_ss,kink_attribute_string,' ')){
-    //
-    //                if (initialize_double_attribute){
-    //                    double kink_attribute_double;
-    //                    kink_attribute_double << kink_attribu
-    //                    paths[r][kink_idx][0] =
-    //                }
-    //                else {
-    //                    int kink_attribute_int;
-    //                }
-    //
-    //                initialize_double_attribute=false;
-    //            }
-    //        }
+        // Load RNG state
+        string rng_filename = "rng_state.dat";
+        std::ifstream ifs(rng_filename.c_str(), std::ios_base::in);
+        rng_ptr->load(ifs);
+        ifs.close();
+        
+        // Load system state3
+        string state_file_in_name;
+        
+        state_file_in_name = "system_state.dat";
+        
+        num_kinks = get_num_kinks(state_file_in_name,num_replicas);
+        
+        cout << "num_replicas: " << num_replicas << endl;
+        cout << "state_file_in_name: " << state_file_in_name << endl;
+        cout << "restarted num_kinks: " << num_kinks[0] << " " << num_kinks[1] << endl;
+        
+    
+//            // Load system state
+//            string state_file_in_name;
+//            ifstream state_file_in("system_state.dat");
+//            string state_file_in_line;
+//
+//            while (getline(state_file_in,state_file_in_line)){
+//                istringstream state_file_in_ss(state_file_in_line);
+//                string kink_attribute_string;
+//
+//                bool initialize_double_attribute=true;
+//                while(getline(state_file_in_ss,kink_attribute_string,' ')){
+//
+//                    if (initialize_double_attribute){
+//                        double kink_attribute_double;
+//                    }
+//                    else {
+//                        int kink_attribute_int;
+//                    }
+//
+//                    initialize_double_attribute=false;
+//                }
+//            }
         
     }
 
@@ -1460,6 +1471,45 @@ cout << "U: " << U << endl;
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
     
+    
+    // Saving trackers
+    // last_kinks[r]
+    // head_idx[r],tail_idx[r],num_kinks[r],N_zero[r],N_beta[r]
+    ofstream trackers_file;
+    string trackers_name;
+    
+    // Maybe reserve the first M columns of each line in the file
+    // for the last_kinks tracker.
+    
+    // Alternatively, all this information can be obtained from the
+    // loaded system state file. This might actually be preferable since
+    // it will be save disk space.
+    
+    // get_last_kinks(paths[r])
+    // get_head_idx(paths[r])
+    // get_tail_idx(paths[r])
+    // get_N_zero(paths[r])
+    // get_N_beta(paths[r])
+    // get_N_tracker(paths[r])
+    
+    // Saving RNG
+    string rng_filename = "rng_state.dat";
+    std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
+    ofs << rng_ptr->save().str() << std::endl;
+    ofs.close();
+    
+    cout << "num_kinks before restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
+    
+    // Similarly, implement saving state to file, then loading it.
+    
+    // Want to skip equilibration in restarts.
+    
+    // To test: run job for 100 mc steps, look at estimators,
+    // run a different job (not restarted) but with same seed for
+    // 50 mc steps, restart this second job and run for an extra of
+    // 50 mc steps. Compare estimators, state, etc.. results should be
+    // same for the long run and the composite run.
+    
     // Saving last worldline configuration
     ofstream state_file;
     string state_name;
@@ -1508,42 +1558,6 @@ cout << "U: " << U << endl;
     cout << num_kinks[0] << " " << num_kinks[1] << endl;
     
     state_file.close();
-    
-    // Saving trackers
-    // last_kinks[r]
-    // head_idx[r],tail_idx[r],num_kinks[r],N_zero[r],N_beta[r]
-    ofstream trackers_file;
-    string trackers_name;
-    
-    // Maybe reserve the first M columns of each line in the file
-    // for the last_kinks tracker.
-    
-    // Alternatively, all this information can be obtained from the
-    // loaded system state file. This might actually be preferable since
-    // it will be save disk space.
-    
-    // get_last_kinks(paths[r])
-    // get_head_idx(paths[r])
-    // get_tail_idx(paths[r])
-    // get_N_zero(paths[r])
-    // get_N_beta(paths[r])
-    // get_N_tracker(paths[r])
-    
-    // Saving RNG
-    string rng_filename = "rng_state.dat";
-    std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
-    ofs << rng_ptr->save().str() << std::endl;
-    ofs.close();
-    
-    // Similarly, implement saving state to file, then loading it.
-    
-    // Want to skip equilibration in restarts.
-    
-    // To test: run job for 100 mc steps, look at estimators,
-    // run a different job (not restarted) but with same seed for
-    // 50 mc steps, restart this second job and run for an extra of
-    // 50 mc steps. Compare estimators, state, etc.. results should be
-    // same for the long run and the composite run.
     
     return 0;
     
