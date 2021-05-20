@@ -87,7 +87,7 @@ void decToBinary(int n)
     return;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 // function to convert decimal to binary
 int binaryToDecimal(vector<int> binary_word){
@@ -104,7 +104,7 @@ int binaryToDecimal(vector<int> binary_word){
     return decimal;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 vector<int> random_boson_config(int M,int N,RNG &rng){
     // Generates random Fock state of N bosons in M=L^D sites
@@ -123,7 +123,7 @@ vector<int> random_boson_config(int M,int N,RNG &rng){
     return alpha;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
 
@@ -143,9 +143,9 @@ vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
     return paths;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
-vector<vector<Kink> > restart_paths(string state_file_in_name,
+vector<vector<Kink> > load_paths(string state_file_in_name,
                            int M,int num_replicas){
 
     // File containing previous worldline configurations (paths)
@@ -213,7 +213,7 @@ vector<vector<Kink> > restart_paths(string state_file_in_name,
     return paths;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 vector<int> get_num_kinks(string state_file_in_name,int num_replicas){
         
@@ -252,7 +252,7 @@ vector<int> get_num_kinks(string state_file_in_name,int num_replicas){
     return num_kinks;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 vector<double> get_N_tracker(vector<vector<Kink> > paths,
                              int num_replicas,int M,double beta){
@@ -283,7 +283,7 @@ vector<double> get_N_tracker(vector<vector<Kink> > paths,
     return N_tracker;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 vector<int> get_head_idx(vector<vector<Kink> > paths,
                              int num_replicas,int M){
@@ -312,7 +312,7 @@ vector<int> get_head_idx(vector<vector<Kink> > paths,
     return head_idx;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 vector<int> get_tail_idx(vector<vector<Kink> > paths,
                              int num_replicas,int M){
@@ -339,7 +339,7 @@ vector<int> get_tail_idx(vector<vector<Kink> > paths,
     return tail_idx;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 vector<int> get_N_zero(vector<vector<Kink> > paths,
                              int num_replicas,int M){
@@ -354,7 +354,7 @@ vector<int> get_N_zero(vector<vector<Kink> > paths,
     return N_zero;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 vector<int> get_N_beta(vector<vector<Kink> > paths,
                              int num_replicas,int M){
@@ -376,7 +376,7 @@ vector<int> get_N_beta(vector<vector<Kink> > paths,
     return N_beta;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 vector<vector<int> > get_last_kinks(vector<vector<Kink> > paths,
                              int num_replicas,int M){
@@ -399,7 +399,7 @@ vector<vector<int> > get_last_kinks(vector<vector<Kink> > paths,
 }
 
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 int get_num_swaps(vector<vector<Kink> > paths,
                              int num_replicas,int M){
@@ -423,7 +423,68 @@ int get_num_swaps(vector<vector<Kink> > paths,
     return num_swaps;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
+
+
+ofstream save_paths(int D, int L, int N, int l_A,
+                       double U, double t, double beta,
+                       int bin_size, int bins_wanted, int seed,
+                       string subgeometry,
+                       int num_replicas, vector<int> num_kinks,
+                       vector<vector<Kink> > paths){
+    
+    // Saving last worldline configuration
+    ofstream state_file;
+    string state_name;
+    
+    // Name of system state file
+    state_name=to_string(D)+"D_"+to_string(L)+
+    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+    to_string(U)+"_"+to_string(t)+"_"+
+    to_string(beta)+"_"+to_string(bin_size)+"_"+
+    to_string(bins_wanted)+"_"+
+    "system-state_"+to_string(seed)+"_"+subgeometry+".dat";
+    
+//    state_name = "system_state.dat";
+    state_file.open(state_name);
+    
+    // Find how many active kinks the replica with the most
+    // active kinks has
+    int max_num_kinks=-1;
+    for (int r=0; r<num_replicas; r++){
+        if (num_kinks[r]>max_num_kinks){max_num_kinks=num_kinks[r];}
+    }
+    for (int k=0; k<max_num_kinks; k++){
+        for (int r=0; r<num_replicas; r++){
+            if (k<num_kinks[r]){
+            state_file<<fixed<<setprecision(16)<<paths[r][k].tau<<" ";
+            state_file<<fixed<<paths[r][k].n<<" ";
+            state_file<<fixed<<paths[r][k].src<<" ";
+            state_file<<fixed<<paths[r][k].dest<<" ";
+            state_file<<fixed<<paths[r][k].prev<<" ";
+            state_file<<fixed<<paths[r][k].next<<" ";
+            state_file<<fixed<<paths[r][k].src_replica<<" ";
+            state_file<<fixed<<paths[r][k].dest_replica<<" ";
+            }
+            else {
+            state_file<<fixed<<setprecision(16)<<-1.0<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            }
+        }
+        state_file<<endl;
+    }
+    
+    
+    return state_file;
+}
+
+/*--------------------------------------------------------------------*/
 
 
 // Create function that calculates vector norm given array
@@ -438,7 +499,7 @@ double norm(vector<double> point){
     return sqrt(squared_sum);
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
                                       vector<vector<int> > &adjacency_matrix){
@@ -509,7 +570,7 @@ void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
     return;
 }
     
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void build_adjacency_matrix(int L,int D,string boundary_condition,
                             vector<vector<bool> >&adjacency_matrix){
@@ -591,7 +652,7 @@ void build_adjacency_matrix(int L,int D,string boundary_condition,
     return;
  }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void create_sub_sites(vector<int> &sub_sites,int l_max,int L,int D,int M,
                       string geometry){
@@ -682,7 +743,7 @@ void create_sub_sites(vector<int> &sub_sites,int l_max,int L,int D,int M,
     
     return;
 }
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, double U, double mu, double t,
@@ -824,7 +885,7 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
         return;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void delete_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, double U, double mu, double t,
@@ -1001,7 +1062,7 @@ void delete_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
             return;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
@@ -1203,7 +1264,7 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
         return;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void deleteZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
@@ -1412,7 +1473,7 @@ void deleteZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     else // reject
         return;
 }
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
@@ -1602,7 +1663,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
         return;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void deleteBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
@@ -1804,7 +1865,7 @@ void deleteBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     else // reject
         return;
 }
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void timeshift_uniform(vector<Kink> &paths, int &num_kinks,int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
@@ -1937,7 +1998,7 @@ void timeshift_uniform(vector<Kink> &paths, int &num_kinks,int &head_idx,
         return;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
@@ -2070,7 +2131,7 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
         return;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
@@ -2203,7 +2264,7 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
         return;
     }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
@@ -2413,7 +2474,7 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
         return;
     }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
@@ -2556,7 +2617,7 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
             return;
         }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
@@ -2766,7 +2827,7 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
         return;
     }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
@@ -2909,7 +2970,7 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
             return;
         }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
@@ -3115,7 +3176,7 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
         return;
     }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
@@ -3255,7 +3316,7 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
             return;
         }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
@@ -3465,7 +3526,7 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
         return;
     }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void insert_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                 int num_replicas, int replica_idx,
@@ -3597,7 +3658,7 @@ void insert_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     return;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void delete_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                 int num_replicas, int replica_idx,
@@ -3775,7 +3836,7 @@ void delete_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
     return;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void swap_timeshift_head(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                int num_replicas, int replica_idx,
@@ -4130,7 +4191,7 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
         return;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void swap_timeshift_tail(vector<vector<Kink> > &paths, vector<int> &num_kinks,
                int num_replicas, int replica_idx,
@@ -4461,7 +4522,7 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
     else // Reject
         return;
 }
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 /*------------------------------- Estimators ---------------------------------*/
 
@@ -4488,7 +4549,7 @@ void get_fock_state(double measurement_center, int M,
     return;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 vector<double> get_measurement_centers(double beta){
     
@@ -4524,7 +4585,7 @@ double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
     return diagonal_energy;
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 
 /*---------TEST THIS!!!*----------*/
@@ -4577,7 +4638,7 @@ double pimc_kinetic_energy(vector<Kink> &paths, int num_kinks,
     return (-t*kinks_in_window/2.0)/(2.0*measurement_plus_minus);
 }
 
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 void tau_resolved_kinetic_energy(vector<Kink> &paths,
                                            int num_kinks, int M,
@@ -4604,6 +4665,6 @@ void tau_resolved_kinetic_energy(vector<Kink> &paths,
     }
     return;
 }
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*/
 
 #endif /* pimc_hpp */

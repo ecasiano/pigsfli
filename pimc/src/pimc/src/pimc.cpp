@@ -675,7 +675,7 @@ cout << "U: " << U << endl;
     } // end of while loop
     } // end of "stages" for loop
     
-/*---------------------------- Open files ------------------------------------*/
+/*------------------------ Open files -------------------------------*/
     
     // Declare conventional estimator files
     if (num_replicas<2){
@@ -709,9 +709,6 @@ cout << "U: " << U << endl;
         to_string(t)+"_"+to_string(beta)+"_"+
         to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
         "can_"+"tauResolvedV_"+"rep"+rep+".dat";
-        
-//        K_out.open(K_name);
-//        V_out.open(V_name);
         
         kinetic_energy_file.open(K_name);
         diagonal_energy_file.open(V_name);
@@ -869,13 +866,13 @@ cout << "U: " << U << endl;
         rng_ptr->load(ifs);
         ifs.close();
         
-        // Load system state3
+        // Load system state
         string state_file_in_name;
         
         state_file_in_name = "system_state.dat";
         
         // Initialize trackers from restarted system state
-        paths = restart_paths(state_file_in_name,M,num_replicas);
+        paths = load_paths(state_file_in_name,M,num_replicas);
         num_kinks = get_num_kinks(state_file_in_name,num_replicas);
         N_tracker = get_N_tracker(paths,num_replicas,M,beta);
         head_idx = get_head_idx(paths,num_replicas,M);
@@ -1522,6 +1519,14 @@ cout << "U: " << U << endl;
     ofs << rng_ptr->save().str() << std::endl;
     ofs.close();
     
+    ofstream state_file;
+    
+    state_file = save_paths(D,L,N,l_A,U,t,beta,bin_size,bins_wanted,
+                            seed,subgeometry,num_replicas,
+                            num_kinks,paths);
+    
+    state_file.close();
+    
     // Similarly, implement saving state to file, then loading it.
     
     // Want to skip equilibration in restarts.
@@ -1531,51 +1536,6 @@ cout << "U: " << U << endl;
     // 50 mc steps, restart this second job and run for an extra of
     // 50 mc steps. Compare estimators, state, etc.. results should be
     // same for the long run and the composite run.
-    
-    // Saving last worldline configuration
-    ofstream state_file;
-    string state_name;
-    
-    state_name = "system_state.dat";
-    
-    state_file.open(state_name);
-    
-//    std::copy(paths[0].begin(), paths[0].end(), std::ostream_iterator<Kink>(state_file, "\n"));
-    
-//    std::copy(paths[0].begin(), paths[0].end(), std::ostream_iterator<Kink>(state_file, "\n"));
-    
-//    int num_attributes = 8;
-    // Find how many active kinks the replica with the most
-    // active kinks has
-    int max_num_kinks=-1;
-    for (int r=0; r<num_replicas; r++){
-        if (num_kinks[r]>max_num_kinks){max_num_kinks=num_kinks[r];}
-    }
-    for (int k=0; k<max_num_kinks; k++){
-        for (int r=0; r<num_replicas; r++){
-            if (k<num_kinks[r]){
-            state_file<<fixed<<paths[r][k].tau<<" ";
-            state_file<<fixed<<paths[r][k].n<<" ";
-            state_file<<fixed<<paths[r][k].src<<" ";
-            state_file<<fixed<<paths[r][k].dest<<" ";
-            state_file<<fixed<<paths[r][k].prev<<" ";
-            state_file<<fixed<<paths[r][k].next<<" ";
-            state_file<<fixed<<paths[r][k].src_replica<<" ";
-            state_file<<fixed<<paths[r][k].dest_replica<<" ";
-            }
-            else {
-            state_file<<fixed<<-1.0<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            }
-        }
-        state_file<<endl;
-    }
     
     cout << "num_kinks before restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
     cout << "N_tracker before restart: " << N_tracker[0] << " " <<
@@ -1596,7 +1556,6 @@ cout << "U: " << U << endl;
         }
         cout << endl << "-----------------------------------------"<< endl;
     }
-
     
     cout << "paths before restart: " << endl;
     for (int r=0; r<num_replicas; r++){
@@ -1605,8 +1564,6 @@ cout << "U: " << U << endl;
         }
         cout << "-----------------------------------------"<< endl;
     }
-    
-    state_file.close();
     
     return 0;
     
