@@ -858,6 +858,8 @@ cout << "U: " << U << endl;
     }
     else{ // Restarted simulation
         
+        cout << "lololololol" << endl;
+        
         // Load paths and trackers from state file
         
         // Load RNG state
@@ -867,13 +869,19 @@ cout << "U: " << U << endl;
         ifs.close();
         
         // Load system state
-        string state_file_in_name;
-        
-        state_file_in_name = "system_state.dat";
-        
+                
         // Initialize trackers from restarted system state
-        paths = load_paths(state_file_in_name,M,num_replicas);
-        num_kinks = get_num_kinks(state_file_in_name,num_replicas);
+        paths = load_paths(D,L,N,l_A,U,t,beta,bin_size,
+                           bins_wanted,seed,subgeometry,num_replicas);
+        num_kinks = get_num_kinks(D,L,N,l_A,U,t,beta,bin_size,
+                                  bins_wanted,seed,subgeometry,
+                                  num_replicas);
+        mu = get_mu(D,L,N,l_A,U,t,beta,bin_size,
+                    bins_wanted,seed,subgeometry,
+                    num_replicas);
+        eta = get_eta(D,L,N,l_A,U,t,beta,bin_size,
+                      bins_wanted,seed,subgeometry,
+                      num_replicas);
         N_tracker = get_N_tracker(paths,num_replicas,M,beta);
         head_idx = get_head_idx(paths,num_replicas,M);
         tail_idx = get_tail_idx(paths,num_replicas,M);
@@ -883,8 +891,8 @@ cout << "U: " << U << endl;
         num_swaps = get_num_swaps(paths,num_replicas,M);
 
         cout << "num_replicas: " << num_replicas << endl;
-        cout << "state_file_in_name: " << state_file_in_name << endl;
         cout << "num_kinks after restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
+        cout << "mu,eta after restart: " << mu << "," << eta << endl;
         cout << "N_tracker after restart: " << N_tracker[0] << " " <<
         N_tracker[1] << endl;
         cout << "Head indices after restart: " << head_idx[0] <<
@@ -911,10 +919,6 @@ cout << "U: " << U << endl;
             }
             cout << "-----------------------------------------"<< endl;
         }
-        
-        mu = 0.905393;
-        eta = 0.0928067;
-        
     }
 
     Z_frac=0.0;
@@ -1522,22 +1526,13 @@ cout << "U: " << U << endl;
     ofstream state_file;
     
     state_file = save_paths(D,L,N,l_A,U,t,beta,bin_size,bins_wanted,
-                            seed,subgeometry,num_replicas,
+                            seed,subgeometry,mu,eta,num_replicas,
                             num_kinks,paths);
     
     state_file.close();
     
-    // Similarly, implement saving state to file, then loading it.
-    
-    // Want to skip equilibration in restarts.
-    
-    // To test: run job for 100 mc steps, look at estimators,
-    // run a different job (not restarted) but with same seed for
-    // 50 mc steps, restart this second job and run for an extra of
-    // 50 mc steps. Compare estimators, state, etc.. results should be
-    // same for the long run and the composite run.
-    
     cout << "num_kinks before restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
+    cout << "mu,eta after restart: " << mu << "," << eta << endl;
     cout << "N_tracker before restart: " << N_tracker[0] << " " <<
     N_tracker[1] << endl;
     cout << "Head indices before restart: " << head_idx[0] <<

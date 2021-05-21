@@ -145,11 +145,25 @@ vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
 
 /*--------------------------------------------------------------------*/
 
-vector<vector<Kink> > load_paths(string state_file_in_name,
-                           int M,int num_replicas){
+vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
+                                 double U, double t, double beta,
+                                 int bin_size, int bins_wanted,
+                                 int seed, string subgeometry,
+                                 int num_replicas){
 
+    int M = pow(L,D);
+    string state_name;
+
+    // Name of system state file
+    state_name=to_string(D)+"D_"+to_string(L)+
+    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+    to_string(U)+"_"+to_string(t)+"_"+
+    to_string(beta)+"_"+to_string(bin_size)+"_"+
+    to_string(bins_wanted)+"_"+
+    "system-state_"+to_string(seed)+"_"+subgeometry+".dat";
+    
     // File containing previous worldline configurations (paths)
-    std::ifstream infile(state_file_in_name);
+    std::ifstream infile(state_name);
 
     // For each replica, initialize vector containinig all kinks
     vector<vector<Kink> > paths(num_replicas,vector<Kink> (M*1000,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1)));
@@ -157,10 +171,11 @@ vector<vector<Kink> > load_paths(string state_file_in_name,
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
         int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
-        double a0,a8;
+        double a0,a8,a16,a17;
         int k=0; // kink idx counter
         
-        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15){
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
+            a16 >> a17){
                 
             // Fill paths of first replica
             paths[0][k].tau = a0;
@@ -189,10 +204,11 @@ vector<vector<Kink> > load_paths(string state_file_in_name,
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
         int a1,a2,a3,a4,a5,a6,a7;
-        double a0;
+        double a0,a8,a9;
         int k=0; // kink idx counter
         
-        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7){
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
+              a8 >> a9){
                 
             // Fill paths of first replica
             paths[0][k].tau = a0;
@@ -215,9 +231,25 @@ vector<vector<Kink> > load_paths(string state_file_in_name,
 
 /*--------------------------------------------------------------------*/
 
-vector<int> get_num_kinks(string state_file_in_name,int num_replicas){
+vector<int> get_num_kinks(int D, int L, int N, int l_A,
+                          double U, double t, double beta,
+                          int bin_size, int bins_wanted,
+                          int seed, string subgeometry,
+                          int num_replicas){
         
-    std::ifstream infile(state_file_in_name);
+    string state_name;
+
+    // Name of system state file
+    state_name=to_string(D)+"D_"+to_string(L)+
+    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+    to_string(U)+"_"+to_string(t)+"_"+
+    to_string(beta)+"_"+to_string(bin_size)+"_"+
+    to_string(bins_wanted)+"_"+
+    "system-state_"+to_string(seed)+"_"+subgeometry+".dat";
+    
+    // NOTE: For consistency, may rewrite function to get the number
+    // of kinks from the path structure created with load_paths()
+    std::ifstream infile(state_name);
     
     // Stores number of kinks in each replica
     vector<int> num_kinks(num_replicas,0);
@@ -225,10 +257,11 @@ vector<int> get_num_kinks(string state_file_in_name,int num_replicas){
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
         int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
-        double a0,a8;
+        double a0,a8,a16,a17;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
-              >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15){
+              >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
+              a16 >> a17){
                 
             // -1 elements indicate inactive kinks. Count only actives
             if (a1!=-1){num_kinks[0]+=1;}
@@ -239,9 +272,10 @@ vector<int> get_num_kinks(string state_file_in_name,int num_replicas){
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
         int a1,a2,a3,a4,a5,a6,a7;
-        double a0;
+        double a0,a8,a9;
         
-        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7){
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7
+              >> a8 >> a9){
             // -1 elements indicate inactive kinks. Count only actives
             if (a1!=-1){num_kinks[0]+=1;}
         }
@@ -250,6 +284,114 @@ vector<int> get_num_kinks(string state_file_in_name,int num_replicas){
     infile.close();
     
     return num_kinks;
+}
+
+/*--------------------------------------------------------------------*/
+
+double get_mu(int D, int L, int N, int l_A,
+              double U, double t, double beta,
+              int bin_size, int bins_wanted,
+              int seed, string subgeometry,
+              int num_replicas){
+        
+    double mu;
+    string state_name;
+    
+    // Name of system state file
+    state_name=to_string(D)+"D_"+to_string(L)+
+    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+    to_string(U)+"_"+to_string(t)+"_"+
+    to_string(beta)+"_"+to_string(bin_size)+"_"+
+    to_string(bins_wanted)+"_"+
+    "system-state_"+to_string(seed)+"_"+subgeometry+".dat";
+    
+    // NOTE: For consistency, may rewrite function to get the number
+    // of kinks from the path structure created with load_paths()
+    std::ifstream infile(state_name);
+    
+    mu = -1;
+    if (num_replicas==2){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
+        double a0,a8,a16,a17;
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
+              >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
+              a16 >> a17){
+            mu = a16;
+            break;
+        }
+    }
+    
+    if (num_replicas==1){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7;
+        double a0,a8,a9;
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7
+              >> a8 >> a9){
+            mu = a8;
+            break;
+        }
+    }
+    
+    infile.close();
+    
+    return mu;
+}
+
+/*--------------------------------------------------------------------*/
+
+double get_eta(int D, int L, int N, int l_A,
+              double U, double t, double beta,
+              int bin_size, int bins_wanted,
+              int seed, string subgeometry,
+              int num_replicas){
+        
+    double eta;
+    string state_name;
+    
+    // Name of system state file
+    state_name=to_string(D)+"D_"+to_string(L)+
+    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+    to_string(U)+"_"+to_string(t)+"_"+
+    to_string(beta)+"_"+to_string(bin_size)+"_"+
+    to_string(bins_wanted)+"_"+
+    "system-state_"+to_string(seed)+"_"+subgeometry+".dat";
+    
+    // NOTE: For consistency, may rewrite function to get the number
+    // of kinks from the path structure created with load_paths()
+    std::ifstream infile(state_name);
+    
+    eta = -1;
+    if (num_replicas==2){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
+        double a0,a8,a16,a17;
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
+              >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
+              a16 >> a17){
+            eta = a17;
+            break;
+        }
+    }
+    
+    if (num_replicas==1){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7;
+        double a0,a8,a9;
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7
+              >> a8 >> a9){
+            eta = a9;
+            break;
+        }
+    }
+    
+    infile.close();
+    
+    return eta;
 }
 
 /*--------------------------------------------------------------------*/
@@ -429,7 +571,7 @@ int get_num_swaps(vector<vector<Kink> > paths,
 ofstream save_paths(int D, int L, int N, int l_A,
                        double U, double t, double beta,
                        int bin_size, int bins_wanted, int seed,
-                       string subgeometry,
+                       string subgeometry, double mu, double eta,
                        int num_replicas, vector<int> num_kinks,
                        vector<vector<Kink> > paths){
     
@@ -445,7 +587,6 @@ ofstream save_paths(int D, int L, int N, int l_A,
     to_string(bins_wanted)+"_"+
     "system-state_"+to_string(seed)+"_"+subgeometry+".dat";
     
-//    state_name = "system_state.dat";
     state_file.open(state_name);
     
     // Find how many active kinks the replica with the most
@@ -454,6 +595,10 @@ ofstream save_paths(int D, int L, int N, int l_A,
     for (int r=0; r<num_replicas; r++){
         if (num_kinks[r]>max_num_kinks){max_num_kinks=num_kinks[r];}
     }
+    
+    // First 8 attributes: first replica
+    // Last 8 attributes: second replicas
+    //
     for (int k=0; k<max_num_kinks; k++){
         for (int r=0; r<num_replicas; r++){
             if (k<num_kinks[r]){
@@ -477,6 +622,8 @@ ofstream save_paths(int D, int L, int N, int l_A,
             state_file<<fixed<<-1<<" ";
             }
         }
+        state_file<<fixed<<setprecision(16)<<mu<<" ";
+        state_file<<fixed<<setprecision(16)<<eta<<" ";
         state_file<<endl;
     }
     
