@@ -1308,10 +1308,6 @@ cout << "U: " << U << endl;
                     }
                 }
             
-                if (bins_written==bins_wanted/2 && tail_idx[0]!=-1
-                    && tail_idx[1] != -1 && head_idx[0] !=-1 && head_idx[1] != -1){
-                    bins_written=bins_wanted;
-                }
                 if (writing_ctr==bin_size){
 
                     bins_written+=1;
@@ -1370,6 +1366,23 @@ cout << "U: " << U << endl;
                                   SWAPn_histograms[i-1].end(),0);
                         
                     }
+                    
+                    // Saving last written RNG and system states
+                    string rng_filename = "rng_state.dat";
+                    std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
+                    ofs << rng_ptr->save().str() << std::endl;
+                    ofs.close();
+                    
+                    ofstream state_file;
+                    
+                    state_file = save_paths(D,L,N,l_A,U,t,
+                                            beta,bin_size,
+                                            bins_wanted,seed
+                                            ,subgeometry,mu,
+                                            eta,num_replicas,
+                                            num_kinks,paths);
+                    
+                    state_file.close();
                     
                     // Restart counter that tracks when to save to file
                     writing_ctr=0;
@@ -1496,69 +1509,34 @@ cout << "U: " << U << endl;
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
     
-    
-    // Saving trackers
-    // last_kinks[r]
-    // head_idx[r],tail_idx[r],num_kinks[r],N_zero[r],N_beta[r]
-    ofstream trackers_file;
-    string trackers_name;
-    
-    // Maybe reserve the first M columns of each line in the file
-    // for the last_kinks tracker.
-    
-    // Alternatively, all this information can be obtained from the
-    // loaded system state file. This might actually be preferable since
-    // it will be save disk space.
-    
-    // get_last_kinks(paths[r])
-    // get_head_idx(paths[r])
-    // get_tail_idx(paths[r])
-    // get_N_zero(paths[r])
-    // get_N_beta(paths[r])
-    // get_N_tracker(paths[r])
-    
-    // Saving RNG
-    string rng_filename = "rng_state.dat";
-    std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
-    ofs << rng_ptr->save().str() << std::endl;
-    ofs.close();
-    
-    ofstream state_file;
-    
-    state_file = save_paths(D,L,N,l_A,U,t,beta,bin_size,bins_wanted,
-                            seed,subgeometry,mu,eta,num_replicas,
-                            num_kinks,paths);
-    
-    state_file.close();
-    
-    cout << "num_kinks before restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
-    cout << "mu,eta after restart: " << mu << "," << eta << endl;
-    cout << "N_tracker before restart: " << N_tracker[0] << " " <<
-    N_tracker[1] << endl;
-    cout << "Head indices before restart: " << head_idx[0] <<
-    " " << head_idx[1] << endl;
-    cout << "Tail indices before restart: " << tail_idx[0] <<
-    " " << tail_idx[1] << endl;
-    cout << "N_zero before restart: " << N_zero[0] <<
-    " " << N_zero[1] << endl;
-    cout << "N_beta before restart: " << N_beta[0] <<
-    " " << N_beta[1] << endl;
-    cout << "num_swaps before restart: " << num_swaps << endl;
-    cout << "last_kinks before restart: " << endl;
-    for (int r=0; r<num_replicas; r++){
-        for (int site=0; site<M; site++){
-            cout << last_kinks[r][site] << " ";
-        }
-        cout << endl << "-----------------------------------------"<< endl;
-    }
-    
-    cout << "paths before restart: " << endl;
-    for (int r=0; r<num_replicas; r++){
-        for (int k=0; k<num_kinks[r]; k++){
-            cout << k << ": " << paths[r][k] << endl;
-        }
-        cout << "-----------------------------------------"<< endl;
-    }
+//    cout << "num_kinks before restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
+//    cout << "mu,eta after restart: " << mu << "," << eta << endl;
+//    cout << "N_tracker before restart: " << N_tracker[0] << " " <<
+//    N_tracker[1] << endl;
+//    cout << "Head indices before restart: " << head_idx[0] <<
+//    " " << head_idx[1] << endl;
+//    cout << "Tail indices before restart: " << tail_idx[0] <<
+//    " " << tail_idx[1] << endl;
+//    cout << "N_zero before restart: " << N_zero[0] <<
+//    " " << N_zero[1] << endl;
+//    cout << "N_beta before restart: " << N_beta[0] <<
+//    " " << N_beta[1] << endl;
+//    cout << "num_swaps before restart: " << num_swaps << endl;
+//    cout << "last_kinks before restart: " << endl;
+//    for (int r=0; r<num_replicas; r++){
+//        for (int site=0; site<M; site++){
+//            cout << last_kinks[r][site] << " ";
+//        }
+//        cout << endl << "-----------------------------------------"<< endl;
+//    }
+//
+//    cout << "paths before restart: " << endl;
+//    for (int r=0; r<num_replicas; r++){
+//        for (int k=0; k<num_kinks[r]; k++){
+//            cout << k << ": " << paths[r][k] << endl;
+//        }
+//        cout << "-----------------------------------------"<< endl;
+//    }
     
     return 0;
     
