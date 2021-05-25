@@ -64,7 +64,7 @@ ostream& operator<<(ostream& os, const Kink& dt)
 //    << dt.dest << ',' << dt.prev << ',' << dt.next <<'>'
 //    << dt.src_replica << dt.dest_replica;
     
-        os << dt.tau << ' ' << dt.n << ' ' << dt.src << ' '
+        os << setprecision(17) << dt.tau << ' ' << dt.n << ' ' << dt.src << ' '
         << dt.dest << ' ' << dt.prev << ' ' << dt.next << ' '
         << dt.src_replica << ' ' << dt.dest_replica;
 
@@ -106,20 +106,29 @@ int binaryToDecimal(vector<int> binary_word){
 
 /*--------------------------------------------------------------------*/
 
-vector<int> random_boson_config(int M,int N,RNG &rng){
+vector<int> random_boson_config(int M,int N,RNG &rng,bool restart){
     // Generates random Fock state of N bosons in M=L^D sites
     
     vector<int> alpha (M,0);
-    int src;
+    unsigned long src;
     
     // Initialize the distribution object. Note: Support is fully closed [0,M-1]
     //boost::random::uniform_int_distribution<> sites(0, M-1);
     
-    // Randomly sprinkle the N particles among sites
-    for (int n=1; n<=N; n++){
-        src = rng.randInt(M-1);
-        alpha[src] += 1;
+    if (!restart){
+        // Randomly sprinkle the N particles among sites
+        for (int n=1; n<=N; n++){
+            src = rng.randInt(M-1);
+            alpha[src] += 1;
+        }
     }
+    else{ //restart
+        for (int n=1; n<=N; n++){
+            src = 1; // Throw all particles on first site for now.
+            alpha[src] += 1;
+        }
+    }
+    
     return alpha;
 }
 
@@ -171,11 +180,11 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
         int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
-        double a0,a8,a16,a17;
+        double a0,a8,a16,a17,a18,a19;
         int k=0; // kink idx counter
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
-            a16 >> a17){
+            a16 >> a17 >> a18 >> a19){
                 
             // Fill paths of first replica
             paths[0][k].tau = a0;
@@ -257,11 +266,11 @@ vector<int> get_num_kinks(int D, int L, int N, int l_A,
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
         int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
-        double a0,a8,a16,a17;
+        double a0,a8,a16,a17,a18,a19;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
               >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
-              a16 >> a17){
+              a16 >> a17 >> a18 >> a19){
                 
             // -1 elements indicate inactive kinks. Count only actives
             if (a1!=-1){num_kinks[0]+=1;}
@@ -313,11 +322,11 @@ double get_mu(int D, int L, int N, int l_A,
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
         int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
-        double a0,a8,a16,a17;
+        double a0,a8,a16,a17,a18,a19;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
               >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
-              a16 >> a17){
+              a16 >> a17 >> a18 >> a19){
             mu = a16;
             break;
         }
@@ -367,11 +376,11 @@ double get_eta(int D, int L, int N, int l_A,
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
         int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
-        double a0,a8,a16,a17;
+        double a0,a8,a16,a17,a18,a19;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
               >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
-              a16 >> a17){
+              a16 >> a17 >> a18 >> a19){
             eta = a17;
             break;
         }
@@ -396,32 +405,85 @@ double get_eta(int D, int L, int N, int l_A,
 
 /*--------------------------------------------------------------------*/
 
-vector<double> get_N_tracker(vector<vector<Kink> > paths,
-                             int num_replicas,int M,double beta){
+//vector<double> get_N_tracker(vector<vector<Kink> > paths,
+//                             int num_replicas,int M,double beta){
+//
+//    vector<double> N_tracker (num_replicas,0.0);
+//    double l_path,dN;
+//    int current,next;
+//
+//    for (int r=0; r<num_replicas; r++){
+//        for (int site=0; site<M; site++){
+//            current=site;
+//            next=paths[r][current].next;
+//            while (next!=-1){
+//                l_path = paths[r][next].tau - paths[r][current].tau;
+//                dN = paths[r][current].n * l_path/beta;
+//
+//                N_tracker[r] += dN;
+//
+//                current = next;
+//                next = paths[r][next].next;
+//            }
+//            l_path = beta - paths[r][current].tau;
+//            dN = paths[r][current].n * l_path/beta;
+//
+//            N_tracker[r] += dN;
+//        }
+//    }
+//    return N_tracker;
+//}
 
-    vector<double> N_tracker (num_replicas,0.0);
-    double l_path,dN;
-    int current,next;
+vector<double> get_N_tracker(int D, int L, int N, int l_A,
+              double U, double t, double beta,
+              int bin_size, int bins_wanted,
+              int seed, string subgeometry,
+              int num_replicas){
+        
+    vector<double> N_tracker(num_replicas,0.0);
+    string state_name;
     
-    for (int r=0; r<num_replicas; r++){
-        for (int site=0; site<M; site++){
-            current=site;
-            next=paths[r][current].next;
-            while (next!=-1){
-                l_path = paths[r][next].tau - paths[r][current].tau;
-                dN = paths[r][current].n * l_path/beta;
-                
-                N_tracker[r] += dN;
-                
-                current = next;
-                next = paths[r][next].next;
-            }
-            l_path = beta - paths[r][current].tau;
-            dN = paths[r][current].n * l_path/beta;
-            
-            N_tracker[r] += dN;
+    // Name of system state file
+    state_name=to_string(D)+"D_"+to_string(L)+
+    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+    to_string(U)+"_"+to_string(t)+"_"+
+    to_string(beta)+"_"+to_string(bin_size)+"_"+
+    to_string(bins_wanted)+"_"+
+    "system-state_"+to_string(seed)+"_"+subgeometry+".dat";
+    
+    // NOTE: For consistency, may rewrite function to get the number
+    // of kinks from the path structure created with load_paths()
+    std::ifstream infile(state_name);
+    
+//    mu = -1;
+    if (num_replicas==2){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
+        double a0,a8,a16,a17,a18,a19;
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
+              >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
+              a16 >> a17 >> a18 >> a19){
+            N_tracker[0] = a18;
+            N_tracker[1] = a19;
+            break;
         }
     }
+    
+    if (num_replicas==1){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7;
+        double a0,a8,a9;
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7
+              >> a8 >> a9){
+            N_tracker[0] = a8;
+            break;
+        }
+    }
+    
+    infile.close();
+    
     return N_tracker;
 }
 
@@ -573,7 +635,8 @@ ofstream save_paths(int D, int L, int N, int l_A,
                        int bin_size, int bins_wanted, int seed,
                        string subgeometry, double mu, double eta,
                        int num_replicas, vector<int> num_kinks,
-                       vector<vector<Kink> > paths){
+                       vector<vector<Kink> > paths,
+                       vector<double> N_tracker){
     
     // Saving last worldline configuration
     ofstream state_file;
@@ -602,7 +665,7 @@ ofstream save_paths(int D, int L, int N, int l_A,
     for (int k=0; k<max_num_kinks; k++){
         for (int r=0; r<num_replicas; r++){
             if (k<num_kinks[r]){
-            state_file<<fixed<<setprecision(16)<<paths[r][k].tau<<" ";
+            state_file<<fixed<<setprecision(17)<<paths[r][k].tau<<" ";
             state_file<<fixed<<paths[r][k].n<<" ";
             state_file<<fixed<<paths[r][k].src<<" ";
             state_file<<fixed<<paths[r][k].dest<<" ";
@@ -612,7 +675,7 @@ ofstream save_paths(int D, int L, int N, int l_A,
             state_file<<fixed<<paths[r][k].dest_replica<<" ";
             }
             else {
-            state_file<<fixed<<setprecision(16)<<-1.0<<" ";
+            state_file<<fixed<<setprecision(17)<<-1.0<<" ";
             state_file<<fixed<<-1<<" ";
             state_file<<fixed<<-1<<" ";
             state_file<<fixed<<-1<<" ";
@@ -622,8 +685,10 @@ ofstream save_paths(int D, int L, int N, int l_A,
             state_file<<fixed<<-1<<" ";
             }
         }
-        state_file<<fixed<<setprecision(16)<<mu<<" ";
-        state_file<<fixed<<setprecision(16)<<eta<<" ";
+        state_file<<fixed<<setprecision(17)<<mu<<" ";
+        state_file<<fixed<<setprecision(17)<<eta<<" ";
+        state_file<<fixed<<setprecision(17)<<N_tracker[0]<<" ";
+        state_file<<fixed<<setprecision(17)<<N_tracker[1]<<" ";
         state_file<<endl;
     }
     
@@ -3675,7 +3740,8 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
 
 /*--------------------------------------------------------------------*/
 
-void insert_swap_kink(vector<vector<Kink> > &paths, vector<int> &num_kinks,
+void insert_swap_kink(vector<vector<Kink> > &paths,
+                      vector<int> &num_kinks,
                 int num_replicas, int replica_idx,
                 vector<int> &sub_sites, vector <int> &swapped_sites,
                 vector<int> &swap_kinks, int &num_swaps,

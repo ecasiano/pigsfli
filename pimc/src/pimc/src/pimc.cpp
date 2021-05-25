@@ -8,6 +8,7 @@
 
 #include "pimc.hpp"
 #include "cxxopts.hpp"
+#include <assert.h>
 
 /**************************************************************************//**
  * Create a comma separated list from a vector of strings
@@ -77,9 +78,6 @@ int main(int argc, char** argv){
         ("rng","Random Number Generator type",cxxopts::value<string>()->default_value("pimc_mt19937"))
         ("restart", "continue simulation from a loaded rng state",
         cxxopts::value<bool>()->default_value("false"))
-
-
-//        ("conventionals", "set to take conventional measurements (E,N,...)")
     ;
 
     auto result = options.parse(argc, argv);
@@ -116,7 +114,7 @@ int main(int argc, char** argv){
     double eta,beta;
     bool canonical;
     unsigned long long int sweeps_pre,sweeps,sweep;
-    int label; // random update label;
+    unsigned long label; // random update label;
     int bins_wanted;
     
     // Adjacency matrix
@@ -251,7 +249,9 @@ int main(int argc, char** argv){
     num_swaps=0;
     
     // Initialize Fock State
-    initial_fock_state = random_boson_config(M,N,*rng_ptr);
+    initial_fock_state = random_boson_config(M,N,*rng_ptr,restart);
+
+    // This funtion above calls a random number.
     
     // Simulation parameters
     eta=1/sqrt(M);
@@ -356,7 +356,54 @@ cout << "U: " << U << endl;
 //
     cout << endl << endl;
 
-/*----------------- Pre-equilibration 1: mu,eta calibration ------------------*/
+/*------------ Pre-equilibration 1: mu,eta calibration --------------*/
+    
+    
+    /*-----------*/
+
+//    int lol;
+
+//    if (!restart){
+//        cout << "----- Regular Run -----" << endl;
+//
+//        for (int i=0 ; i<bins_wanted/2; i++){
+//            lol = rng_ptr->randInt(14);
+//            cout << i << ": " << lol << endl;;
+//        }
+//        cout << endl;
+//
+//        string rng_filename = "rng_state.dat";
+//        std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
+//        ofs << rng_ptr->save().str() << std::endl;
+//        cout << "saving state" << endl;
+//        ofs.close();
+//
+//        for (int i=0 ; i<bins_wanted/2; i++){
+//            lol = rng_ptr->randInt(14);
+//            cout << i << ": " << lol << endl;;
+//        }
+//        cout << endl;
+//    }
+//
+//    else{ // with restart
+//        cout << "----- Restarted Run -----" << endl;
+//        // Load RNG state
+//        string rng_filename = "rng_state.dat";
+//        std::ifstream ifs(rng_filename.c_str(), std::ios_base::in);
+//        rng_ptr->load(ifs);
+//        cout << "loading state" << endl;
+//        ifs.close();
+//
+//        for (int i=0 ; i<bins_wanted/2; i++){
+//            lol = rng_ptr->randInt(14);
+//            cout << i << ": " << lol << endl;;
+//        }
+//        cout << endl;
+//    }
+//
+//    return 0;
+    
+    /*-----------*/
     
     bool at_least_one_iteration = false;
     bool eta_fine_tuning_stage = false;
@@ -374,6 +421,7 @@ cout << "U: " << U << endl;
     else
     cout << "Stage (1/3): RESTARTED SIMULATION: mu,eta calibration not needed." << endl << endl;
     
+    if(!restart){
     // Iterate until particle distribution P(N) is peaked at target N
     for (int stage=0;stage<2;stage++){ // stage0:mu,eta stage1:eta fine tuning
         
@@ -424,28 +472,28 @@ cout << "U: " << U << endl;
         
         for (unsigned long long int m_pre=0;m_pre<sweeps_pre;m_pre++){
             
-              label = rng_ptr->randInt(14);
+            label = rng_ptr->randInt(14);
 
-              if (label==0){     // worm_insert
-                  insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
-                              M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
-                              N_zero[0],N_beta[0],last_kinks[0],
-                              dummy_counter,dummy_counter,
-                              dummy_counter,dummy_counter,*rng_ptr);
-              }
-              else if (label==1){ // worm_delete
-                  delete_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
-                              M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
-                              N_zero[0],N_beta[0],last_kinks[0],
-                              dummy_counter,dummy_counter,
-                              dummy_counter,dummy_counter,*rng_ptr);
-              }
-              else if (label==2){ // insertZero
-                  insertZero(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
-                             M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
-                             N_zero[0],N_beta[0],last_kinks[0],
-                             dummy_counter,dummy_counter,
-                             dummy_counter,dummy_counter,*rng_ptr);
+          if (label==0){     // worm_insert
+              insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+                          M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+                          N_zero[0],N_beta[0],last_kinks[0],
+                          dummy_counter,dummy_counter,
+                          dummy_counter,dummy_counter,*rng_ptr);
+          }
+          else if (label==1){ // worm_delete
+              delete_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+                          M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+                          N_zero[0],N_beta[0],last_kinks[0],
+                          dummy_counter,dummy_counter,
+                          dummy_counter,dummy_counter,*rng_ptr);
+          }
+          else if (label==2){ // insertZero
+              insertZero(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+                         M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+                         N_zero[0],N_beta[0],last_kinks[0],
+                         dummy_counter,dummy_counter,
+                         dummy_counter,dummy_counter,*rng_ptr);
 
               }
               else if (label==3){ // deleteZero
@@ -674,6 +722,7 @@ cout << "U: " << U << endl;
         at_least_one_iteration=true;
     } // end of while loop
     } // end of "stages" for loop
+    } // end of if(!restart)
     
 /*------------------------ Open files -------------------------------*/
     
@@ -798,36 +847,70 @@ cout << "U: " << U << endl;
             }
         }
             
-        // Open SWAP histograms file
-        SWAP_histogram_file.open(SWAP_histogram_name);
+        if (!restart){
+            // Open SWAP histograms file
+            SWAP_histogram_file.open(SWAP_histogram_name);
 
-        // Open mA-sector resolved local particle number distribution files
-        for (int i=1; i<=m_A; i++){
-            Pn_file.open(Pn_names[i-1]);
-            Pn_files.push_back(std::move(Pn_file));
-        }
-        
-        // Open...
-        for (int i=1; i<=m_A; i++){
-            Pn_squared_file.open(Pn_squared_names[i-1]);
-            Pn_squared_files.push_back(std::move(Pn_squared_file));
-        }
-        
-        // Open...
-        for (int i=1; i<=m_A; i++){
-            SWAPn_histogram_file.open(SWAPn_histogram_names[i-1]);
-            SWAPn_histogram_files.push_back(std::move(
-                                               SWAPn_histogram_file));
-        }
+            // Open mA-sector resolved local particle number distribution files
+            for (int i=1; i<=m_A; i++){
+                Pn_file.open(Pn_names[i-1]);
+                Pn_files.push_back(std::move(Pn_file));
+            }
+            
+            // Open...
+            for (int i=1; i<=m_A; i++){
+                Pn_squared_file.open(Pn_squared_names[i-1]);
+                Pn_squared_files.push_back(std::move(Pn_squared_file));
+            }
+            
+            // Open...
+            for (int i=1; i<=m_A; i++){
+                SWAPn_histogram_file.open(SWAPn_histogram_names[i-1]);
+                SWAPn_histogram_files.push_back(std::move(
+                                                   SWAPn_histogram_file));
+            }
 
-        if( !SWAP_histogram_file ) { // fifle couldn't be opened
-           cerr << "Error: SWAP histogram file could not be opened" << endl;
-           exit(1);
+            if( !SWAP_histogram_file ) { // fifle couldn't be opened
+               cerr << "Error: SWAP histogram file could not be opened" << endl;
+               exit(1);
+            }
+        }
+        else{ // Restart: Open files for append
+            // Open SWAP histograms file
+            SWAP_histogram_file.open(SWAP_histogram_name,
+                                     ios::out | ios::app);
+
+            // Open mA-sector resolved local particle number distribution files
+            for (int i=1; i<=m_A; i++){
+                Pn_file.open(Pn_names[i-1],
+                             ios::out | ios::app);
+                Pn_files.push_back(std::move(Pn_file));
+            }
+            
+            // Open...
+            for (int i=1; i<=m_A; i++){
+                Pn_squared_file.open(Pn_squared_names[i-1],
+                                     ios::out | ios::app);
+                Pn_squared_files.push_back(std::move(Pn_squared_file));
+            }
+            
+            // Open...
+            for (int i=1; i<=m_A; i++){
+                SWAPn_histogram_file.open(SWAPn_histogram_names[i-1],
+                                          ios::out | ios::app);
+                SWAPn_histogram_files.push_back(std::move(
+                                                   SWAPn_histogram_file));
+            }
+
+            if( !SWAP_histogram_file ) { // fifle couldn't be opened
+               cerr << "Error: SWAP histogram file could not be opened" << endl;
+               exit(1);
+            }
         }
 
     } // End of replicated estimators else block
     
-/*---------------------------- Monte Carlo -----------------------------------*/
+/*----------------------- Monte Carlo -------------------------------*/
     
     // Time main function execution
     auto start = high_resolution_clock::now();
@@ -857,11 +940,7 @@ cout << "U: " << U << endl;
         }
     }
     else{ // Restarted simulation
-        
-        cout << "lololololol" << endl;
-        
-        // Load paths and trackers from state file
-        
+                        
         // Load RNG state
         string rng_filename = "rng_state.dat";
         std::ifstream ifs(rng_filename.c_str(), std::ios_base::in);
@@ -882,43 +961,18 @@ cout << "U: " << U << endl;
         eta = get_eta(D,L,N,l_A,U,t,beta,bin_size,
                       bins_wanted,seed,subgeometry,
                       num_replicas);
-        N_tracker = get_N_tracker(paths,num_replicas,M,beta);
+        N_tracker = get_N_tracker(D,L,N,l_A,U,t,beta,bin_size,
+                    bins_wanted,seed,subgeometry,
+                    num_replicas);
+//        N_tracker = get_N_tracker(paths,num_replicas,M,beta);
+//        N_tracker[0] = 4.0000000000002292;
+//        N_tracker[1] = 4.0000000000001092;
         head_idx = get_head_idx(paths,num_replicas,M);
         tail_idx = get_tail_idx(paths,num_replicas,M);
         N_zero = get_N_zero(paths,num_replicas,M);
         N_beta = get_N_beta(paths,num_replicas,M);
         last_kinks = get_last_kinks(paths,num_replicas,M);
         num_swaps = get_num_swaps(paths,num_replicas,M);
-
-        cout << "num_replicas: " << num_replicas << endl;
-        cout << "num_kinks after restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
-        cout << "mu,eta after restart: " << mu << "," << eta << endl;
-        cout << "N_tracker after restart: " << N_tracker[0] << " " <<
-        N_tracker[1] << endl;
-        cout << "Head indices after restart: " << head_idx[0] <<
-        " " << head_idx[1] << endl;
-        cout << "Tail indices after restart: " << tail_idx[0] <<
-        " " << tail_idx[1] << endl;
-        cout << "N_zero after restart: " << N_zero[0] <<
-        " " << N_zero[1] << endl;
-        cout << "N_beta after restart: " << N_beta[0] <<
-        " " << N_beta[1] << endl;
-        cout << "num_swaps after restart: " << num_swaps << endl;
-        cout << "last_kinks after restart: " << endl;
-        for (int r=0; r<num_replicas; r++){
-            for (int site=0; site<M; site++){
-                cout << last_kinks[r][site] << " ";
-            }
-            cout << endl << "-----------------------------------------"<< endl;
-        }
-        
-        cout << "restarted paths: " << endl;
-        for (int r=0; r<num_replicas; r++){
-            for (int k=0; k<num_kinks[r]; k++){
-                cout << k << ": " << paths[r][k] << endl;
-            }
-            cout << "-----------------------------------------"<< endl;
-        }
     }
 
     Z_frac=0.0;
@@ -956,14 +1010,120 @@ cout << "U: " << U << endl;
     else
     cout << "Stage (2/3): RESTARTED SIMULATION: Equilibration not needed" << endl << endl;
     
-//    for (unsigned long long int m=0; m < sweeps; m++){
     m=0; //iteration counter
+    if (restart){m=40027197;}
     bins_written=0; // tracks how many beens have been written
+    bool print_it = true;
     while(bins_written<bins_wanted){
     for (int r=0;r<num_replicas;r++){
         
-        label = rng_ptr->randInt(14);
+        if (!restart && print_it){
+            
+            if (bins_written==5){
+                cout << "middle m: " << m << endl;
+                cout << "SWAP histogram (middle): ";
+                for (int i=0; i<=m_A; i++){
+                    cout << SWAP_histogram[i] << " ";
+                }
+                cout << endl;
+                cout << "middle paths: " << endl;
+                for (int r=0; r<num_replicas; r++){
+                    for (int k=0; k<num_kinks[r]; k++){
+                        cout << k << ": " << paths[r][k] << endl;
+                    }
+                    cout << "-----------------------------------------"<< endl;
+                }
+                cout << "writing_ctr: " << writing_ctr << endl;
+                
+                cout << "sweep: " << sweep << endl;
+                
+                cout << "sweeps: " << sweeps << endl;
+                
+                cout << "num_replicas: " << num_replicas << endl;
+                cout << "num_kinks: " << num_kinks[0] << " " << num_kinks[1] << endl;
+                cout << "mu,eta(middle): " << setprecision(17) << mu << "," << eta << endl;
+                cout << setprecision(17) << "N_tracker(middle): " << N_tracker[0] << " " <<
+                N_tracker[1] << endl;
+                cout << "Head indices(middle): " << head_idx[0] <<
+                " " << head_idx[1] << endl;
+                cout << "Tail indices(middle): " << tail_idx[0] <<
+                " " << tail_idx[1] << endl;
+                cout << "N_zero(middle): " << N_zero[0] <<
+                " " << N_zero[1] << endl;
+                cout << "N_beta(middle): " << N_beta[0] <<
+                " " << N_beta[1] << endl;
+                cout << "num_swaps(middle): " << num_swaps << endl;
+                cout << "last_kinks(middle): ";
+                for (int r=0; r<num_replicas; r++){
+                    for (int site=0; site<M; site++){
+                        cout << last_kinks[r][site] << " ";
+                    }
+                }
+                print_it = false;
 
+            }
+        }
+        
+        if (restart && print_it){
+            
+            cout << "restarted m: " << m << endl;
+            cout << "SWAP histogram (restarted): ";
+            for (int i=0; i<=m_A; i++){
+                cout << SWAP_histogram[i] << " ";
+            }
+            cout << endl;
+            
+            cout << "loaded paths: " << endl;
+            for (int r=0; r<num_replicas; r++){
+                for (int k=0; k<num_kinks[r]; k++){
+                    cout << k << ": " << paths[r][k] << endl;
+                }
+                cout << "-----------------------------------------"<< endl;
+            }
+            
+//            for (int i=0; i<10; i++){
+//                label = rng_ptr->randInt(14);
+//                cout << "current test randInt(14): " << label << endl;
+//                label = rng_ptr->randInt(14);
+//                cout << "current test randInt(14): " << label << endl;
+//                label = rng_ptr->randInt(3);
+//                cout << "current test randInt(3): " << label << endl;
+//            }
+            
+            cout << "writing_ctr: " << writing_ctr << endl;
+            
+            cout << "sweep: " << sweep << endl;
+            
+            cout << "sweeps: " << sweeps << endl;
+            
+            cout << "num_replicas: " << num_replicas << endl;
+            cout << "num_kinks: " << num_kinks[0] << " " << num_kinks[1] << endl;
+            cout << "mu,eta(restarted): " << mu << "," << eta << endl;
+            cout << setprecision(17) << "N_tracker(restarted): " << N_tracker[0] << " " <<
+            N_tracker[1] << endl;
+            cout << "Head indices(restarted): " << head_idx[0] <<
+            " " << head_idx[1] << endl;
+            cout << "Tail indices(restarted): " << tail_idx[0] <<
+            " " << tail_idx[1] << endl;
+            cout << "N_zero(restarted): " << N_zero[0] <<
+            " " << N_zero[1] << endl;
+            cout << "N_beta(restarted): " << N_beta[0] <<
+            " " << N_beta[1] << endl;
+            cout << "num_swaps(restarted): " << num_swaps << endl;
+            cout << "last_kinks(restarted): ";
+            for (int r=0; r<num_replicas; r++){
+                for (int site=0; site<M; site++){
+                    cout << last_kinks[r][site] << " ";
+                }
+            }
+            
+            print_it = false;
+//            return 0;
+            
+        }
+        
+        label = rng_ptr->randInt(14);
+        
         if (label==0){     // worm_insert
             insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
@@ -1077,7 +1237,7 @@ cout << "U: " << U << endl;
         
         // SWAP Updates
         label = rng_ptr->randInt(3);
-
+        
         if (label==0){ // insert_swap_kink
          insert_swap_kink(paths, num_kinks,
                          num_replicas, 0,
@@ -1151,10 +1311,12 @@ cout << "U: " << U << endl;
          }
         
 /*----------------------------- Measurements ---------------------------------*/
+   
+        // at what m value are we entering the loop for the restart?
         
-        if ((m%(sweep*measurement_frequency)==0 && m>=sweeps*1.00)
-            || restart){
- 
+        if ((m>=sweeps*1.00 && m%(sweep*measurement_frequency)==0)
+            || (restart && m%(sweep*measurement_frequency)==0)){
+            
             if (not_equilibrated){
                 not_equilibrated=false;
                 cout << "Stage (3/3): Main Monte Carlo loop..." << endl;
@@ -1213,7 +1375,6 @@ cout << "U: " << U << endl;
                         tr_diagonal_energy_file[r]<<endl;
                         }
                         
-//                        bin_ctr[r]=0;
                         writing_ctr=0;
                         kinetic_energy=0.0;
                         diagonal_energy=0.0;
@@ -1233,12 +1394,6 @@ cout << "U: " << U << endl;
             
             // Non-conventional (SWAP) measurements
             if (num_replicas>1) {
-                // add count to bin corresponding to number of swapped sites
-//                cout << "lololololo" << endl;
-//                cout << head_idx[0] << " " << head_idx[1] << endl;
-//                cout << tail_idx[0] << " " << tail_idx[1] << endl;
-//                cout << N_zero[0] << " " << N_zero[1] << endl;
-//                cout << N_beta[0] << " " << N_beta[1] << endl;
                 
                 if (head_idx[0]==-1&&head_idx[1]==-1&&
                     tail_idx[0]==-1&&tail_idx[1]==-1){
@@ -1247,12 +1402,16 @@ cout << "U: " << U << endl;
 
                         // Add count to histogram of number of swapped sites
                         SWAP_histogram[num_swaps]+=1;
+                        writing_ctr+=1; // DEBUGGING. Move below later.
                         
                         // Build subsystem particle number distribution P(n)
                         if (num_swaps==0){
                             for (int REP=0; REP<num_replicas; REP++){
-                                std::fill(n_A[REP].begin(),n_A[REP].end(),0);
-                                get_fock_state(beta/2.0,M,fock_state_at_half_plus[REP],paths[REP]);
+                                std::fill(n_A[REP].begin(),
+                                          n_A[REP].end(),0);
+                                get_fock_state(beta/2.0,M,
+                                               fock_state_at_half_plus[REP],
+                                               paths[REP]);
                                 n_A_last=0; // tracks subsystem n
                                 for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
                                     n_A_last+=fock_state_at_half_plus[REP][sub_sites[m_A_primed-1]];
@@ -1274,7 +1433,6 @@ cout << "U: " << U << endl;
                             for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
                                 if (n_A[0][m_A_primed-1]==n_A[1][m_A_primed-1]){
                                     Pn_squared[m_A_primed-1][n_A[0][m_A_primed-1]]+=1;
-//                                    writing_ctr+=1;
                                 }
                             }
                             
@@ -1289,7 +1447,8 @@ cout << "U: " << U << endl;
                             // Add count to swapped sites histogram of n-sector
                             for (int REP=0; REP<num_replicas; REP++){ // THIS LOOP IS ACTUALLY NOT NECESSARY. If we made it here, n[0]==n[1].
                                 std::fill(n_A[REP].begin(),n_A[REP].end(),0);
-                                get_fock_state(beta/2.0,M,fock_state_at_half_plus[REP],paths[REP]);
+                                get_fock_state(beta/2.0,M,
+                                               fock_state_at_half_plus[REP],paths[REP]);
                                 n_A_last=0; // tracks subsystem n
                                 for (int i=0; i<num_swaps; i++){
                                     n_A_last+=fock_state_at_half_plus[REP][sub_sites[i]];
@@ -1298,13 +1457,11 @@ cout << "U: " << U << endl;
                             }
                             if (n_A[0][num_swaps-1]==n_A[1][num_swaps-1]){ // Not necessary. When there are SWAPs, n0 and n1 are the same.
                                 SWAPn_histograms[num_swaps-1][n_A[0][num_swaps-1]]+=1;
-                                if (num_swaps==m_A){writing_ctr+=1;}
-                                // SWAPn_histograms[num_swaps-1][number of particles in the subregion]+=1;
+//                                if (num_swaps==m_A){writing_ctr+=1;}
+//                                 SWAPn_histograms[num_swaps-1][number of particles in the subregion]+=1;
                             }
                             else{cout << "ERROR!" << endl;}
                         }
-                        // Track how many measurements are in the bin
-//                        writing_ctr+=1;
                     }
                 }
             
@@ -1367,32 +1524,84 @@ cout << "U: " << U << endl;
                         
                     }
                     
-                    // Saving last written RNG and system states
-                    string rng_filename = "rng_state.dat";
-                    std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
-                    ofs << rng_ptr->save().str() << std::endl;
-                    ofs.close();
-                    
-                    ofstream state_file;
-                    
-                    state_file = save_paths(D,L,N,l_A,U,t,
-                                            beta,bin_size,
-                                            bins_wanted,seed
-                                            ,subgeometry,mu,
-                                            eta,num_replicas,
-                                            num_kinks,paths);
-                    
-                    state_file.close();
-                    
+                    if (bins_written==bins_wanted){
+
+                        // Saving last written RNG and system states
+                        string rng_filename = "rng_state.dat";
+                        std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
+                        ofs << rng_ptr->save().str() << std::endl;
+                        ofs.close();
+                        
+                        // Saving state when last bin was written
+                        ofstream state_file;
+                        state_file = save_paths(D,L,N,l_A,U,t,
+                                                beta,bin_size,
+                                                bins_wanted,seed
+                                                ,subgeometry,mu,
+                                                eta,num_replicas,
+                                                num_kinks,paths,N_tracker);
+                        
+                        state_file.close();
+                         
+                        cout << endl << "SWAP histogram (exit): ";
+                        for (int i=0; i<=m_A; i++){
+                            cout << SWAP_histogram[i] << " ";
+                        }
+                        cout << endl;
+                        
+                        if (1){
+                            cout << "HAHHAHA m: " << m << endl;
+
+                            cout << "saved paths: " << endl;
+                            for (int r=0; r<num_replicas; r++){
+                                for (int k=0; k<num_kinks[r]; k++){
+                                    cout << k << ": " << paths[r][k] << endl;
+                                }
+                                cout << "-----------------------------------------"<< endl;
+                            }
+                            for (int i=0; i<10; i++){
+                                label = rng_ptr->randInt(14);
+                                cout << "next test randInt(14): " << label << endl;
+                                label = rng_ptr->randInt(14);
+                                cout << "next test randInt(14): " << label << endl;
+                                label = rng_ptr->randInt(3);
+                                cout << "next test randInt(3): " << label << endl;
+                            }
+                            cout << "writing_ctr: " << writing_ctr<<endl;
+                            cout << "sweep: " << sweep << endl;
+                            
+                            cout << "sweeps: " << sweeps << endl;
+
+                            cout << "num_replicas: " << num_replicas << endl;
+                            cout << "num_kinks: " << num_kinks[0] << " " << num_kinks[1] << endl;
+                            cout << "mu,eta(exit): " << mu << "," << eta << endl;
+                            cout << "N_tracker(exit): " << N_tracker[0] << " " <<
+                            N_tracker[1] << endl;
+                            cout << "Head indices(exit): " << head_idx[0] <<
+                            " " << head_idx[1] << endl;
+                            cout << "Tail indices(exit): " << tail_idx[0] <<
+                            " " << tail_idx[1] << endl;
+                            cout << "N_zero(exit): " << N_zero[0] <<
+                            " " << N_zero[1] << endl;
+                            cout << "N_beta(exit): " << N_beta[0] <<
+                            " " << N_beta[1] << endl;
+                            cout << "num_swaps(exit): " << num_swaps << endl;
+                            cout << "last_kinks(exit): ";
+                            for (int r=0; r<num_replicas; r++){
+                                for (int site=0; site<M; site++){
+                                    cout << last_kinks[r][site] << " ";
+                                }
+                            }
+                        }
+                    }
                     // Restart counter that tracks when to save to file
                     writing_ctr=0;
-                }
-
+                } // end of writing_ctr==bin_size if statement
             } // end of SWAP measurements if statement
         } // end of measurement after 25% equilibration if statement
         m+=1;
-    } // end of sweeps for/while loop
-    
+    } // end of while(bins_written<bins_wanted)
+        
     // Close data files
     if (num_replicas<2){
         for (int r=0;r<num_replicas;r++){
@@ -1412,7 +1621,7 @@ cout << "U: " << U << endl;
             SWAPn_histogram_files[i-1].close();
         }
     }
-/*--------------------------------- FIN --------------------------------------*/
+/*----------------------------- FIN ---------------------------------*/
 
     cout << endl << "-------- Detailed Balance --------" << endl;
 
@@ -1509,35 +1718,37 @@ cout << "U: " << U << endl;
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
     
-//    cout << "num_kinks before restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
-//    cout << "mu,eta after restart: " << mu << "," << eta << endl;
-//    cout << "N_tracker before restart: " << N_tracker[0] << " " <<
-//    N_tracker[1] << endl;
-//    cout << "Head indices before restart: " << head_idx[0] <<
-//    " " << head_idx[1] << endl;
-//    cout << "Tail indices before restart: " << tail_idx[0] <<
-//    " " << tail_idx[1] << endl;
-//    cout << "N_zero before restart: " << N_zero[0] <<
-//    " " << N_zero[1] << endl;
-//    cout << "N_beta before restart: " << N_beta[0] <<
-//    " " << N_beta[1] << endl;
-//    cout << "num_swaps before restart: " << num_swaps << endl;
-//    cout << "last_kinks before restart: " << endl;
-//    for (int r=0; r<num_replicas; r++){
-//        for (int site=0; site<M; site++){
-//            cout << last_kinks[r][site] << " ";
-//        }
-//        cout << endl << "-----------------------------------------"<< endl;
-//    }
-//
-//    cout << "paths before restart: " << endl;
-//    for (int r=0; r<num_replicas; r++){
-//        for (int k=0; k<num_kinks[r]; k++){
-//            cout << k << ": " << paths[r][k] << endl;
-//        }
-//        cout << "-----------------------------------------"<< endl;
-//    }
-    
     return 0;
     
 }
+
+
+//                    cout << "num_replicas: " << num_replicas << endl;
+//                    cout << "num_kinks after restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
+//                    cout << "mu,eta after restart: " << mu << "," << eta << endl;
+//                    cout << "N_tracker after restart: " << N_tracker[0] << " " <<
+//                    N_tracker[1] << endl;
+//                    cout << "Head indices after restart: " << head_idx[0] <<
+//                    " " << head_idx[1] << endl;
+//                    cout << "Tail indices after restart: " << tail_idx[0] <<
+//                    " " << tail_idx[1] << endl;
+//                    cout << "N_zero after restart: " << N_zero[0] <<
+//                    " " << N_zero[1] << endl;
+//                    cout << "N_beta after restart: " << N_beta[0] <<
+//                    " " << N_beta[1] << endl;
+//                    cout << "num_swaps after restart: " << num_swaps << endl;
+//                    cout << "last_kinks after restart: " << endl;
+//                    for (int r=0; r<num_replicas; r++){
+//                        for (int site=0; site<M; site++){
+//                            cout << last_kinks[r][site] << " ";
+//                        }
+//                        cout << endl << "-----------------------------------------"<< endl;
+//                    }
+//
+//                    cout << "restarted paths: " << endl;
+//                    for (int r=0; r<num_replicas; r++){
+//                        for (int k=0; k<num_kinks[r]; k++){
+//                            cout << k << ": " << paths[r][k] << endl;
+//                        }
+//                        cout << "-----------------------------------------"<< endl;
+//                    }
