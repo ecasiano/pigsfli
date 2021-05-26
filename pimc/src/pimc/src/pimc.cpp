@@ -1011,7 +1011,10 @@ cout << "U: " << U << endl;
     cout << "Stage (2/3): RESTARTED SIMULATION: Equilibration not needed" << endl << endl;
     
     m=0; //iteration counter
-    if (restart){m=40027197;}
+    if (restart){
+        m = get_iteration_idx(D,L,N,l_A,U,t,beta,bin_size,bins_wanted,
+                          seed,subgeometry,num_replicas);
+    }
     bins_written=0; // tracks how many beens have been written
     bool print_it = true;
     while(bins_written<bins_wanted){
@@ -1539,7 +1542,7 @@ cout << "U: " << U << endl;
                                                 bins_wanted,seed
                                                 ,subgeometry,mu,
                                                 eta,num_replicas,
-                                                num_kinks,paths,N_tracker);
+                                                num_kinks,paths,N_tracker,m+1);
                         
                         state_file.close();
                          
