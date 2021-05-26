@@ -179,12 +179,12 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
     
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a20;
         double a0,a8,a16,a17,a18,a19;
         int k=0; // kink idx counter
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
-            a16 >> a17 >> a18 >> a19){
+            a16 >> a17 >> a18 >> a19 >> a20){
                 
             // Fill paths of first replica
             paths[0][k].tau = a0;
@@ -265,12 +265,12 @@ vector<int> get_num_kinks(int D, int L, int N, int l_A,
     
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a20;
         double a0,a8,a16,a17,a18,a19;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
               >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
-              a16 >> a17 >> a18 >> a19){
+              a16 >> a17 >> a18 >> a19 >> a20){
                 
             // -1 elements indicate inactive kinks. Count only actives
             if (a1!=-1){num_kinks[0]+=1;}
@@ -321,12 +321,12 @@ double get_mu(int D, int L, int N, int l_A,
     mu = -1;
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a20;
         double a0,a8,a16,a17,a18,a19;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
               >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
-              a16 >> a17 >> a18 >> a19){
+              a16 >> a17 >> a18 >> a19 >> a20){
             mu = a16;
             break;
         }
@@ -347,6 +347,60 @@ double get_mu(int D, int L, int N, int l_A,
     infile.close();
     
     return mu;
+}
+
+/*--------------------------------------------------------------------*/
+
+unsigned long long int get_iteration_idx(int D, int L, int N, int l_A,
+              double U, double t, double beta,
+              int bin_size, int bins_wanted,
+              int seed, string subgeometry,
+              int num_replicas){
+        
+    unsigned long long int iteration_idx;
+    string state_name;
+    
+    // Name of system state file
+    state_name=to_string(D)+"D_"+to_string(L)+
+    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+    to_string(U)+"_"+to_string(t)+"_"+
+    to_string(beta)+"_"+to_string(bin_size)+"_"+
+    to_string(bins_wanted)+"_"+
+    "system-state_"+to_string(seed)+"_"+subgeometry+".dat";
+    
+    // NOTE: For consistency, may rewrite function to get the number
+    // of kinks from the path structure created with load_paths()
+    std::ifstream infile(state_name);
+    
+    iteration_idx = -1;
+    if (num_replicas==2){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a20;
+        double a0,a8,a16,a17,a18,a19;
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
+              >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
+              a16 >> a17 >> a18 >> a19 >> a20){
+            iteration_idx = a20;
+            break;
+        }
+    }
+    
+    if (num_replicas==1){
+        // Assume 16 elements per line (two replicas max)
+        int a1,a2,a3,a4,a5,a6,a7;
+        double a0,a8,a9;
+        
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7
+              >> a8 >> a9){
+            iteration_idx = a8;
+            break;
+        }
+    }
+    
+    infile.close();
+    
+    return iteration_idx;
 }
 
 /*--------------------------------------------------------------------*/
@@ -636,7 +690,8 @@ ofstream save_paths(int D, int L, int N, int l_A,
                        string subgeometry, double mu, double eta,
                        int num_replicas, vector<int> num_kinks,
                        vector<vector<Kink> > paths,
-                       vector<double> N_tracker){
+                       vector<double> N_tracker,
+                       unsigned long long int iteration_idx){
     
     // Saving last worldline configuration
     ofstream state_file;
@@ -689,6 +744,7 @@ ofstream save_paths(int D, int L, int N, int l_A,
         state_file<<fixed<<setprecision(17)<<eta<<" ";
         state_file<<fixed<<setprecision(17)<<N_tracker[0]<<" ";
         state_file<<fixed<<setprecision(17)<<N_tracker[1]<<" ";
+        state_file<<fixed<<iteration_idx<<" ";
         state_file<<endl;
     }
     
