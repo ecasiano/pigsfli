@@ -703,22 +703,23 @@ ofstream save_paths(int D, int L, int N, int l_A,
     to_string(U)+"_"+to_string(t)+"_"+
     to_string(beta)+"_"+to_string(bin_size)+"_"+
     to_string(bins_wanted)+"_"+
-    "system-state_"+to_string(seed)+"_"+subgeometry+".dat";
+    "system-state_"+to_string(seed)+"_"+subgeometry+"_"+
+    to_string(num_replicas)+".dat";
     
     state_file.open(state_name);
     
-    // Find how many active kinks the replica with the most
-    // active kinks has
+    // Find how many active kinks are in the replica with the most
+    // active kinks
     int max_num_kinks=-1;
     for (int r=0; r<num_replicas; r++){
         if (num_kinks[r]>max_num_kinks){max_num_kinks=num_kinks[r];}
     }
     
     // First 8 attributes: first replica
-    // Last 8 attributes: second replicas
-    //
+    // Next 8 attributes: second replicas
     for (int k=0; k<max_num_kinks; k++){
         for (int r=0; r<num_replicas; r++){
+
             if (k<num_kinks[r]){
             state_file<<fixed<<setprecision(17)<<paths[r][k].tau<<" ";
             state_file<<fixed<<paths[r][k].n<<" ";
@@ -742,13 +743,12 @@ ofstream save_paths(int D, int L, int N, int l_A,
         }
         state_file<<fixed<<setprecision(17)<<mu<<" ";
         state_file<<fixed<<setprecision(17)<<eta<<" ";
-        state_file<<fixed<<setprecision(17)<<N_tracker[0]<<" ";
-        state_file<<fixed<<setprecision(17)<<N_tracker[1]<<" ";
         state_file<<fixed<<iteration_idx<<" ";
+        for (int r=0; r<num_replicas; r++){
+            state_file<<fixed<<setprecision(17)<<N_tracker[r]<<" ";
+        }
         state_file<<endl;
     }
-    
-    
     return state_file;
 }
 

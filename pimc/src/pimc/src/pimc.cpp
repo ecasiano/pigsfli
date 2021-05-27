@@ -964,9 +964,6 @@ cout << "U: " << U << endl;
         N_tracker = get_N_tracker(D,L,N,l_A,U,t,beta,bin_size,
                     bins_wanted,seed,subgeometry,
                     num_replicas);
-//        N_tracker = get_N_tracker(paths,num_replicas,M,beta);
-//        N_tracker[0] = 4.0000000000002292;
-//        N_tracker[1] = 4.0000000000001092;
         head_idx = get_head_idx(paths,num_replicas,M);
         tail_idx = get_tail_idx(paths,num_replicas,M);
         N_zero = get_N_zero(paths,num_replicas,M);
@@ -1389,6 +1386,23 @@ cout << "U: " << U << endl;
                             std::fill(tr_diagonal_energy[r].begin(),
                                       tr_diagonal_energy[r].end(),0);
                         }
+                        
+                        // Saving last written RNG and system states
+                        string rng_filename = "rng_state.dat";
+                        std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
+                        ofs << rng_ptr->save().str() << std::endl;
+                        ofs.close();
+                        
+                        // Saving state when last bin was written
+                        ofstream state_file;
+                        state_file = save_paths(D,L,N,l_A,U,t,
+                                                beta,bin_size,
+                                                bins_wanted,seed
+                                                ,subgeometry,mu,
+                                                eta,num_replicas,
+                                                num_kinks,paths,N_tracker,m+1);
+                        
+                        state_file.close();
                         
                         }
                     }
