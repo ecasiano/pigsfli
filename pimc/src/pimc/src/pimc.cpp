@@ -1310,7 +1310,7 @@ cout << "U: " << U << endl;
              // lol
          }
         
-/*----------------------------- Measurements ---------------------------------*/
+/*------------------------- Measurements -----------------------------*/
    
         // at what m value are we entering the loop for the restart?
         
@@ -1357,6 +1357,12 @@ cout << "U: " << U << endl;
                     writing_ctr+=1;
                     // Take binned averages and write to disk
                     if (writing_ctr==bin_size){
+                        
+                        // Round out N_tracker since it might have
+                        // floating point errors after a while
+                        N_tracker[r] = round(N_tracker[r]);
+                        
+                        // Write energies to disk
                         kinetic_energy_file<<fixed<<setprecision(17)<<
                         kinetic_energy/bin_size<<endl;
                         diagonal_energy_file<<fixed<<setprecision(17)<<
@@ -1484,6 +1490,11 @@ cout << "U: " << U << endl;
             
                 if (writing_ctr==bin_size){
 
+                    // Round out N_tracker since it might have
+                    // floating point errors after a while
+                    for (int r=0; r<num_replicas; r++){
+                        N_tracker[r] = round(N_tracker[r]);
+                        
                     bins_written+=1;
                     
                     // Save current histogram of swapped sites to file
@@ -1559,57 +1570,9 @@ cout << "U: " << U << endl;
                                                 num_kinks,paths,N_tracker,m+1);
                         
                         state_file.close();
-                         
-                        cout << endl << "SWAP histogram (exit): ";
-                        for (int i=0; i<=m_A; i++){
-                            cout << SWAP_histogram[i] << " ";
-                        }
-                        cout << endl;
                         
-                        if (1){
-                            cout << "HAHHAHA m: " << m << endl;
-
-                            cout << "saved paths: " << endl;
-                            for (int r=0; r<num_replicas; r++){
-                                for (int k=0; k<num_kinks[r]; k++){
-                                    cout << k << ": " << paths[r][k] << endl;
-                                }
-                                cout << "-----------------------------------------"<< endl;
-                            }
-                            for (int i=0; i<10; i++){
-                                label = rng_ptr->randInt(14);
-                                cout << "next test randInt(14): " << label << endl;
-                                label = rng_ptr->randInt(14);
-                                cout << "next test randInt(14): " << label << endl;
-                                label = rng_ptr->randInt(3);
-                                cout << "next test randInt(3): " << label << endl;
-                            }
-                            cout << "writing_ctr: " << writing_ctr<<endl;
-                            cout << "sweep: " << sweep << endl;
-                            
-                            cout << "sweeps: " << sweeps << endl;
-
-                            cout << "num_replicas: " << num_replicas << endl;
-                            cout << "num_kinks: " << num_kinks[0] << " " << num_kinks[1] << endl;
-                            cout << "mu,eta(exit): " << mu << "," << eta << endl;
-                            cout << "N_tracker(exit): " << N_tracker[0] << " " <<
-                            N_tracker[1] << endl;
-                            cout << "Head indices(exit): " << head_idx[0] <<
-                            " " << head_idx[1] << endl;
-                            cout << "Tail indices(exit): " << tail_idx[0] <<
-                            " " << tail_idx[1] << endl;
-                            cout << "N_zero(exit): " << N_zero[0] <<
-                            " " << N_zero[1] << endl;
-                            cout << "N_beta(exit): " << N_beta[0] <<
-                            " " << N_beta[1] << endl;
-                            cout << "num_swaps(exit): " << num_swaps << endl;
-                            cout << "last_kinks(exit): ";
-                            for (int r=0; r<num_replicas; r++){
-                                for (int site=0; site<M; site++){
-                                    cout << last_kinks[r][site] << " ";
-                                }
-                            }
                         }
+                        
                     }
                     // Restart counter that tracks when to save to file
                     writing_ctr=0;

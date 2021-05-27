@@ -154,6 +154,76 @@ vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
 
 /*--------------------------------------------------------------------*/
 
+ofstream save_paths(int D, int L, int N, int l_A,
+                       double U, double t, double beta,
+                       int bin_size, int bins_wanted, int seed,
+                       string subgeometry, double mu, double eta,
+                       int num_replicas, vector<int> num_kinks,
+                       vector<vector<Kink> > paths,
+                       vector<double> N_tracker,
+                       unsigned long long int iteration_idx){
+    
+    // Saving last worldline configuration
+    ofstream state_file;
+    string state_name;
+    
+    // Name of system state file
+    state_name=to_string(D)+"D_"+to_string(L)+
+    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+    to_string(U)+"_"+to_string(t)+"_"+
+    to_string(beta)+"_"+to_string(bin_size)+"_"+
+    to_string(bins_wanted)+"_"+
+    "system-state_"+to_string(seed)+"_"+subgeometry+"_"+
+    to_string(num_replicas)+".dat";
+    
+    state_file.open(state_name);
+    
+    // Find how many active kinks are in the replica with the most
+    // active kinks
+    int max_num_kinks=-1;
+    for (int r=0; r<num_replicas; r++){
+        if (num_kinks[r]>max_num_kinks){max_num_kinks=num_kinks[r];}
+    }
+    
+    // First 8 attributes: first replica
+    // Next 8 attributes: second replicas
+    for (int k=0; k<max_num_kinks; k++){
+        for (int r=0; r<num_replicas; r++){
+
+            if (k<num_kinks[r]){
+            state_file<<fixed<<setprecision(17)<<paths[r][k].tau<<" ";
+            state_file<<fixed<<paths[r][k].n<<" ";
+            state_file<<fixed<<paths[r][k].src<<" ";
+            state_file<<fixed<<paths[r][k].dest<<" ";
+            state_file<<fixed<<paths[r][k].prev<<" ";
+            state_file<<fixed<<paths[r][k].next<<" ";
+            state_file<<fixed<<paths[r][k].src_replica<<" ";
+            state_file<<fixed<<paths[r][k].dest_replica<<" ";
+            }
+            else {
+            state_file<<fixed<<setprecision(17)<<-1.0<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            state_file<<fixed<<-1<<" ";
+            }
+        }
+        state_file<<fixed<<setprecision(17)<<mu<<" ";
+        state_file<<fixed<<setprecision(17)<<eta<<" ";
+        state_file<<fixed<<iteration_idx<<" ";
+        for (int r=0; r<num_replicas; r++){
+            state_file<<fixed<<setprecision(17)<<N_tracker[r]<<" ";
+        }
+        state_file<<endl;
+    }
+    return state_file;
+}
+
+/*--------------------------------------------------------------------*/
+
 vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
                                  double U, double t, double beta,
                                  int bin_size, int bins_wanted,
@@ -169,7 +239,8 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
     to_string(U)+"_"+to_string(t)+"_"+
     to_string(beta)+"_"+to_string(bin_size)+"_"+
     to_string(bins_wanted)+"_"+
-    "system-state_"+to_string(seed)+"_"+subgeometry+".dat";
+    "system-state_"+to_string(seed)+"_"+subgeometry+"_"+
+    to_string(num_replicas)+".dat";
     
     // File containing previous worldline configurations (paths)
     std::ifstream infile(state_name);
@@ -179,8 +250,8 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
     
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a20;
-        double a0,a8,a16,a17,a18,a19;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
+        double a0,a8,a16,a17,a19,a20;
         int k=0; // kink idx counter
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
@@ -212,12 +283,12 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
     
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7;
-        double a0,a8,a9;
+        int a1,a2,a3,a4,a5,a6,a7,a10;
+        double a0,a8,a9,a11;
         int k=0; // kink idx counter
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
-              a8 >> a9){
+              a8 >> a9 >> a10 >> a11){
                 
             // Fill paths of first replica
             paths[0][k].tau = a0;
@@ -265,8 +336,8 @@ vector<int> get_num_kinks(int D, int L, int N, int l_A,
     
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a20;
-        double a0,a8,a16,a17,a18,a19;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
+        double a0,a8,a16,a17,a19,a20;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
               >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
@@ -280,11 +351,12 @@ vector<int> get_num_kinks(int D, int L, int N, int l_A,
     
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7;
-        double a0,a8,a9;
+        int a1,a2,a3,a4,a5,a6,a7,a10;
+        double a0,a8,a9,a11;
+
         
-        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7
-              >> a8 >> a9){
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
+              a8 >> a9 >> a10 >> a11){
             // -1 elements indicate inactive kinks. Count only actives
             if (a1!=-1){num_kinks[0]+=1;}
         }
@@ -321,8 +393,8 @@ double get_mu(int D, int L, int N, int l_A,
     mu = -1;
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a20;
-        double a0,a8,a16,a17,a18,a19;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
+        double a0,a8,a16,a17,a19,a20;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
               >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
@@ -334,11 +406,11 @@ double get_mu(int D, int L, int N, int l_A,
     
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7;
-        double a0,a8,a9;
+        int a1,a2,a3,a4,a5,a6,a7,a10;
+        double a0,a8,a9,a11;
         
-        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7
-              >> a8 >> a9){
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
+              a8 >> a9 >> a10 >> a11){
             mu = a8;
             break;
         }
@@ -375,8 +447,8 @@ unsigned long long int get_iteration_idx(int D, int L, int N, int l_A,
     iteration_idx = -1;
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a20;
-        double a0,a8,a16,a17,a18,a19;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
+        double a0,a8,a16,a17,a19,a20;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
               >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
@@ -388,11 +460,11 @@ unsigned long long int get_iteration_idx(int D, int L, int N, int l_A,
     
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7;
-        double a0,a8,a9;
+        int a1,a2,a3,a4,a5,a6,a7,a10;
+        double a0,a8,a9,a11;
         
-        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7
-              >> a8 >> a9){
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
+              a8 >> a9 >> a10 >> a11){
             iteration_idx = a8;
             break;
         }
@@ -429,8 +501,8 @@ double get_eta(int D, int L, int N, int l_A,
     eta = -1;
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
-        double a0,a8,a16,a17,a18,a19;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
+        double a0,a8,a16,a17,a19,a20;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
               >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
@@ -442,11 +514,11 @@ double get_eta(int D, int L, int N, int l_A,
     
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7;
-        double a0,a8,a9;
+        int a1,a2,a3,a4,a5,a6,a7,a10;
+        double a0,a8,a9,a11;
         
-        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7
-              >> a8 >> a9){
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
+              a8 >> a9 >> a10 >> a11){
             eta = a9;
             break;
         }
@@ -512,8 +584,8 @@ vector<double> get_N_tracker(int D, int L, int N, int l_A,
 //    mu = -1;
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
-        double a0,a8,a16,a17,a18,a19;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
+        double a0,a8,a16,a17,a19,a20;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8
               >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
@@ -526,11 +598,11 @@ vector<double> get_N_tracker(int D, int L, int N, int l_A,
     
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7;
-        double a0,a8,a9;
+        int a1,a2,a3,a4,a5,a6,a7,a10;
+        double a0,a8,a9,a11;
         
-        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7
-              >> a8 >> a9){
+        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
+              a8 >> a9 >> a10 >> a11){
             N_tracker[0] = a8;
             break;
         }
@@ -682,78 +754,6 @@ int get_num_swaps(vector<vector<Kink> > paths,
 }
 
 /*--------------------------------------------------------------------*/
-
-
-ofstream save_paths(int D, int L, int N, int l_A,
-                       double U, double t, double beta,
-                       int bin_size, int bins_wanted, int seed,
-                       string subgeometry, double mu, double eta,
-                       int num_replicas, vector<int> num_kinks,
-                       vector<vector<Kink> > paths,
-                       vector<double> N_tracker,
-                       unsigned long long int iteration_idx){
-    
-    // Saving last worldline configuration
-    ofstream state_file;
-    string state_name;
-    
-    // Name of system state file
-    state_name=to_string(D)+"D_"+to_string(L)+
-    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
-    to_string(U)+"_"+to_string(t)+"_"+
-    to_string(beta)+"_"+to_string(bin_size)+"_"+
-    to_string(bins_wanted)+"_"+
-    "system-state_"+to_string(seed)+"_"+subgeometry+"_"+
-    to_string(num_replicas)+".dat";
-    
-    state_file.open(state_name);
-    
-    // Find how many active kinks are in the replica with the most
-    // active kinks
-    int max_num_kinks=-1;
-    for (int r=0; r<num_replicas; r++){
-        if (num_kinks[r]>max_num_kinks){max_num_kinks=num_kinks[r];}
-    }
-    
-    // First 8 attributes: first replica
-    // Next 8 attributes: second replicas
-    for (int k=0; k<max_num_kinks; k++){
-        for (int r=0; r<num_replicas; r++){
-
-            if (k<num_kinks[r]){
-            state_file<<fixed<<setprecision(17)<<paths[r][k].tau<<" ";
-            state_file<<fixed<<paths[r][k].n<<" ";
-            state_file<<fixed<<paths[r][k].src<<" ";
-            state_file<<fixed<<paths[r][k].dest<<" ";
-            state_file<<fixed<<paths[r][k].prev<<" ";
-            state_file<<fixed<<paths[r][k].next<<" ";
-            state_file<<fixed<<paths[r][k].src_replica<<" ";
-            state_file<<fixed<<paths[r][k].dest_replica<<" ";
-            }
-            else {
-            state_file<<fixed<<setprecision(17)<<-1.0<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            state_file<<fixed<<-1<<" ";
-            }
-        }
-        state_file<<fixed<<setprecision(17)<<mu<<" ";
-        state_file<<fixed<<setprecision(17)<<eta<<" ";
-        state_file<<fixed<<iteration_idx<<" ";
-        for (int r=0; r<num_replicas; r++){
-            state_file<<fixed<<setprecision(17)<<N_tracker[r]<<" ";
-        }
-        state_file<<endl;
-    }
-    return state_file;
-}
-
-/*--------------------------------------------------------------------*/
-
 
 // Create function that calculates vector norm given array
 double norm(vector<double> point){
