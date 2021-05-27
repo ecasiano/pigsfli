@@ -759,20 +759,31 @@ cout << "U: " << U << endl;
         to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
         "can_"+"tauResolvedV_"+"rep"+rep+".dat";
         
-        kinetic_energy_file.open(K_name);
-        diagonal_energy_file.open(V_name);
+        if (!restart){
+            kinetic_energy_file.open(K_name);
+            diagonal_energy_file.open(V_name);
 
-        if (measure_tau_resolved_estimators){
-            tr_K_out.open(tr_K_name);
-            tr_V_out.open(tr_V_name);
+            if (measure_tau_resolved_estimators){
+                tr_K_out.open(tr_K_name);
+                tr_V_out.open(tr_V_name);
+            }
+            
+            if (measure_tau_resolved_estimators){
+                //Append ofstream files to vector
+                tr_kinetic_energy_file.push_back(std::move(tr_K_out));
+                tr_diagonal_energy_file.push_back(std::move(tr_V_out));
+            }
         }
         
-        if (measure_tau_resolved_estimators){
-            //Append ofstream files to vector
-            tr_kinetic_energy_file.push_back(std::move(tr_K_out));
-            tr_diagonal_energy_file.push_back(std::move(tr_V_out));
+        else{ // restart
+            kinetic_energy_file.open(K_name,ios::out | ios::app);
+            diagonal_energy_file.open(V_name,ios::out | ios::app);
+
+            if (measure_tau_resolved_estimators){
+                tr_K_out.open(tr_K_name,ios::out | ios::app);
+                tr_V_out.open(tr_V_name,ios::out | ios::app);
+            }
         }
-        
     }
     
     // Estimators in replicated configuration space (num_replicas>=2)
@@ -961,9 +972,7 @@ cout << "U: " << U << endl;
         eta = get_eta(D,L,N,l_A,U,t,beta,bin_size,
                       bins_wanted,seed,subgeometry,
                       num_replicas);
-        N_tracker = get_N_tracker(D,L,N,l_A,U,t,beta,bin_size,
-                    bins_wanted,seed,subgeometry,
-                    num_replicas);
+        N_tracker = get_N_tracker(paths,num_replicas,M,beta);
         head_idx = get_head_idx(paths,num_replicas,M);
         tail_idx = get_tail_idx(paths,num_replicas,M);
         N_zero = get_N_zero(paths,num_replicas,M);
@@ -1017,7 +1026,7 @@ cout << "U: " << U << endl;
     while(bins_written<bins_wanted){
     for (int r=0;r<num_replicas;r++){
         
-        if (!restart && print_it){
+        if (!restart && print_it && num_replicas>=2){
             
             if (bins_written==5){
                 cout << "middle m: " << m << endl;
@@ -1064,7 +1073,7 @@ cout << "U: " << U << endl;
             }
         }
         
-        if (restart && print_it){
+        if (restart && print_it && num_replicas>=2){
             
             cout << "restarted m: " << m << endl;
             cout << "SWAP histogram (restarted): ";
@@ -1072,6 +1081,7 @@ cout << "U: " << U << endl;
                 cout << SWAP_histogram[i] << " ";
             }
             cout << endl;
+            cout << "CHILIN" << endl;
             
             cout << "loaded paths: " << endl;
             for (int r=0; r<num_replicas; r++){
@@ -1310,12 +1320,15 @@ cout << "U: " << U << endl;
              // lol
          }
         
-/*------------------------- Measurements -----------------------------*/
+/*----------------------------- Measurements ---------------------------------*/
    
         // at what m value are we entering the loop for the restart?
         
         if ((m>=sweeps*1.00 && m%(sweep*measurement_frequency)==0)
             || (restart && m%(sweep*measurement_frequency)==0)){
+            
+            // Reset iteration index to avoid overflow error
+            m = sweeps*1.00;
             
             if (not_equilibrated){
                 not_equilibrated=false;
@@ -1355,12 +1368,15 @@ cout << "U: " << U << endl;
                         }
                         
                     writing_ctr+=1;
+                        
                     // Take binned averages and write to disk
                     if (writing_ctr==bin_size){
                         
                         // Round out N_tracker since it might have
                         // floating point errors after a while
-                        N_tracker[r] = round(N_tracker[r]);
+                        for (int r=0; r<num_replicas; r++){
+                            N_tracker[r] = nearbyint(N_tracker[r]);
+                        }
                         
                         // Write energies to disk
                         kinetic_energy_file<<fixed<<setprecision(17)<<
@@ -1410,6 +1426,9 @@ cout << "U: " << U << endl;
                         
                         state_file.close();
                         
+                        // Round out N_tracker since it might have
+                        // floating point errors after a while
+                        N_tracker[r] = nearbyint(N_tracker[r]);
                         }
                     }
                 }
@@ -1425,7 +1444,6 @@ cout << "U: " << U << endl;
 
                         // Add count to histogram of number of swapped sites
                         SWAP_histogram[num_swaps]+=1;
-                        writing_ctr+=1; // DEBUGGING. Move below later.
                         
                         // Build subsystem particle number distribution P(n)
                         if (num_swaps==0){
@@ -1480,7 +1498,7 @@ cout << "U: " << U << endl;
                             }
                             if (n_A[0][num_swaps-1]==n_A[1][num_swaps-1]){ // Not necessary. When there are SWAPs, n0 and n1 are the same.
                                 SWAPn_histograms[num_swaps-1][n_A[0][num_swaps-1]]+=1;
-//                                if (num_swaps==m_A){writing_ctr+=1;}
+                                if (num_swaps==m_A){writing_ctr+=1;}
 //                                 SWAPn_histograms[num_swaps-1][number of particles in the subregion]+=1;
                             }
                             else{cout << "ERROR!" << endl;}
@@ -1489,13 +1507,14 @@ cout << "U: " << U << endl;
                 }
             
                 if (writing_ctr==bin_size){
-
+                    
+                    bins_written += 1;
+                    
                     // Round out N_tracker since it might have
                     // floating point errors after a while
                     for (int r=0; r<num_replicas; r++){
-                        N_tracker[r] = round(N_tracker[r]);
-                        
-                    bins_written+=1;
+                        N_tracker[r] = nearbyint(N_tracker[r]);
+                    }
                     
                     // Save current histogram of swapped sites to file
                     for (int i=0; i<=m_A; i++){
@@ -1552,6 +1571,9 @@ cout << "U: " << U << endl;
                         
                     }
                     
+                    // Restart writing counter
+                    writing_ctr = 0;
+                    
                     if (bins_written==bins_wanted){
 
                         // Saving last written RNG and system states
@@ -1570,16 +1592,13 @@ cout << "U: " << U << endl;
                                                 num_kinks,paths,N_tracker,m+1);
                         
                         state_file.close();
-                        
-                        }
-                        
+        
                     }
-                    // Restart counter that tracks when to save to file
-                    writing_ctr=0;
                 } // end of writing_ctr==bin_size if statement
             } // end of SWAP measurements if statement
         } // end of measurement after 25% equilibration if statement
         m+=1;
+        
     } // end of while(bins_written<bins_wanted)
         
     // Close data files
