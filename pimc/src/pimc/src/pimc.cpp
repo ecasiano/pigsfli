@@ -1081,7 +1081,6 @@ cout << "U: " << U << endl;
                 cout << SWAP_histogram[i] << " ";
             }
             cout << endl;
-            cout << "CHILIN" << endl;
             
             cout << "loaded paths: " << endl;
             for (int r=0; r<num_replicas; r++){
@@ -1328,7 +1327,7 @@ cout << "U: " << U << endl;
             || (restart && m%(sweep*measurement_frequency)==0)){
             
             // Reset iteration index to avoid overflow error
-            m = sweeps*1.00;
+//            m = sweeps*1.00;
             
             if (not_equilibrated){
                 not_equilibrated=false;
@@ -1375,7 +1374,7 @@ cout << "U: " << U << endl;
                         // Round out N_tracker since it might have
                         // floating point errors after a while
                         for (int r=0; r<num_replicas; r++){
-                            N_tracker[r] = nearbyint(N_tracker[r]);
+                            N_tracker[r] = round(N_tracker[r]);
                         }
                         
                         // Write energies to disk
@@ -1428,7 +1427,7 @@ cout << "U: " << U << endl;
                         
                         // Round out N_tracker since it might have
                         // floating point errors after a while
-                        N_tracker[r] = nearbyint(N_tracker[r]);
+                        N_tracker[r] = round(N_tracker[r]);
                         }
                     }
                 }
@@ -1437,6 +1436,7 @@ cout << "U: " << U << endl;
             // Non-conventional (SWAP) measurements
             if (num_replicas>1) {
                 
+                
                 if (head_idx[0]==-1&&head_idx[1]==-1&&
                     tail_idx[0]==-1&&tail_idx[1]==-1){
                     if (N_zero[0]==N && N_beta[0]==N
@@ -1444,6 +1444,8 @@ cout << "U: " << U << endl;
 
                         // Add count to histogram of number of swapped sites
                         SWAP_histogram[num_swaps]+=1;
+                        
+                        writing_ctr += 1;
                         
                         // Build subsystem particle number distribution P(n)
                         if (num_swaps==0){
@@ -1498,7 +1500,7 @@ cout << "U: " << U << endl;
                             }
                             if (n_A[0][num_swaps-1]==n_A[1][num_swaps-1]){ // Not necessary. When there are SWAPs, n0 and n1 are the same.
                                 SWAPn_histograms[num_swaps-1][n_A[0][num_swaps-1]]+=1;
-                                if (num_swaps==m_A){writing_ctr+=1;}
+//                                if (num_swaps==m_A){writing_ctr+=1;}
 //                                 SWAPn_histograms[num_swaps-1][number of particles in the subregion]+=1;
                             }
                             else{cout << "ERROR!" << endl;}
@@ -1513,7 +1515,7 @@ cout << "U: " << U << endl;
                     // Round out N_tracker since it might have
                     // floating point errors after a while
                     for (int r=0; r<num_replicas; r++){
-                        N_tracker[r] = nearbyint(N_tracker[r]);
+                        N_tracker[r] = round(N_tracker[r]);
                     }
                     
                     // Save current histogram of swapped sites to file
@@ -1716,6 +1718,9 @@ cout << "U: " << U << endl;
     }
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
+    
+    if (!restart && num_replicas==2)
+        cout << N_tracker[0] << "  " << N_tracker[1] << endl;
     
     return 0;
     
