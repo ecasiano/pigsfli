@@ -953,7 +953,15 @@ cout << "U: " << U << endl;
     else{ // Restarted simulation
                         
         // Load RNG state
-        string rng_filename = "rng_state.dat";
+        string rng_filename;
+        rng_filename=to_string(D)+"D_"+to_string(L)+
+        "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+        to_string(U)+"_"+to_string(t)+"_"+
+        to_string(beta)+"_"+to_string(bin_size)+"_"+
+        to_string(bins_wanted)+"_"+
+        "rng-state_"+to_string(seed)+"_"+subgeometry+"_"+
+        to_string(num_replicas)+".dat";
+        
         std::ifstream ifs(rng_filename.c_str(), std::ios_base::in);
         rng_ptr->load(ifs);
         ifs.close();
@@ -1028,7 +1036,7 @@ cout << "U: " << U << endl;
         
         if (!restart && print_it && num_replicas>=2){
             
-            if (bins_written==5){
+            if (bins_written==50){
                 cout << "middle m: " << m << endl;
                 cout << "SWAP histogram (middle): ";
                 for (int i=0; i<=m_A; i++){
@@ -1323,11 +1331,14 @@ cout << "U: " << U << endl;
    
         // at what m value are we entering the loop for the restart?
         
-        if ((m>=sweeps*1.00 && m%(sweep*measurement_frequency)==0)
-            || (restart && m%(sweep*measurement_frequency)==0)){
+//        if ((m>=sweeps*1.00 && m%(sweep*measurement_frequency)==0)
+//            || (restart && m%(sweep*measurement_frequency)==0)){
+            
+        if (m%(sweep*measurement_frequency)==0
+            && (m>=sweeps*1.00 || restart)){
             
             // Reset iteration index to avoid overflow error
-//            m = sweeps*1.00;
+            m = sweeps*2.00;
             
             if (not_equilibrated){
                 not_equilibrated=false;
@@ -1409,7 +1420,15 @@ cout << "U: " << U << endl;
                         }
                         
                         // Saving last written RNG and system states
-                        string rng_filename = "rng_state.dat";
+                        string rng_filename;
+                        rng_filename=to_string(D)+"D_"+to_string(L)+
+                        "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+                        to_string(U)+"_"+to_string(t)+"_"+
+                        to_string(beta)+"_"+to_string(bin_size)+"_"+
+                        to_string(bins_wanted)+"_"+
+                        "rng-state_"+to_string(seed)+"_"+subgeometry+"_"+
+                        to_string(num_replicas)+".dat";
+                        
                         std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
                         ofs << rng_ptr->save().str() << std::endl;
                         ofs.close();
@@ -1425,9 +1444,6 @@ cout << "U: " << U << endl;
                         
                         state_file.close();
                         
-                        // Round out N_tracker since it might have
-                        // floating point errors after a while
-                        N_tracker[r] = round(N_tracker[r]);
                         }
                     }
                 }
@@ -1436,16 +1452,15 @@ cout << "U: " << U << endl;
             // Non-conventional (SWAP) measurements
             if (num_replicas>1) {
                 
-                
                 if (head_idx[0]==-1&&head_idx[1]==-1&&
                     tail_idx[0]==-1&&tail_idx[1]==-1){
                     if (N_zero[0]==N && N_beta[0]==N
                         && N_zero[1]==N && N_beta[1]==N){
 
+                        writing_ctr +=1;
+                        
                         // Add count to histogram of number of swapped sites
                         SWAP_histogram[num_swaps]+=1;
-                        
-                        writing_ctr += 1;
                         
                         // Build subsystem particle number distribution P(n)
                         if (num_swaps==0){
@@ -1579,7 +1594,15 @@ cout << "U: " << U << endl;
                     if (bins_written==bins_wanted){
 
                         // Saving last written RNG and system states
-                        string rng_filename = "rng_state.dat";
+                        string rng_filename;
+                        rng_filename=to_string(D)+"D_"+to_string(L)+
+                        "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+                        to_string(U)+"_"+to_string(t)+"_"+
+                        to_string(beta)+"_"+to_string(bin_size)+"_"+
+                        to_string(bins_wanted)+"_"+
+                        "rng-state_"+to_string(seed)+"_"+subgeometry+"_"+
+                        to_string(num_replicas)+".dat";
+                        
                         std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
                         ofs << rng_ptr->save().str() << std::endl;
                         ofs.close();
@@ -1594,6 +1617,46 @@ cout << "U: " << U << endl;
                                                 num_kinks,paths,N_tracker,m+1);
                         
                         state_file.close();
+                        
+                        cout << "exit m: " << m << endl;
+                        cout << "SWAP histogram (exit): ";
+                        for (int i=0; i<=m_A; i++){
+                            cout << SWAP_histogram[i] << " ";
+                        }
+                        cout << endl;
+                        cout << "exit paths: " << endl;
+                        for (int r=0; r<num_replicas; r++){
+                            for (int k=0; k<num_kinks[r]; k++){
+                                cout << k << ": " << paths[r][k] << endl;
+                            }
+                            cout << "-----------------------------------------"<< endl;
+                        }
+                        cout << "writing_ctr: " << writing_ctr << endl;
+                        
+                        cout << "sweep: " << sweep << endl;
+                        
+                        cout << "sweeps: " << sweeps << endl;
+                        
+                        cout << "num_replicas: " << num_replicas << endl;
+                        cout << "num_kinks: " << num_kinks[0] << " " << num_kinks[1] << endl;
+                        cout << "mu,eta(exit): " << setprecision(17) << mu << "," << eta << endl;
+                        cout << setprecision(17) << "N_tracker(exit): " << N_tracker[0] << " " <<
+                        N_tracker[1] << endl;
+                        cout << "Head indices(exit): " << head_idx[0] <<
+                        " " << head_idx[1] << endl;
+                        cout << "Tail indices(exit): " << tail_idx[0] <<
+                        " " << tail_idx[1] << endl;
+                        cout << "N_zero(exit): " << N_zero[0] <<
+                        " " << N_zero[1] << endl;
+                        cout << "N_beta(exit): " << N_beta[0] <<
+                        " " << N_beta[1] << endl;
+                        cout << "num_swaps(exit): " << num_swaps << endl;
+                        cout << "last_kinks(exit): ";
+                        for (int r=0; r<num_replicas; r++){
+                            for (int site=0; site<M; site++){
+                                cout << last_kinks[r][site] << " ";
+                            }
+                        }
         
                     }
                 } // end of writing_ctr==bin_size if statement
