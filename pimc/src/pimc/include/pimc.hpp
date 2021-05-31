@@ -554,6 +554,7 @@ vector<double> get_N_tracker(vector<vector<Kink> > paths,
 
             N_tracker[r] += dN;
         }
+        N_tracker[r] = round(N_tracker[r]);
     }
     return N_tracker;
 }
