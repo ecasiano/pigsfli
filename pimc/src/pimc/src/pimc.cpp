@@ -1457,7 +1457,7 @@ cout << "U: " << U << endl;
                     if (N_zero[0]==N && N_beta[0]==N
                         && N_zero[1]==N && N_beta[1]==N){
 
-                        writing_ctr +=1;
+//                        writing_ctr +=1;
                         
                         // Add count to histogram of number of swapped sites
                         SWAP_histogram[num_swaps]+=1;
@@ -1513,9 +1513,10 @@ cout << "U: " << U << endl;
                                     n_A[REP][i]=n_A_last;
                                 }
                             }
-                            if (n_A[0][num_swaps-1]==n_A[1][num_swaps-1]){ // Not necessary. When there are SWAPs, n0 and n1 are the same.
+                            if (n_A[0][num_swaps-1]==
+                                n_A[1][num_swaps-1]){ // Not necessary. When there are SWAPs, n0 and n1 are the same.
                                 SWAPn_histograms[num_swaps-1][n_A[0][num_swaps-1]]+=1;
-//                                if (num_swaps==m_A){writing_ctr+=1;}
+                                if (num_swaps==m_A){writing_ctr+=1;}
 //                                 SWAPn_histograms[num_swaps-1][number of particles in the subregion]+=1;
                             }
                             else{cout << "ERROR!" << endl;}
