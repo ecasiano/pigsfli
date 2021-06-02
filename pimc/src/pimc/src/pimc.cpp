@@ -737,14 +737,12 @@ cout << "U: " << U << endl;
         "_"+to_string(N)+"_"+to_string(l_A)+"_"+
         to_string(U)+"_"+to_string(t)+"_"+
         to_string(beta)+"_"+to_string(bin_size)+"_"+
-        to_string(bins_wanted)+"_"+
         "K_"+to_string(seed)+"_"+subgeometry+".dat";
         
         V_name=to_string(D)+"D_"+to_string(L)+
         "_"+to_string(N)+"_"+to_string(l_A)+"_"+
         to_string(U)+"_"+to_string(t)+"_"+
         to_string(beta)+"_"+to_string(bin_size)+"_"+
-        to_string(bins_wanted)+"_"+
         "V_"+to_string(seed)+"_"+subgeometry+".dat";
         
         tr_K_name=to_string(L)+"_"+to_string(M)+"_"+
@@ -798,7 +796,6 @@ cout << "U: " << U << endl;
             "_"+to_string(N)+"_"+to_string(l_A)+"_"+
             to_string(U)+"_"+to_string(t)+"_"+
             to_string(beta)+"_"+to_string(bin_size)+"_"+
-            to_string(bins_wanted)+"_"+
             "SWAP_"+to_string(seed)+"_"+subgeometry+".dat";
             
             // Create filenames of SWAP histograms for each partition size mA
@@ -808,7 +805,6 @@ cout << "U: " << U << endl;
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
                 to_string(beta)+"_"+to_string(bin_size)+"_"+
-                to_string(bins_wanted)+"_"+
                 "SWAPn-mA"+to_string(i)+"_"+
                 to_string(seed)+"_"+subgeometry+".dat");
             }
@@ -820,7 +816,6 @@ cout << "U: " << U << endl;
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
                 to_string(beta)+"_"+to_string(bin_size)+"_"+
-                to_string(bins_wanted)+"_"+
                 "Pn-mA"+to_string(i)+"_"+
                 to_string(seed)+"_"+subgeometry+".dat");
             }
@@ -832,7 +827,6 @@ cout << "U: " << U << endl;
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
                 to_string(beta)+"_"+to_string(bin_size)+"_"+
-                to_string(bins_wanted)+"_"+
                 "PnSquared-mA"+to_string(i)+"_"+
                 to_string(seed)+"_"+subgeometry+".dat");
             }
@@ -958,7 +952,6 @@ cout << "U: " << U << endl;
         "_"+to_string(N)+"_"+to_string(l_A)+"_"+
         to_string(U)+"_"+to_string(t)+"_"+
         to_string(beta)+"_"+to_string(bin_size)+"_"+
-        to_string(bins_wanted)+"_"+
         "rng-state_"+to_string(seed)+"_"+subgeometry+"_"+
         to_string(num_replicas)+".dat";
         
@@ -1425,8 +1418,8 @@ cout << "U: " << U << endl;
                         "_"+to_string(N)+"_"+to_string(l_A)+"_"+
                         to_string(U)+"_"+to_string(t)+"_"+
                         to_string(beta)+"_"+to_string(bin_size)+"_"+
-                        to_string(bins_wanted)+"_"+
-                        "rng-state_"+to_string(seed)+"_"+subgeometry+"_"+
+                        "rng-state_"+to_string(seed)+"_"+
+                        subgeometry+"_"+
                         to_string(num_replicas)+".dat";
                         
                         std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
@@ -1600,7 +1593,6 @@ cout << "U: " << U << endl;
                         "_"+to_string(N)+"_"+to_string(l_A)+"_"+
                         to_string(U)+"_"+to_string(t)+"_"+
                         to_string(beta)+"_"+to_string(bin_size)+"_"+
-                        to_string(bins_wanted)+"_"+
                         "rng-state_"+to_string(seed)+"_"+subgeometry+"_"+
                         to_string(num_replicas)+".dat";
                         

@@ -172,7 +172,6 @@ ofstream save_paths(int D, int L, int N, int l_A,
     "_"+to_string(N)+"_"+to_string(l_A)+"_"+
     to_string(U)+"_"+to_string(t)+"_"+
     to_string(beta)+"_"+to_string(bin_size)+"_"+
-    to_string(bins_wanted)+"_"+
     "system-state_"+to_string(seed)+"_"+subgeometry+"_"+
     to_string(num_replicas)+".dat";
     
@@ -236,7 +235,6 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
     "_"+to_string(N)+"_"+to_string(l_A)+"_"+
     to_string(U)+"_"+to_string(t)+"_"+
     to_string(beta)+"_"+to_string(bin_size)+"_"+
-    to_string(bins_wanted)+"_"+
     "system-state_"+to_string(seed)+"_"+subgeometry+"_"+
     to_string(num_replicas)+".dat";
     
@@ -323,7 +321,6 @@ vector<int> get_num_kinks(int D, int L, int N, int l_A,
     "_"+to_string(N)+"_"+to_string(l_A)+"_"+
     to_string(U)+"_"+to_string(t)+"_"+
     to_string(beta)+"_"+to_string(bin_size)+"_"+
-    to_string(bins_wanted)+"_"+
     "system-state_"+to_string(seed)+"_"+subgeometry+"_"+
     to_string(num_replicas)+".dat";
     
@@ -381,7 +378,6 @@ double get_mu(int D, int L, int N, int l_A,
     "_"+to_string(N)+"_"+to_string(l_A)+"_"+
     to_string(U)+"_"+to_string(t)+"_"+
     to_string(beta)+"_"+to_string(bin_size)+"_"+
-    to_string(bins_wanted)+"_"+
     "system-state_"+to_string(seed)+"_"+subgeometry+"_"+
     to_string(num_replicas)+".dat";
     
@@ -435,7 +431,6 @@ unsigned long long int get_iteration_idx(int D, int L, int N, int l_A,
     "_"+to_string(N)+"_"+to_string(l_A)+"_"+
     to_string(U)+"_"+to_string(t)+"_"+
     to_string(beta)+"_"+to_string(bin_size)+"_"+
-    to_string(bins_wanted)+"_"+
     "system-state_"+to_string(seed)+"_"+subgeometry+"_"+
     to_string(num_replicas)+".dat";
     
@@ -489,7 +484,6 @@ double get_eta(int D, int L, int N, int l_A,
     "_"+to_string(N)+"_"+to_string(l_A)+"_"+
     to_string(U)+"_"+to_string(t)+"_"+
     to_string(beta)+"_"+to_string(bin_size)+"_"+
-    to_string(bins_wanted)+"_"+
     "system-state_"+to_string(seed)+"_"+subgeometry+"_"+
     to_string(num_replicas)+".dat";
     
@@ -559,58 +553,6 @@ vector<double> get_N_tracker(vector<vector<Kink> > paths,
     }
     return N_tracker;
 }
-
-//vector<double> get_N_tracker(int D, int L, int N, int l_A,
-//              double U, double t, double beta,
-//              int bin_size, int bins_wanted,
-//              int seed, string subgeometry,
-//              int num_replicas){
-//
-//    vector<double> N_tracker(num_replicas,0.0);
-//    string state_name;
-//
-//    // Name of system state file
-//    state_name=to_string(D)+"D_"+to_string(L)+
-//    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
-//    to_string(U)+"_"+to_string(t)+"_"+
-//    to_string(beta)+"_"+to_string(bin_size)+"_"+
-//    to_string(bins_wanted)+"_"+
-//    "system-state_"+to_string(seed)+"_"+subgeometry+".dat";
-//
-//    // NOTE: For consistency, may rewrite function to get the number
-//    // of kinks from the path structure created with load_paths()
-//    std::ifstream infile(state_name);
-//
-////    mu = -1;
-//    if (num_replicas==2){
-//        // Assume 16 elements per line (two replicas max)
-//        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
-//        double a0,a8,a16,a17;
-//
-//        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
-//            a16 >> a17 >> a18){
-//            N_tracker[0] = a18;
-//            N_tracker[1] = a19;
-//            break;
-//        }
-//    }
-//
-//    if (num_replicas==1){
-//        // Assume 16 elements per line (two replicas max)
-//        int a1,a2,a3,a4,a5,a6,a7,a10;
-//        double a0,a8,a9;
-//
-//        while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
-//              a8 >> a9 >> a10){
-//            N_tracker[0] = a8;
-//            break;
-//        }
-//    }
-//
-//    infile.close();
-//
-//    return N_tracker;
-//}
 
 /*--------------------------------------------------------------------*/
 
