@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/users/e/c/ecasiano/pimc/pimc/src/pimc/include -I/users/e/c/ecasiano/pimc/pimc/src/pimc/src -I/users/n/s/nsnichol/env_pimc/include
 
-CXX_FLAGS =  -Wall -fno-math-errno -O3   -D NDIM=3 -std=gnu++17
+CXX_FLAGS =  -Wall -fno-math-errno -O3   -D NDIM=3 -D USE_TCB_SPAN=1 -std=gnu++17
 
