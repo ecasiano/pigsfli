@@ -634,6 +634,8 @@ pimc/CMakeFiles/pigsl.e.dir/src/pimc.cpp.o
  /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/pcg_random.hpp
  /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/pcg_uint128.hpp
  /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/pimc.hpp
+ /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/span.hpp
+ /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/uuid.hpp
  /Users/ecasiano/XCode/pimc/pimc/src/pimc/src/pimc.cpp
  /usr/local/include/boost/assert.hpp
  /usr/local/include/boost/assert/source_location.hpp
