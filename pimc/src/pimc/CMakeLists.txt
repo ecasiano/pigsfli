@@ -25,6 +25,11 @@ add_definitions(-D NDIM=${NDIM})
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wall -fno-math-errno -O3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fno-math-errno -O3")
 
+# Check for <span> flags
+if (USE_TCB_SPAN)
+    add_definitions(-D USE_TCB_SPAN=${USE_TCB_SPAN})
+endif()
+
 # Determine executable name
 set(exe pigsl.e)
 if(CMAKE_BUILD_TYPE MATCHES Debug)

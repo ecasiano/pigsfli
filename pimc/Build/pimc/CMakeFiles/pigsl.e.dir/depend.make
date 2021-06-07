@@ -633,6 +633,8 @@ pimc/CMakeFiles/pigsl.e.dir/src/pimc.cpp.o: /Users/ecasiano/XCode/pimc/pimc/src/
 pimc/CMakeFiles/pigsl.e.dir/src/pimc.cpp.o: /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/pcg_random.hpp
 pimc/CMakeFiles/pigsl.e.dir/src/pimc.cpp.o: /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/pcg_uint128.hpp
 pimc/CMakeFiles/pigsl.e.dir/src/pimc.cpp.o: /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/pimc.hpp
+pimc/CMakeFiles/pigsl.e.dir/src/pimc.cpp.o: /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/span.hpp
+pimc/CMakeFiles/pigsl.e.dir/src/pimc.cpp.o: /Users/ecasiano/XCode/pimc/pimc/src/pimc/include/uuid.hpp
 pimc/CMakeFiles/pigsl.e.dir/src/pimc.cpp.o: /Users/ecasiano/XCode/pimc/pimc/src/pimc/src/pimc.cpp
 pimc/CMakeFiles/pigsl.e.dir/src/pimc.cpp.o: /usr/local/include/boost/assert.hpp
 pimc/CMakeFiles/pigsl.e.dir/src/pimc.cpp.o: /usr/local/include/boost/assert/source_location.hpp

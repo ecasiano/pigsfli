@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/Users/ecasiano/XCode/pimc/pimc/src/pimc/include -I/Users/ecasiano/XCode/pimc/pimc/src/pimc/src -I/usr/local/include
 
-CXX_FLAGS =  -Wall -fno-math-errno -O3 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.0.sdk   -D NDIM=3 -std=gnu++17
+CXX_FLAGS =  -Wall -fno-math-errno -O3 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.0.sdk   -D NDIM=3 -D USE_TCB_SPAN=1 -std=gnu++17
 
