@@ -1603,31 +1603,31 @@ cout << "U: " << U << endl;
                     // Restart writing counter
                     writing_ctr = 0;
                     
+                    // Saving last written RNG and system states
+                    string rng_filename;
+                    rng_filename=to_string(D)+"D_"+to_string(L)+
+                    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+                    to_string(U)+"_"+to_string(t)+"_"+
+                    to_string(beta)+"_"+to_string(bin_size)+"_"+
+                    "rng-state_"+to_string(seed)+"_"+subgeometry+"_"+
+                    to_string(num_replicas)+".dat";
+                    
+                    std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
+                    ofs << rng_ptr->save().str() << std::endl;
+                    ofs.close();
+                    
+                    // Saving state when last bin was written
+                    ofstream state_file;
+                    state_file = save_paths(D,L,N,l_A,U,t,
+                                            beta,bin_size,
+                                            bins_wanted,seed
+                                            ,subgeometry,mu,
+                                            eta,num_replicas,
+                                            num_kinks,paths,N_tracker,m+1);
+                    
+                    state_file.close();
+                    
                     if (bins_written==bins_wanted){
-
-                        // Saving last written RNG and system states
-                        string rng_filename;
-                        rng_filename=to_string(D)+"D_"+to_string(L)+
-                        "_"+to_string(N)+"_"+to_string(l_A)+"_"+
-                        to_string(U)+"_"+to_string(t)+"_"+
-                        to_string(beta)+"_"+to_string(bin_size)+"_"+
-                        "rng-state_"+to_string(seed)+"_"+subgeometry+"_"+
-                        to_string(num_replicas)+".dat";
-                        
-                        std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
-                        ofs << rng_ptr->save().str() << std::endl;
-                        ofs.close();
-                        
-                        // Saving state when last bin was written
-                        ofstream state_file;
-                        state_file = save_paths(D,L,N,l_A,U,t,
-                                                beta,bin_size,
-                                                bins_wanted,seed
-                                                ,subgeometry,mu,
-                                                eta,num_replicas,
-                                                num_kinks,paths,N_tracker,m+1);
-                        
-                        state_file.close();
                         
                         cout << "exit m: " << m << endl;
                         cout << "SWAP histogram (exit): ";

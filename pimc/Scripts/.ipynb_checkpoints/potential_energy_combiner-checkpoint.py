@@ -6,7 +6,7 @@ import numpy as np
 
 # Set values of U sweep
 # U_list = np.round(np.geomspace(0.01,100,20),4)
-U_list = np.array([3.3])
+U_list = np.array([10.0])
 # U_list = np.array([0.500000,
 # 0.730000,
 # 1.065800,
@@ -29,6 +29,15 @@ beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
 beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
              1.75,2.0,2.5,3.0,3.5,
              4.0,4.5,5.0,5.5,6.0]
+beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
+             1.75,2.0,2.5,3.0,3.5,
+             4.0]
+# beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
+#              1.75,2.0,2.5,3.0,
+#              4.0]
+# beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
+#              1.75,2.0,2.5,3.0,
+#              4.0]
 # beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
 #              1.75,2.0,3.0,4.0]
 # beta_list = [7.0]
@@ -51,15 +60,14 @@ for U in U_list:
             l_max = "%d"%mA_sector_wanted
             beta = "%.6f"%beta
             bin_size = "10000"
-            bins_wanted = "1000"
             D = "1"
             U = "%.6f"%(U)
             t = "1.000000"
 
             # Get path where raw data for the simulation is stored
-            path = D+"D_"+L+"_"+N+"_"+l_max+"_"+U+"_"+\
-                   t+"_"+beta+"_"+bin_size+"_"+bins_wanted+"/"
-            path = "/Users/ecasiano/Desktop/Data/"+path
+            path = "/Users/ecasiano/Desktop/PaperData/PaperData/"
+            path += D+"D_"+L+"_"+N+"_"+l_max+"_"+U+"_"+\
+            t+"_"+beta+"_"+bin_size+"/"
 
             # Stores all files in the directory
             filenames_all = os.listdir(path)
@@ -70,7 +78,6 @@ for U in U_list:
             l_max = int(l_max)
             beta = float(beta)
             bin_size = int(bin_size)
-            bins_wanted = int(bins_wanted)
             D = int(D)
             U = float(U)
             t = float(t)
@@ -94,9 +101,8 @@ for U in U_list:
                     t_want = float(parameters[5]) # tunneling parameter
                     beta_want = float(parameters[6]) # imaginary time length (K_B*T)**(-1)
                     bin_size_want = int(parameters[7])
-                    bins_want = int(parameters[8]) # number of bins saved in file
-                    filetype = (parameters[9]) # identifies the data stored in file
-                    seed = int(parameters[10].split(".")[0]) # random seed used
+                    filetype = (parameters[8]) # identifies the data stored in file
+                    seed = int(parameters[9].split(".")[0]) # random seed used
 
                     if filetype=='V':
 
@@ -109,14 +115,13 @@ for U in U_list:
                                                   t_want,
                                                   beta_want,
                                                   bin_size_want,
-                                                  bins_want,
                                                   'V']
 
-                        if [D,L,N,l_max,U,t,beta,bin_size,bins_wanted,filetype] == parameters_to_evaluate:
+                        if [D,L,N,l_max,U,t,beta,bin_size,filetype] == parameters_to_evaluate:
                             if os.stat(path+filename).st_size > 0:
                                 with open(path+filename) as f:
                                    count = sum(1 for _ in f)
-                                if count == bins_wanted: # only consider files that managed to save number of bins wanted
+                                if count > 10: # only consider files that managed to save at least 100 bins
                                     files_V.append(filename)
                                     seeds_measured.append(seed)
                                 else:
@@ -165,8 +170,8 @@ for error in V_err_plot:
     print(f"{error:0.8f}",end=",")
 
 print("\n")
-print("<S2>=",V_plot)
-print("S2_err=",V_err_plot)
+print("<V>=",V_plot)
+print("<V>_err=",V_err_plot)
 print("beta=",beta_list)
 #seeds_measured.sort()
 #print([x for x in range(seeds_measured[0],seeds_measured[-1]+1) if x not in seeds_measured])
