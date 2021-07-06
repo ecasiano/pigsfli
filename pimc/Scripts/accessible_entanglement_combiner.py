@@ -16,7 +16,7 @@ import numpy as np
 
 # Set values of U sweep
 # U_list = np.round(np.geomspace(0.01,100,20),4)
-U_list = np.array([3.3])
+U_list = np.array([10.0])
 # U_list = np.array([0.500000,
 # 0.730000,
 # 1.065800,
@@ -39,6 +39,9 @@ beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
 beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
              1.75,2.0,2.5,3.0,3.5,
              4.0,4.5,5.0,5.5,6.0]
+beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
+             1.75,2.0,2.5,3.0,3.5,
+             4.0]
 # beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
 #              1.75,2.0,3.0,4.0]
 # beta_list = [7.0]
@@ -58,22 +61,17 @@ for U in U_list:
             l_max = "%d"%l_sector_wanted
             beta = "%.6f"%beta
             bin_size = "10000"
-            bins_wanted = "1000"
             D = "1"
             U = "%.6f"%(U)
             t = "1.000000"
 
             # Get path where raw data for the simulation is stored
-            path = D+"D_"+L+"_"+N+"_"+l_max+"_"+U+"_"+\
-                   t+"_"+beta+"_"+bin_size+"_"+bins_wanted+"/"
-            path = "/Users/ecasiano/Desktop/Data/"+path
+            path = "/Users/ecasiano/Desktop/PaperData/PaperData/"
+            path += D+"D_"+L+"_"+N+"_"+l_max+"_"+U+"_"+\
+            t+"_"+beta+"_"+bin_size+"/"
 
             # Stores all files in the directory
             filenames_all = os.listdir(path)
-
-            # Set size of subregion A we want to calculate (mA=l^D)
-    #         l_sector_wanted = int(L)//2
-    #         l_sector_wanted = 4
 
             # Convert strings back to numbers
             L = int(L)
@@ -81,7 +79,6 @@ for U in U_list:
             l_max = int(l_max)
             beta = float(beta)
             bin_size = int(bin_size)
-            bins_wanted = int(bins_wanted)
             D = int(D)
             U = float(U)
             t = float(t)
@@ -107,9 +104,8 @@ for U in U_list:
                     t_want = float(parameters[5]) # tunneling parameter
                     beta_want = float(parameters[6]) # imaginary time length (K_B*T)**(-1)
                     bin_size_want = int(parameters[7])
-                    bins_want = int(parameters[8]) # number of bins saved in file
-                    filetype = (parameters[9]).split("-mA") # identifies the data stored in file
-                    seed = int(parameters[10].split(".")[0]) # random seed used
+                    filetype = (parameters[8]).split("-mA") # identifies the data stored in file
+                    seed = int(parameters[9].split(".")[0]) # random seed used
 
                     if filetype[0]=='PnSquared' and int(filetype[1])==l_sector_wanted:
                         # Set parameters of simulations from different seeds we want to evaluate [D,L,N,l,U,t,beta,bins,type]
@@ -121,23 +117,22 @@ for U in U_list:
                                                   t_want,
                                                   beta_want,
                                                   bin_size_want,
-                                                  bins_want,
                                                   'PnSquared']
 
-                        if [D,L,N,l_max,U,t,beta,bin_size,bins_wanted,filetype[0]] == parameters_to_evaluate:
+                        if [D,L,N,l_max,U,t,beta,bin_size,filetype[0]] == parameters_to_evaluate:
                             if os.stat(path+filename).st_size > 0:
                                 with open(path+filename) as f:
                                    count = sum(1 for _ in f)
-                                if count == bins_wanted: # only consider files that managed to save number of bins wanted
+                                if count > 10: # only consider files that managed to save at least 10 bins
                                     files_PnSquared.append(filename)
 
                                     filename_splitted = filename.split('_')
-                                    filename_splitted[9] = 'Pn-mA'+str(l_sector_wanted)
+                                    filename_splitted[8] = 'Pn-mA'+str(l_sector_wanted)
                                     filename_Pn = "_".join(filename_splitted)
                                     files_Pn.append(filename_Pn)
 
                                     filename_splitted = filename.split('_')
-                                    filename_splitted[9] = 'SWAPn-mA'+str(l_sector_wanted)
+                                    filename_splitted[8] = 'SWAPn-mA'+str(l_sector_wanted)
                                     filename_SWAPn = "_".join(filename_splitted)
                                     files_SWAPn.append(filename_SWAPn)
 
