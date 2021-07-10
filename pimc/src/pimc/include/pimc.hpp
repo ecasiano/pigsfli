@@ -240,19 +240,26 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
     
     // File containing previous worldline configurations (paths)
     std::ifstream infile(state_name);
+    
+    if (!infile) {
+            cout << "Unable to open file";
+            exit(1); // terminate with error
+        }
 
     // For each replica, initialize vector containinig all kinks
     vector<vector<Kink> > paths(num_replicas,vector<Kink> (M*1000,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1)));
     
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
         double a0,a8,a16,a17;
-        int k=0; // kink idx counter
+        unsigned long long int a18;
         
+        int k=0; // kink idx counter
+                
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
             a16 >> a17 >> a18){
-                
+                        
             // Fill paths of first replica
             paths[0][k].tau = a0;
             paths[0][k].n = a1;
@@ -280,8 +287,9 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
     if (num_replicas==1){
     
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a10;
+        int a1,a2,a3,a4,a5,a6,a7;
         double a0,a8,a9;
+        unsigned long long int a10;
         int k=0; // kink idx counter
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
@@ -333,8 +341,9 @@ vector<int> get_num_kinks(int D, int L, int N, int l_A,
     
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
         double a0,a8,a16,a17;
+        unsigned long long int a18;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
             a16 >> a17 >> a18){
@@ -347,8 +356,9 @@ vector<int> get_num_kinks(int D, int L, int N, int l_A,
     
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a10;
+        int a1,a2,a3,a4,a5,a6,a7;
         double a0,a8,a9;
+        unsigned long long int a10;
 
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
               a8 >> a9 >> a10){
@@ -388,8 +398,9 @@ double get_mu(int D, int L, int N, int l_A,
     mu = -1;
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
         double a0,a8,a16,a17;
+        unsigned long long int a18;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
             a16 >> a17 >> a18){
@@ -400,8 +411,9 @@ double get_mu(int D, int L, int N, int l_A,
     
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a10;
+        int a1,a2,a3,a4,a5,a6,a7;
         double a0,a8,a9;
+        unsigned long long int a10;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
               a8 >> a9 >> a10){
@@ -433,7 +445,7 @@ unsigned long long int get_iteration_idx(int D, int L, int N, int l_A,
     to_string(beta)+"_"+to_string(bin_size)+"_"+
     "system-state_"+to_string(seed)+"_"+subgeometry+"_"+
     to_string(num_replicas)+".dat";
-    
+        
     // NOTE: For consistency, may rewrite function to get the number
     // of kinks from the path structure created with load_paths()
     std::ifstream infile(state_name);
@@ -441,8 +453,9 @@ unsigned long long int get_iteration_idx(int D, int L, int N, int l_A,
     iteration_idx = -1;
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
         double a0,a8,a16,a17;
+        unsigned long long int a18;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
             a16 >> a17 >> a18){
@@ -453,8 +466,9 @@ unsigned long long int get_iteration_idx(int D, int L, int N, int l_A,
     
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a10;
+        int a1,a2,a3,a4,a5,a6,a7;
         double a0,a8,a9;
+        unsigned long long int a10;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
               a8 >> a9 >> a10){
@@ -494,8 +508,9 @@ double get_eta(int D, int L, int N, int l_A,
     eta = -1;
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15,a18;
+        int a1,a2,a3,a4,a5,a6,a7,a9,a10,a11,a12,a13,a14,a15;
         double a0,a8,a16,a17;
+        unsigned long long int a18;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14 >> a15 >>
             a16 >> a17 >> a18){
@@ -506,8 +521,9 @@ double get_eta(int D, int L, int N, int l_A,
     
     if (num_replicas==1){
         // Assume 16 elements per line (two replicas max)
-        int a1,a2,a3,a4,a5,a6,a7,a10;
+        int a1,a2,a3,a4,a5,a6,a7;
         double a0,a8,a9;
+        unsigned long long int a10;
         
         while(infile >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7 >>
               a8 >> a9 >> a10){
