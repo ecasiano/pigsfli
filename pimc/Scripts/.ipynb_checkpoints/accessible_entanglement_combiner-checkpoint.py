@@ -17,21 +17,22 @@ import numpy as np
 # Set values of U sweep
 # U_list = np.round(np.geomspace(0.01,100,20),4)
 U_list = np.array([10.0])
-# U_list = np.array([0.500000,
-# 0.730000,
-# 1.065800,
-# 1.556100, 
-# 2.272000, 
-# 3.300000, 
-# 4.843100, 
-# 7.071100,   
-# 10.323900,
-# 16.666667, 
-# 22.007100, 
-# 32.130800,
-# 46.911700,
-# 68.492100,
-# 100.000000])
+U_list = np.array([0.500000,
+0.730000,
+1.065800,
+1.556100, 
+2.272000, 
+3.300000, 
+4.843100, 
+7.071100,   
+10.323900,
+16.666667, 
+22.007100, 
+32.130800,
+46.911700,
+68.492100,
+100.000000])
+U_list=np.array([3.310000])
 
 beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
              1.75,2.0,2.25,2.50,2.75,3.0,3.25,
@@ -44,12 +45,12 @@ beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
              4.0]
 # beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
 #              1.75,2.0,3.0,4.0]
-# beta_list = [7.0]
+beta_list = [4.0]
 S2_plot = []
 S2_err_plot = []
 for U in U_list:
     for beta in beta_list:
-        for l_sector_wanted in [4]:
+        for l_sector_wanted in [2]:
         
             incomplete_seeds = [] 
             seeds_list = list(range(1000))
@@ -67,6 +68,7 @@ for U in U_list:
 
             # Get path where raw data for the simulation is stored
             path = "/Users/ecasiano/Desktop/PaperData/PaperData/"
+            path = "/Users/ecasiano/Desktop/"
             path += D+"D_"+L+"_"+N+"_"+l_max+"_"+U+"_"+\
             t+"_"+beta+"_"+bin_size+"/"
 
@@ -123,7 +125,7 @@ for U in U_list:
                             if os.stat(path+filename).st_size > 0:
                                 with open(path+filename) as f:
                                    count = sum(1 for _ in f)
-                                if count > 10: # only consider files that managed to save at least 10 bins
+                                if count > 5: # only consider files that managed to save at least 10 bins
                                     files_PnSquared.append(filename)
 
                                     filename_splitted = filename.split('_')
@@ -157,14 +159,19 @@ for U in U_list:
             SWAPn_col_sums = np.zeros((number_of_seeds,N+1)).astype(int)
             for s in range(number_of_seeds):
 
-                data = np.loadtxt(path+files_PnSquared[s])
+                print("seed: ", s)
+                data = np.loadtxt(path+files_PnSquared[s])[0:500]
                 PnSquared_col_sums[s] = np.sum(data,axis=0)
+                print("1")
 
-                data = np.loadtxt(path+files_Pn[s])
+                data = np.loadtxt(path+files_Pn[s])[0:500]
+                print("here good")
                 Pn_col_sums[s] = np.sum(data,axis=0)
+                print("2")
 
-                data = np.loadtxt(path+files_SWAPn[s])
+                data = np.loadtxt(path+files_SWAPn[s])[0:500]
                 SWAPn_col_sums[s] = np.sum(data,axis=0)
+                print("3")
 
             # Jacknife 
             SWAPn_col_seed_sum = np.sum(SWAPn_col_sums,axis=0) # shape: (1,N+1)... I think

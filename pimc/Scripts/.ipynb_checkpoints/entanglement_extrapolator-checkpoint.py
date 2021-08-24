@@ -1,12 +1,18 @@
 # Takes average <S2> from many random seeds
 # and combines them into one file
 
+# entanglement_extrapolator.py
+
 import os
 import numpy as np
+import scipy
+from scipy import optimize
+
+# Define the 3-parameter exponential function
+def exponential(x, c1, c2, c3):
+    return c3 + c1*np.exp(-x*c2)
 
 # Set values of U sweep
-# U_list = np.round(np.geomspace(0.01,100,20),4)
-U_list = np.array([10])
 U_list = np.array([0.500000,
 0.730000,
 1.065800,
@@ -22,32 +28,31 @@ U_list = np.array([0.500000,
 46.911700,
 68.492100,
 100.000000])
-U_list = np.array([3.31])
 
-beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
-             1.75,2.0,2.25,2.50,2.75,3.0,3.25,
-             3.50,3.75,4.0,5.0,6.0]
-beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
-             1.75,2.0,2.5,3.0,3.5,
-             4.0,4.5,5.0,5.5,6.0]
-beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
-             1.75,2.0,2.5,3.0,3.5,
-             4.0]
-# beta_list = [1.0]
-# beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
-#              1.75,2.0,3.0,4.0]
-beta_list = [8.0]
-beta_list = [2**i for i in range(0,4)]
-beta_list = [1,2,3,4,6,8]
-beta_list = [4.0]
+U_list = np.array([0.500000,
+0.730000,
+1.065800,
+1.556100, 
+2.272000, 
+3.300000])
 
+beta_list = [2**i for i in range(1,5)]
+x_array = beta_list
+# beta_list = [3,4,6,8]
+
+# Array where extrapolated S2 values will be stored
+S2s_extrapolated = []
+S2s_extrapolated_err = []
 
 # Append sweep results to same list so we can copy paste to plotting script
 S2_plot = []
 S2_err_plot = []
 for U in U_list:
+    # To save x,y data to be fitted with a 3-parameter exponential
+    y_array_exp = [] 
+    y_array_exp_err = [] 
     for beta in beta_list:
-        for mA_sector_wanted in [2]:
+        for mA_sector_wanted in [8]:
             
             incomplete_seeds = [] 
             seeds_list = list(range(1000))
@@ -65,7 +70,6 @@ for U in U_list:
 
             # Get path where raw data for the simulation is stored
             path = "/Users/ecasiano/Desktop/PaperData/PaperData/"
-            path = "/Users/ecasiano/Desktop/"
             path += D+"D_"+L+"_"+N+"_"+l_max+"_"+U+"_"+\
             t+"_"+beta+"_"+bin_size+"/"
 
@@ -165,19 +169,50 @@ for U in U_list:
             S2_plot.append(S2_mean[l_want])
             S2_err_plot.append(S2_stderr[l_want])
             
-    print("\n\n")
-    for result in S2_plot:
-        print(f"{result:0.8f}",end=",")
-    print("\n\n")
-    for error in S2_err_plot:
-        print(f"{error:0.8f}",end=",")
+            # Append to data point array for this U/t value
+            y_array_exp.append(S2_mean[l_want])
+            y_array_exp_err.append(S2_stderr[l_want])
+            
+    # Choose the largest beta data point as the guess for c3 
+    c3_guess = y_array_exp[-1]
+    
+    # Perform extrapolation for this particular beta value
+    popt_exponential, pcov_exponential = scipy.optimize.curve_fit(exponential, x_array, y_array_exp, p0=[1,1, 1], sigma=y_array_exp_err)
 
-    print("\n")
-    print("<S2>=",S2_plot)
-    print("S2_err=",S2_err_plot)
-    print("beta=",beta_list)
+    # Retrieve fitting parameters
+    c1,c2,c3 = popt_exponential
+    
+    # Retrieve error of the extrapolated S2 (i.e c3 parameter)
+    c3_err = np.sqrt(np.diag(pcov_exponential)[2])
 
+    # Save the extrapolated value of S2 for large beta
+    S2s_extrapolated.append(c3)
+    S2s_extrapolated_err.append(c3_err)
+
+    # Reset the data array
+    y_array_exp = []
+    y_array_exp_err = []
+       
+#     print("\n\n")
+#     for result in S2_plot:
+#         print(f"{result:0.8f}",end=",")
+#     print("\n\n")
+#     for error in S2_err_plot:
+#         print(f"{error:0.8f}",end=",")
+
+#     print("\n")
+#     print("<S2>=",S2_plot)
+#     print("S2_err=",S2_err_plot)
+#     print("beta=",beta_list)
+
+print("\n")
+print("U/t: ", U_list)
+print("Extrapolated S2s: ", S2s_extrapolated, end=",")
+print("\n Extrapolated S2s errors: ", S2s_extrapolated_err, end=",")
+
+print("\n")
 print("number of seeds: ",number_of_seeds)
 print("incomplete seeds: ",[int(i) for i in incomplete_seeds])
+
 #seeds_measured.sort()
 #print([x for x in range(seeds_measured[0],seeds_measured[-1]+1) if x not in seeds_measured])
