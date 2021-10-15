@@ -1,12 +1,15 @@
+# entanglement_combiner.py (now also uses jacknife to get S2)
+
 # Takes average <S2> from many random seeds
 # and combines them into one file
+
+# Made for files in which SWAP histograms are of size 1
 
 import os
 import numpy as np
 
 # Set values of U sweep
 # U_list = np.round(np.geomspace(0.01,100,20),4)
-U_list = np.array([10])
 U_list = np.array([0.500000,
 0.730000,
 1.065800,
@@ -22,7 +25,9 @@ U_list = np.array([0.500000,
 46.911700,
 68.492100,
 100.000000])
-U_list = np.array([3.31])
+
+U_list = [U_list[-10]]
+# U_list = [16.666667]
 
 beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
              1.75,2.0,2.25,2.50,2.75,3.0,3.25,
@@ -39,33 +44,53 @@ beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
 beta_list = [8.0]
 beta_list = [2**i for i in range(0,4)]
 beta_list = [1,2,3,4,6,8]
-beta_list = [4.0]
+beta_list = [1,2,3,4,5,6]
+beta_list = [2,4,6,8,10] # use this for the 32x32 system
+beta_list = [1,2,4,8,16,32]
+# beta_list = [2,4,6,8,10,12,16,20,24]
 
+
+# bin size
+bs = 10001
+
+# dimension of the hypercube (1,2,or3)
+D = 1
+
+# linear size of the hypercube
+L = 256
+
+# total number of particles in the system
+N = 256
+
+# maximum linear size of the subregion
+l_max = 128
 
 # Append sweep results to same list so we can copy paste to plotting script
 S2_plot = []
 S2_err_plot = []
 for U in U_list:
     for beta in beta_list:
-        for mA_sector_wanted in [2]:
+        for lA_sector_wanted in [128]:
+            
+            # total number of sites in the subregion (square geom.)
+            mA_sector_wanted = lA_sector_wanted**D
             
             incomplete_seeds = [] 
             seeds_list = list(range(1000))
             seeds_measured = []
 
             # Set desired parameters of calculation
-            L = "%d"%(2*mA_sector_wanted)
-            N = "%d"%(2*mA_sector_wanted)
-            l_max = "%d"%mA_sector_wanted
+            L = "%d"%(L)
+            N = "%d"%(N)
+            l_max = "%d"%l_max
             beta = "%.6f"%beta
-            bin_size = "10000"
-            D = "1"
+            bin_size = "%d"%bs
+            D = "%d"%D
             U = "%.6f"%(U)
             t = "1.000000"
 
             # Get path where raw data for the simulation is stored
             path = "/Users/ecasiano/Desktop/PaperData/PaperData/"
-            path = "/Users/ecasiano/Desktop/"
             path += D+"D_"+L+"_"+N+"_"+l_max+"_"+U+"_"+\
             t+"_"+beta+"_"+bin_size+"/"
 
@@ -121,7 +146,7 @@ for U in U_list:
                             if os.stat(path+filename).st_size > 0:
                                 with open(path+filename) as f:
                                    count = sum(1 for _ in f)
-                                if count > 5: # only consider files that managed to save at least 100 bins
+                                if count > 1: # only consider files that managed to save at least 100 bins
                                     files_SWAP.append(filename)
                                     seeds_measured.append(seed)
                                 else:
@@ -137,33 +162,45 @@ for U in U_list:
             
             print("\nN: ",N)
             print("L: ",L)
-            print("partition size: ", mA_sector_wanted)
+            print("l_A: ", lA_sector_wanted)
             print("U: ",U)
             print("beta: ",beta)
 
+            # Get column sum of SWAP files for each seed
+            m_max = l_max**D # total number of sites in SWAP region
+            SWAP_col_sums = np.zeros((number_of_seeds,m_max+1)).astype(int)
             combined_SWAP_data = np.zeros((number_of_seeds,columns_per_file))
             for i,filename in enumerate(files_SWAP):
-#                 print(path+filename)
                 data = np.loadtxt(path+filename)
                 data_mean = np.mean(data,axis=0)
-                combined_SWAP_data[i] = data_mean
-
-            # Calculate S2 of each bin
-            SWAP_0 = combined_SWAP_data[:,0]
-            S2_data = -np.log(combined_SWAP_data / SWAP_0[:,None])
+                combined_SWAP_data[i] = data_mean 
+                
+                SWAP_col_sums[i] = np.sum(data,axis=0)
+                
+            # --- Jacknife --- #
+            SWAP_col_seed_sum = np.sum(SWAP_col_sums,axis=0)
+            
+            # Initialize structure where jacknifed S2 values will be stored
+            S2_jacknifed = np.zeros(SWAP_col_sums.shape)
+            
+            for i in range(SWAP_col_sums.shape[0]):
+                
+                # Generate jacknifed data
+                SWAP_jacknifed_sum = SWAP_col_seed_sum - SWAP_col_sums[i]
+                
+                SWAP_m = SWAP_jacknifed_sum
+                SWAP_0 = SWAP_jacknifed_sum[0]
+                S2_jacknifed[i] = -np.log(SWAP_m/SWAP_0)
 
             # Get mean and std dev,err of S2
-            S2_mean = np.mean(S2_data,axis=0)
-            S2_stderr = np.std(S2_data,axis=0)/np.sqrt(number_of_seeds)
+            S2_mean = np.mean(S2_jacknifed,axis=0)
+            S2_stderr = np.std(S2_jacknifed,axis=0)  * np.sqrt(S2_jacknifed.shape[0])
 
-#             # Print out <S2> +/- error
-#             for l in range(columns_per_file):
-#                 print(f"<S2(l={l})> = {S2_mean[l]:0.8f} +/- {S2_stderr[l]:0.8f}")
             print("<S2> = %.4f +/- %.4f"%(S2_mean[mA_sector_wanted],S2_stderr[mA_sector_wanted]))
 
             # Save the l=2 results
-            S2_plot.append(S2_mean[l_want])
-            S2_err_plot.append(S2_stderr[l_want])
+            S2_plot.append(S2_mean[mA_sector_wanted])
+            S2_err_plot.append(S2_stderr[mA_sector_wanted])
             
     print("\n\n")
     for result in S2_plot:
@@ -176,6 +213,9 @@ for U in U_list:
     print("<S2>=",S2_plot)
     print("S2_err=",S2_err_plot)
     print("beta=",beta_list)
+    
+    print("mA_sector_wanted ",mA_sector_wanted)
+
 
 print("number of seeds: ",number_of_seeds)
 print("incomplete seeds: ",[int(i) for i in incomplete_seeds])

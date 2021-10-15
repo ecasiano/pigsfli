@@ -125,7 +125,7 @@ for U in U_list:
                             if os.stat(path+filename).st_size > 0:
                                 with open(path+filename) as f:
                                    count = sum(1 for _ in f)
-                                if count > 5: # only consider files that managed to save at least 10 bins
+                                if count >= 5: # only consider files that managed to save at least 5 bins
                                     files_PnSquared.append(filename)
 
                                     filename_splitted = filename.split('_')
@@ -200,7 +200,7 @@ for U in U_list:
     #             S2acc_jacknifed[i] = np.sum(Pn_jacknifed_sum * S2n_jacknifed[i]) / np.sum(Pn_jacknifed_sum)
                 S2acc_jacknifed[i] = -2*np.log(np.sum(Pn_jacknifed_sum[good_nsectors] * np.sqrt(ratio_jacknifed[i][good_nsectors])) / np.sum(Pn_jacknifed_sum[good_nsectors]))
 
-                # Local particle number distribution for data poin i
+                # Local particle number distribution for data point i
                 Pn_jacknifed[i] = Pn_jacknifed_sum / np.sum(Pn_jacknifed_sum)
 
             print("Final number of seeds: ",number_of_seeds,"\n")     
