@@ -1,18 +1,14 @@
+# entanglement_combiner_no_jacknige.py (NO JACKNIFE)
+
 # Takes average <S2> from many random seeds
 # and combines them into one file
 
-# entanglement_extrapolator.py
-
 import os
 import numpy as np
-import scipy
-from scipy import optimize
-
-# Define the 3-parameter exponential function
-def exponential(x, c1, c2, c3):
-    return c3 + c1*np.exp(-x*c2)
 
 # Set values of U sweep
+# U_list = np.round(np.geomspace(0.01,100,20),4)
+U_list = np.array([10])
 U_list = np.array([0.500000,
 0.730000,
 1.065800,
@@ -26,7 +22,7 @@ U_list = np.array([0.500000,
 22.007100, 
 32.130800,
 46.911700,
-68.492100, 
+68.492100,
 100.000000])
 
 U_list = np.array([0.500000,
@@ -36,70 +32,30 @@ U_list = np.array([0.500000,
 2.272000, 
 3.300000])
 
-# Set values of U sweep
-# U_list = np.array([0.500000,
-# 0.730000,
-# 1.065800,
-# 1.556100, 
-# 2.272000, 
-# 3.300000, 
-# 4.843100, 
-# 7.071100,   
-# 10.323900,
-# 16.666667, 
-# 22.007100, 
-# 32.130800,
-# 46.911700,
-# 100.000000])
+U_list = [0.5]
 
-# U_list = np.array([0.500000,
-# 0.730000,
-# 1.065800,
-# 1.556100, 
-# 2.272000, 
-# 3.300000, 
-# 4.843100, 
-# 7.071100,   
-# 10.323900,
-# 16.666667, 
-# 22.007100, 
-# 32.130800,
-# 46.911700])
-
-# U_list = np.array([0.500000,
-# 0.730000,
-# 1.065800,
-# 1.556100, 
-# 2.272000, 
-# 3.300000,
-# 4.843100, 
-# 7.071100,
-# 10.323900])
-
-# U_list = np.array([0.500000])
-
+beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
+             1.75,2.0,2.25,2.50,2.75,3.0,3.25,
+             3.50,3.75,4.0,5.0,6.0]
+beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
+             1.75,2.0,2.5,3.0,3.5,
+             4.0,4.5,5.0,5.5,6.0]
+beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
+             1.75,2.0,2.5,3.0,3.5,
+             4.0]
+# beta_list = [1.0]
+# beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
+#              1.75,2.0,3.0,4.0]
+beta_list = [8.0]
 beta_list = [2**i for i in range(0,4)]
-beta_list = [1,2,4,8,16,32]
-beta_list = [2,4,6,8,10,12]
-x_array = beta_list
-
-# bin size
-bs = 10001
-
-# Array where extrapolated S2 values will be stored
-S2s_extrapolated = []
-S2s_extrapolated_err = []
+beta_list = [1,2,3,4,6,8]
+beta_list = [10,12]
 
 # Append sweep results to same list so we can copy paste to plotting script
 S2_plot = []
 S2_err_plot = []
 for U in U_list:
-    # To save x,y data to be fitted with a 3-parameter exponential
-    y_array_exp = [] 
-    y_array_exp_err = [] 
     for beta in beta_list:
-#         if beta == 10.0 or beta == 12.0: bs = 10000
-#         else: bs = 10001
         for mA_sector_wanted in [8]:
             
             incomplete_seeds = [] 
@@ -111,7 +67,7 @@ for U in U_list:
             N = "%d"%(2*mA_sector_wanted)
             l_max = "%d"%mA_sector_wanted
             beta = "%.6f"%beta
-            bin_size = "%d"%bs
+            bin_size = "1"
             D = "1"
             U = "%.6f"%(U)
             t = "1.000000"
@@ -173,7 +129,7 @@ for U in U_list:
                             if os.stat(path+filename).st_size > 0:
                                 with open(path+filename) as f:
                                    count = sum(1 for _ in f)
-                                if count >= 1: # only consider files that managed to save at least 100 bins
+                                if count >= 5: # only consider files that managed to save at least 5 bins
                                     files_SWAP.append(filename)
                                     seeds_measured.append(seed)
                                 else:
@@ -193,35 +149,20 @@ for U in U_list:
             print("U: ",U)
             print("beta: ",beta)
 
-            # Get column sum of SWAP files for each seed
-            m_max = l_max**D # total number of sites in SWAP region
-            SWAP_col_sums = np.zeros((number_of_seeds,m_max+1)).astype(int)
             combined_SWAP_data = np.zeros((number_of_seeds,columns_per_file))
             for i,filename in enumerate(files_SWAP):
+#                 print(path+filename)
                 data = np.loadtxt(path+filename)
                 data_mean = np.mean(data,axis=0)
-                combined_SWAP_data[i] = data_mean 
-                
-                SWAP_col_sums[i] = np.sum(data,axis=0)
-                
-            # --- Jacknife --- #
-            SWAP_col_seed_sum = np.sum(SWAP_col_sums,axis=0)
-            
-            # Initialize structure where jacknifed S2 values will be stored
-            S2_jacknifed = np.zeros(SWAP_col_sums.shape)
-            
-            for i in range(SWAP_col_sums.shape[0]):
-                
-                # Generate jacknifed data
-                SWAP_jacknifed_sum = SWAP_col_seed_sum - SWAP_col_sums[i]
-                
-                SWAP_m = SWAP_jacknifed_sum
-                SWAP_0 = SWAP_jacknifed_sum[0]
-                S2_jacknifed[i] = -np.log(SWAP_m/SWAP_0)
+                combined_SWAP_data[i] = data_mean
+
+            # Calculate S2 of each bin
+            SWAP_0 = combined_SWAP_data[:,0]
+            S2_data = -np.log(combined_SWAP_data / SWAP_0[:,None])
 
             # Get mean and std dev,err of S2
-            S2_mean = np.mean(S2_jacknifed,axis=0)
-            S2_stderr = np.std(S2_jacknifed,axis=0) * np.sqrt(S2_jacknifed.shape[0])
+            S2_mean = np.mean(S2_data,axis=0)
+            S2_stderr = np.std(S2_data,axis=0)/np.sqrt(number_of_seeds)
 
 #             # Print out <S2> +/- error
 #             for l in range(columns_per_file):
@@ -232,53 +173,19 @@ for U in U_list:
             S2_plot.append(S2_mean[l_want])
             S2_err_plot.append(S2_stderr[l_want])
             
-            # Append to data point array for this U/t value
-            y_array_exp.append(S2_mean[l_want])
-            y_array_exp_err.append(S2_stderr[l_want])
-            
-    # Choose the largest beta data point as the guess for c3 
-    c3_guess = y_array_exp[-1]
-    
-    # Perform extrapolation for this particular beta value
-    if U==100.000000:
-        popt_exponential, pcov_exponential = scipy.optimize.curve_fit(exponential, x_array[1:], y_array_exp[1:], sigma=y_array_exp_err[1:], p0=[0.9,1, y_array_exp[-1]])
-    else:
-        popt_exponential, pcov_exponential = scipy.optimize.curve_fit(exponential, x_array, y_array_exp, sigma=y_array_exp_err, p0=[0.9,1, y_array_exp[-1]])
+    print("\n\n")
+    for result in S2_plot:
+        print(f"{result:0.8f}",end=",")
+    print("\n\n")
+    for error in S2_err_plot:
+        print(f"{error:0.8f}",end=",")
 
-    # Retrieve fitting parameters
-    c1,c2,c3 = popt_exponential
-    
-    # Retrieve error of the extrapolated S2 (i.e c3 parameter)
-    c3_err = np.sqrt(np.diag(pcov_exponential)[2])
+    print("\n")
+    print("<S2>=",S2_plot)
+    print("S2_err=",S2_err_plot)
+    print("beta=",beta_list)
 
-    # Save the extrapolated value of S2 for large beta
-    S2s_extrapolated.append(c3)
-    S2s_extrapolated_err.append(c3_err)
-
-    # Reset the data array
-    y_array_exp = []
-    y_array_exp_err = []
-       
-#     print("\n\n")
-#     for result in S2_plot:
-#         print(f"{result:0.8f}",end=",")
-#     print("\n\n")
-#     for error in S2_err_plot:
-#         print(f"{error:0.8f}",end=",")
-
-#     print("\n")
-#     print("<S2>=",S2_plot)
-#     print("S2_err=",S2_err_plot)
-#     print("beta=",beta_list)
-
-print("\n")
-print("U/t: ", U_list)
-print("Extrapolated S2s: ", S2s_extrapolated, end=",")
-print("\n Extrapolated S2s errors: ", S2s_extrapolated_err, end=",")
-
-print("\n")
 print("number of seeds: ",number_of_seeds)
 print("incomplete seeds: ",[int(i) for i in incomplete_seeds])
-
 #seeds_measured.sort()
 #print([x for x in range(seeds_measured[0],seeds_measured[-1]+1) if x not in seeds_measured])

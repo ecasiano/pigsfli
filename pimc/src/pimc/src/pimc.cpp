@@ -1342,7 +1342,8 @@ cout << "U: " << U << endl;
                                                paths[REP]);
                                 n_A_last=0; // tracks subsystem n
                                 for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
-                                    n_A_last+=fock_state_at_half_plus[REP][sub_sites[m_A_primed-1]];
+                                    n_A_last+=fock_state_at_half_plus[REP][
+                                        sub_sites[m_A_primed-1]];
                                     n_A[REP][m_A_primed-1]=n_A_last; // needed to eventually compare if both replicas are on same local particle number sector
                                     Pn[m_A_primed-1][n_A_last]+=1;
                                 }
@@ -1369,8 +1370,7 @@ cout << "U: " << U << endl;
                         else{ // num_swaps>0
                         
                             // Get total local particle number for partitions of
-                            // sizes m_A_primed=0 up to m_A_primed=\
-                            vnm/
+                            // sizes m_A_primed=0 up to m_A_primed=m_A_max
                             
                             // Add count to swapped sites histogram of n-sector
                             for (int REP=0; REP<num_replicas; REP++){ // THIS LOOP IS ACTUALLY NOT NECESSARY. If we made it here, n[0]==n[1].
