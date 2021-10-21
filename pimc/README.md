@@ -21,58 +21,9 @@ This program has been successfully compiled and run on both Intel and AMD system
 
 ## Dependencies 
 
-The code is written in c++ and makes use of <a href="http://www.boost.org/">boost</a> libraries.
-
-We use many of the boost header-only libraries, but two libraries will need to be compiled: boost_program_options and boost_filesystem libraries.  Let us assume that you will be installing both blitz and boost in the folder `$HOME/local` using the GNU C++ compiler.  For icpc or clang, the changes should be obvious, and in particular for the Intel compiler you will need to use `intel-linux` as the toolset while for clang you will use `darwin`.
-
-If you don't have a `$HOME/local` you should create this directory now via
-
-```bash
-mkdir $HOME/local
-```
-
-### Boost ###
-
-FIXME! (-ecasiano)
-
-For detailed instructions on installing boost with compiled libraries please see <a href="https://www.boost.org/more/getting_started/index.html">Section 5.2</a> of the official Boost documentation.
-
-1. Download and decompress boost into `$HOME/local/src/`
-2. Change to the boost source directory
-3. Execute `bootstrap.sh`
-If you want to compile for a specific toolset you could add `--with-toolset=gcc`.  Now you are ready to install.  Execute
-
-    ```bash
-    ./b2 install --prefix=PREFIX --with-program_options --with-filesystem --with-system --with-serialization cxxflags="-std=c++14" linkflags="-std=c++14"
-    ```
-    or if you are using the `clang` compiler on mac os
-
-    ```bash
-    ./b2 install --prefix=PREFIX --toolset=darwin --with-program_options --with-filesystem --with-system --with-serialization cxxflags="-std=c++14 -stdlib=libc++" linkflags="-std=c++14 -stdlib=libc++" 
-    ```
-
-4. If you want to have multiple versions of the library compiled with different compilers you can use the `--layout=versioned` flag above, or you could add `option.set layout : versioned ;` to your `project-config.jam`.  Note: you may have to rename the `$HOME/include/blitz_VER` directory to remove the version number.
-5. You should now have a `PREFIX/include` directory containing the header files for `blitz`, `boost` and `random` and your `PREFIX/lib` directory will contain the following files (the `.dylib` files will only appear on Mac OS X)
-    ```bash
-    libblitz.a   libboost_filesystem.a      libboost_program_options.a     libboost_system.a 
-    libblitz.la  libboost_filesystem.dylib  libboost_program_options.dylib libboost_system.dylib
-    ```
-
-6. Update the `LD_LIBRARY_PATH` (or `DYLD_LIBRARY_PATH` on mac os) variable inside your `.bahsrc` or `.bash_profile` to include `PREFIX/lib` e.g.
-
-    ```bash
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:PREFIX/lib
-    ```
-
-7. Source your `.bashrc` or `.bash_profile`.
-
-    ```bash
-    source ~/.bashrc
-    ```
-
 ## Path Integral Monte Carlo
 
-After successfully installing blitz and boost you are now ready to compile the
+After successfully installing the dependencies (which I think is only boost and the header librarires) you are now ready to compile the
 main pimc program on your system.
 PIMC uses CMake for build, test and installation automation. For details on using CMake consult https://cmake.org/documentation/. In short, the following steps should work on UNIX-like systems:
 
@@ -130,172 +81,227 @@ you an idea about which ones are mandatory.
 
 ### Quick Start 
 
-If you want to perform a quick test-run for bulk helium you could try something like:
+If you want to perform a quick test-run for a one-dimensional chain of 4 sites and 4 particles, you can run the following command:
 ```bash
-./pimc.e -T 5 -N 16 -n 0.02198 -t 0.01 -M 8 -C 1.0 -I aziz -X free -E 10000 -S 20 -l 7 -u 0.02 --relax
+./pigsl.e -D 1 -L 4 -N 4 -l 2 -U 3.300000 --mu 6.0 --subgeometry square --measurement-frequency 1 --beta 1.0 --rng boost_mt19937 --num-replicas 1 --bin-size 10001 --bins-wanted 100 --seed 0
 ```
 
 In order for this to work, you will need a folder named `OUTPUT` in the directory where you type the command as it will produce output files in `OUTPUT` that contain all the results of the code.  Each run of the code is associated with a unique identifying integer: the `PIMCID`.  The options used in this demo include a subset of all the possible options:
 
 | Code Option | Description |
 | :-----------: | ----------- |
-|`T`     |  temperature in kelvin |
-|`N`     |  number of particles |
-|`n`     |  density in &Aring;<sup>-ndim</sup> (ndim=spatial dimension) |
-|`t`     |  the imaginary time step tau |
-|`M`     |  number of time slices involved in a bisection move |
-|`C`     |  worm prefactor constant |
-|`I`     |  interaction potential |
-|`X`     |  external potential |
-|`E`     |  number of equilibration steps |
-|`S`     |  number of production bins to output |
-|`l`     |  potential cutoff length in &Aring; |
-|`u`     |  chemical potential in kelvin |
-|`relax` |  adjust the worm constant to ensure we are in the diagonal ensemble ~75% of the simulation |
-|`o`     |  the number of configurations to be stored to disk|
-|`p`     |  process or cpu number|
-|`R`     |  restart the simulation with a PIMCID|
-|`W`     |  the wall clock run limit in hours|
-|`s`     |  supply a gce-state-* file to start the simulation from|
-|`P`     |  number of imaginary time slices|
-|`D`     |  size of the center of mass move in &Aring;|
-|`d`     |  size of the single slice displace move in &Aring;|
-|`m`     |  mass of the particles in AMU |
-|`b`     |  the type of simulation cell|
-|`L`     |  linear system size in &Aring;|
-|`a`     |  scattering length  in &Aring;|
-|`c`     |  strength of the integrated delta function interaction|
-|`Lx`     |  linear system size in the x-direction &Aring;|
-|`Ly`     |  linear system size in the y-direction in &Aring;|
-|`Lz`     |  linear system size in the z-direction in &Aring;|
-|`action`     |  the type of effective action used in the simulation |
-|`canonical`     |  restrict to the canonical ensemble |
-|`window`     |  the particle number window for restricting number fluctuations in the canonical ensemble|
-|`imaginary_time_length`  |  the imaginary time extent in K<sup>-1</sup>|
-|`wavefunction`  |  the type of trial wavefunction|
-|`dimension`  |  output the spatial dimension that the code was compiled with |
-|`pigs`     |  perform a simulation at T = 0 K|
-|`max_wind`     |  The maximum winding sector to be sampled.  Default=1|
-|`staging`     |  Use staging instead of bisection for diagonal updates.|
+|`D`     |  Dimension of hypercubic lattice |
+|`L`     |  Linear size of hypercube |
+|`N`     |  Total number of particles |
+|`U`     |  Interaction potential |
+|`l`     |  Linear size of hypercubic subregion |
+|`sweeps`     |  Number of Monte Carlo sweeps |
+|`beta`     |  Set length of imaginary time |
+|`mu`     |  Chemical potential |
+|`t`     |  Tunneling parameter |
+|`canonical`     |  set to false for grand canonical simulation |
+|`seed`     |  Random seed value |
+|`sweeps-pre`     |  Number pre-equilibration sweeps |
+|`bin-size` |  Number of measurements per bin |
+|`subgeometry`     |  Shape of subregion: square OR strip|
+|`num-replicas`     |  Number of replicas|
+|`measurement-frequency`     |  Measurements will be performed every other this amount |
+|`rng`     |  Random Number Generator type|
+|`restart`     |  continue simulation from a loaded rng state |
+|`no-accessible`     |  do not calculate accessible entanglement entropies|
 
 All options, including lists of possible values and default values can be seen
 by using the `--help flag`.
 
 The output of the above command should yield something like:
 ```bash
-  _____    _____   __  __    _____
- |  __ \  |_   _| |  \/  |  / ____|
- | |__) |   | |   | \  / | | |
- |  ___/    | |   | |\/| | | |
- | |       _| |_  | |  | | | |____
- |_|      |_____| |_|  |_|  \_____|
+uuid: 758c7ce2-8924-4982-9dd6-330e6fd4297f
+sub-sites: 0 1
+U: 3.3
 
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Equilibration Stage.
-0.72	 1.00000	 0.95000	   19	0.026101
-0.72	 0.95000	 0.90250	   18	0.024728
-0.59	 0.90250	 0.81225	   18	0.024728
-0.60	 0.81225	 0.73102	   19	0.026101
-0.75	 0.73102	 0.69447	   16	0.021980
-0.63	 0.69447	 0.65975	   17	0.023354
-0.74	 0.65975	 0.62676	   20	0.027475
-0.81	 0.62676	 0.62676	   18	0.024728
-0.72	 0.62676	 0.59542	   17	0.023354
-0.77	 0.59542	 0.59542	   18	0.024728
-0.74	 0.59542	 0.56565	   17	0.023354
-0.79	 0.56565	 0.56565	   19	0.026101
-0.72	 0.56565	 0.53737	   13	0.017859
-0.73	 0.53737	 0.51050	   17	0.023354
-0.75	 0.51050	 0.51050	   15	0.020606
-0.74	 0.51050	 0.48498	   17	0.023354
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Measurement Stage.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #   1 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #   2 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #   3 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #   4 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #   5 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #   6 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #   7 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #   8 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #   9 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #  10 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #  11 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #  12 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #  13 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #  14 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #  15 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #  16 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #  17 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #  18 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #  19 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Bin #  20 stored to disk.
-[PIMCID: c5555b0b-a259-49bd-a4b1-7a12b8214fd4] - Measurement complete.
+  _           _   _   _           ______ _____ _____  _____
+ | |         | | | | (_)          | ___ \_   _|  __ \/  ___|
+ | |     __ _| |_| |_ _  ___ ___  | |_/ / | | | |  \/\ `--.
+ | |    / _` | __| __| |/ __/ _ \ |  __/  | | | | __  `--. \
+ | |___| (_| | |_| |_| | (_|  __/ | |    _| |_| |_\ \/\__/ /
+ \_____/\__,_|\__|\__|_|\___\___| \_|    \___/ \____/\____/
+
+
+Stage (1/3): Determining mu and eta...
+
+mu: 6 eta: 0.5 Z-frac: 38.1003%
+N     P(N)
+4     *
+5     ****************************************************************************************************
+<N>: 4.99561
+
+mu: 0.575612 eta: 0.207591 Z-frac: 33.9793%
+N     P(N)
+4     **********************************************
+5     *******************************************************
+<N>: 4.54745
+
+mu: 0.385238 eta: 0.217824 Z-frac: 30.9912%
+N     P(N)
+3     ***
+4     ***************************************************
+5     ***********************************************
+<N>: 4.44279
+
+mu: -1.09811 eta: 0.220017 Z-frac: 32.5504%
+N     P(N)
+3     *********************************************************
+4     *****************************************
+5     ***
+<N>: 3.46202
+
+mu: 0.397318 eta: 0.230872 Z-frac: 24.2013%
+N     P(N)
+3     ******************
+4     ******************************************************************
+5     *****************
+<N>: 3.98683
+
+Fine tuning eta... (Want: 10% < Z-frac < 15%)
+
+mu: 0.397318 eta: 0.220616 Z-frac: 30.7196%
+N     P(N)
+4     ****************************************************
+5     *************************************************
+<N>: 4.48507
+
+mu: 0.457067 eta: 0.110308 Z-frac: 52.8473%
+N     P(N)
+4     **************************************************
+5     ***************************************************
+<N>: 4.50258
+
+mu: 0.446738 eta: 0.159947 Z-frac: 32.3957%
+N     P(N)
+3     *****************************
+4     *******************************************************************
+5     *****
+<N>: 3.76762
+
+mu: 0.446738 eta: 0.0799734 Z-frac: 59.7352%
+N     P(N)
+4     *******************************************************
+5     **********************************************
+<N>: 4.45898
+
+mu: 0.611192 eta: 0.115961 Z-frac: 46.8267%
+N     P(N)
+3     ***********
+4     ******************************************************
+5     *************************************
+<N>: 4.26167
+
+mu: 0.611192 eta: 0.168144 Z-frac: 34.4293%
+N     P(N)
+3     ************
+4     ************************************************************
+5     *****************************
+<N>: 4.17189
+
+mu: 0.611192 eta: 0.084072 Z-frac: 60.8987%
+N     P(N)
+3     *
+4     **********************************************
+5     ******************************************************
+<N>: 4.52409
+
+mu: -1.48159 eta: 0.121904 Z-frac: 42.0507%
+N     P(N)
+3     *********************************************
+4     ***************************************************
+5     ******
+<N>: 3.61595
+
+mu: -0.458574 eta: 0.121904 Z-frac: 47.8991%
+N     P(N)
+3     ********************************************
+4     *****************************************************
+5     ****
+<N>: 3.59397
+
+mu: 0.843493 eta: 0.176761 Z-frac: 26.578%
+N     P(N)
+3     *********************
+4     *****************************************************************************
+5     ****
+<N>: 3.82353
+
+mu: 0.843493 eta: 0.0883807 Z-frac: 43.504%
+N     P(N)
+3     **********************
+4     *******************************************************************************
+<N>: 3.78818
+
+Stage (2/3): Equilibrating...
+
+Stage (3/3): Main Monte Carlo loop...
+
+-------- Detailed Balance --------
+
+Insert Worm: 8715/678452
+Delete Worm: 7888/8459
+
+Insert Anti: 8346/526521
+Delete Anti: 7561/13666
+
+InsertZero Worm: 126201/1421550
+DeleteZero Worm: 127192/136187
+
+InsertZero Anti: 125879/1041305
+DeleteZero Anti: 126870/225080
+
+InsertBeta Worm: 127788/1417684
+DeleteBeta Worm: 128409/138049
+
+InsertBeta Anti: 125852/1045108
+DeleteBeta Anti: 126473/225221
+
+Advance Head: 325136/328752
+Recede  Head: 325192/325705
+
+Advance Tail: 325756/326279
+Recede  Tail: 325976/329340
+
+IKBH: 292313/757246
+DKBH: 291279/328708
+
+IKAH: 175833/756466
+DKAH: 176165/208877
+
+IKBT: 176453/582403
+DKBT: 176670/209532
+
+IKAT: 291004/756383
+DKAT: 291485/329540
+
+SWAP: 0/0
+UNSWAP: 0/0
+
+SWAP Advance Head: 0/0
+SWAP Recede Head: 0/0
+
+SWAP Advance Tail: 0/0
+SWAP Recede Tail: 0/0
+
+beta: 1
+
+sweeps: 1e+07
+Z_ctr: 3101
+Z_frac: 58.2785% (3101/5321)
+
+<N>: 4.53563
+
+Elapsed time: 7.34362 seconds
 ```
 
-during the relaxation process where `PIMCID` is a uuid, and 20 measurements will be output to disk.  To analyze the results the code, you will need to obtain a number of python programs located in a `SCRIPTS` directory which can be obtained via:
+The above shows the process in which $\mu$ is calibrated such that we get an average number of particles close to our chosen $N$. In stage 2, $\eta$ is calibrated such that we obtain a diagonal fraction of about 45%. And finally, stage 3 is composed of a sub-stage where the system runs for a while for equilibration, then after that, measurements start to be taken until the number of bins desired are obtained.
 
-```bash
-svn checkout --username=SVNID http://svn.delmaestro.org/projects/SCRIPTS/ $HOME/local/pimcscripts
-```
-
-Which will place them in a folder `pimcscripts` in your `$HOME/local/`
-directory.  Many of these depend on some general utility modules that should be
-added to this directory on your local machine.
-
-1. Move in to the `pimcscripts` directory
-2. Download the relevant scripts (replacing `svnID` with your svn username)
-
-    ```bash
-    svn export --username=svnID http://svn.delmaestro.org/pyutils/pyutils.py
-    svn export --username=svnID http://svn.delmaestro.org/pyutils/loadgmt.py
-    svn export --username=svnID http://svn.delmaestro.org/pyutils/kevent.py
-    ```
-
-It may be advantageous to add a new environment variable for the location of
-this folder to your `.bashrc` as you will use these scripts extensively.  In
-order to take advantage of many of the plotting options you will need to have
-various python libraries installed such as
-[Matplotlib](http://matplotlib.sourceforge.net/).  For the extra color options
-you will need to download and install the gradient files from
-[CPT-City](http://soliton.vm.bytemark.co.uk/pub/cpt-city/pkg/)
-
-After this has been completed, you can analyze the results of your run via
-
-```bash
-python $HOME/local/pimcsripts/pimcave.py OUTPUT/gce-estimator-05.000-008.996-+000.020-0.01000-c5555b0b-a259-49bd-a4b1-7a12b8214fd4.dat
-```
-
-where `c5555b0b-a259-49bd-a4b1-7a12b8214fd4` needs to be replaced with the unique identifier generated on your machine.  The results should yield something like:
-
-```bash
-# PIMCID c5555b0b-a259-49bd-a4b1-7a12b8214fd4
-# Number Samples     20
-K                  342.70210	    16.30687	 4.76
-V                 -480.38334	    17.01402	 3.54
-E                 -137.68124	    11.58631	 8.42
-E_mu              -138.03494	    11.58918	 8.40
-K/N                 19.18999	     0.72609	 3.78
-V/N                -26.93371	     0.53264	 1.98
-E/N                 -7.74372	     0.58986	 7.62
-N                   17.68500	     0.32215	 1.82
-N^2                315.36300	    10.87876	 3.45
-density              0.02429	     0.00044	 1.82
-us                1178.62311	    23.20618	 1.97
-mcsteps            127.30000	     2.28738	 1.80
-diagonal             0.79007	     0.01326	 1.68
-```
-
-The basic idea of running the program is that one needs to setup the simulation
-cell, by defining either its specific geometry via the size (`L`) flag, or by a
-combination of density (`n`) and number of particles (`N`).  At present, two
-types of simulation cells are possible, a hypercube in 1,2 or 3 dimensions with
-periodic boundary conditions and a cylinder in 3 dimensions, that is obtained
-by defining a radius (`r`). One then needs to setup the details of the
-simulation, including the temperature (`T`), chemical potential (`u`),
-interaction (`I`) and external (`X`) potential.  The simulation details are then
-set via the imaginary time step (`t`), worm parameter (`C`) and number of
-equilibration (`E`) steps and production output bins (`S`). A more detailed
-grasp of all possible program options can be obtained by reading the main
-driver file `pdrive.cpp`.
+To analyze the results of the simulation, you will need to use a number of python programs located in the `scripts` directory which can be obtained via:
 
 ### Output
 
