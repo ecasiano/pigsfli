@@ -6,13 +6,11 @@ This webpage contains the details of a worm algorithm path integral quantum Mont
 
 - T = 0: [N.V. Prokof'ev, B.V. Svistunov and I.S. Tupitsyn, J. Exp. Theor <b>113</b>, 1366 (1997)](https://arxiv.org/pdf/cond-mat/9703200.pdf)
 
-It can be used to simulate indistinguishable bosons with various types of realistic interactions in one, two and three spatial dimensions. As written, it takes a large number of command line options and allows for the measurement of essentially any physical observable of interest.
+It can be used to simulate the [Bose-Hubbard Model](https://en.wikipedia.org/wiki/Bose–Hubbard_model) in one, two and three spatial dimensions. In it's current version, it's main application is the calculation of Renyi Entanglement Entropies to quantify spatial entanglement between two spatial subregions of a lattice.
 
-The design philosophy included the goal of abstracting the actual implementation of the WA-PIMC method to a kernel that will never need to be touched by the end user.  The code can be easily extended to study a wide variety of situations by including new types of containers, potentials estimators and communicators.
+If you have questions, please contact me at ecasiano@vols.@utk.edu.
 
-If you have questions, bug reports or plan to use this code for scientific research, please contact me at Adrian.DelMaestro@utk.edu.
-
-The development and maintenance of this code base has been supported in part by the National Science Foundation under Award Nos. [DMR-1553991](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991) and [DMR-1808440](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1808440).
+The development and maintenance of this code base has been supported in part by the National Science Foundation under Awar Nos. [DMR-1553991](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991).
 
 [<img width="100" src="https://www.nsf.gov/images/logos/NSF_4-Color_bitmap_Logo.png">](http://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991)
 
