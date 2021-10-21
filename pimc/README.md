@@ -305,19 +305,17 @@ To analyze the results of the simulation, you will need to use a number of pytho
 
 ### Output
 
-The results of running the code are a number of data, state and log files that reside in the `OUTPUT` directory.  If the code is run for the cylinder geometry, there will be an additional copy of the files in `OUTPUT/CYLINDER` which contain measurements that have been restricted to some cutoff radius indicated by including the `w` flag when running.  The generic output files are:
+The results of running the code are a number of data and state files that live in the directory where the code is ran.  If the code is run for more than one replica, there will be an additional files related to the computation of Renyi entanglement entropies.  The generic output files are:
 
 | Output File | Description |
 | ----------- | ----------- |
-|`gce-estimator-T-L-u-t-PIMCID.dat` |  The main estimator file.  Includes binned averages of various non-vector estimators like the energy and density of particles.|
-|`gce-log-T-L-u-t-PIMCID.dat` |  The log file, which includes all the details of the simulation (including the command needed to restart it) and details on acceptance and output. |
-|`gce-number-T-L-u-t-PIMCID.dat` |  The number probability distribution |
-|`gce-obdm-T-L-u-t-PIMCID.dat` |  The one body density matrix |
-|`gce-pair-T-L-u-t-PIMCID.dat` | The pair correlation function |
-|`gce-pcycle-T-L-u-t-PIMCID.dat` | The permutation cycle distribution |
-|`gce-radial-T-L-u-t-PIMCID.dat` | The radial density |
-|`gce-state-T-L-u-t-PIMCID.dat` | The state file (used to restart the simulation) |
-|`gce-super-T-L-u-t-PIMCID.dat` |  Contains all superfluid estimators |
+|`D_L_N_l_U_t_beta_bin-V_seed_subgeometry_num-replicas.dat` | potential energy |
+|`D_L_N_l_U_t_beta_bin-K_seed_subgeometry_num-replicas.dat` | kinetic energy |
+|`D_L_N_l_U_t_beta_bin-SWAP_seed_subgeometry_num-replicas.dat` | times that different number of SWAP kinks were measured |
+|`D_L_N_l_U_t_beta_bin-SWAP_seed_subgeometry_num-replicas.dat` | times that different number of SWAP kinks were measured |
+|`D_L_N_l_U_t_beta_bin-SWAP_seed_subgeometry_num-replicas.dat` | times that different number of SWAP kinks were measured |
+|`D_L_N_l_U_t_beta_bin-size_system-state_seed_subgeometry_num-replicas.dat` |  state of the system at which restarted simulation will begin |
+|`D_L_N_l_U_t_beta_bin-rng-state_seed_subgeometry_num-replicas.dat` |  state of the rng at which restarted simulation will begin |
 
 Each line in either the scalar or vector estimator files contains a bin which is the average of some measurement over a certain number of Monte Carlo steps.  By averaging bins, one can get the final result along with its uncertainty via the variance.
 
