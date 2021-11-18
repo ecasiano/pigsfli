@@ -1,5 +1,0 @@
-# Ignore everything in this directory
-# Modules such as FindBlitz.cmake that I have to write myself
-*
-# Except this file
-!.gitignore
