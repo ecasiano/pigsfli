@@ -20,37 +20,28 @@ U_list = np.array([10.0])
 U_list = np.array([0.500000,
 0.730000,
 1.065800,
-1.556100, 
-2.272000, 
-3.300000, 
-4.843100, 
-7.071100,   
+1.556100,
+2.272000,
+3.300000,
+4.843100,
+7.071100,  
 10.323900,
-16.666667, 
-22.007100, 
+16.666667,
+22.007100,
 32.130800,
 46.911700,
 68.492100,
 100.000000])
-U_list=np.array([3.310000])
+U_list=np.array([10.000000])
 
-beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
-             1.75,2.0,2.25,2.50,2.75,3.0,3.25,
-             3.50,3.75,4.0,5.0,6.0]
-beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
-             1.75,2.0,2.5,3.0,3.5,
-             4.0,4.5,5.0,5.5,6.0]
-beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
-             1.75,2.0,2.5,3.0,3.5,
-             4.0]
-# beta_list = [0.6,0.7,0.8,0.9,1.0,1.15,1.30,1.50,
-#              1.75,2.0,3.0,4.0]
-beta_list = [4.0]
+beta_list=[0.6,0.7,0.8,0.9,1.0,1.15,1.3,1.5,1.75,2.0,2.5,3.0,3.5,4.0,6.0]
+beta_list=[0.6,6.0]
+
 S2_plot = []
 S2_err_plot = []
 for U in U_list:
     for beta in beta_list:
-        for l_sector_wanted in [2]:
+        for l_sector_wanted in [4]:
         
             incomplete_seeds = [] 
             seeds_list = list(range(1000))
@@ -62,13 +53,13 @@ for U in U_list:
             l_max = "%d"%l_sector_wanted
             beta = "%.6f"%beta
             bin_size = "10000"
+            if beta=="6.000000": bin_size = "10001"
             D = "1"
             U = "%.6f"%(U)
             t = "1.000000"
 
             # Get path where raw data for the simulation is stored
             path = "/Users/ecasiano/Desktop/PaperData/PaperData/"
-            path = "/Users/ecasiano/Desktop/"
             path += D+"D_"+L+"_"+N+"_"+l_max+"_"+U+"_"+\
             t+"_"+beta+"_"+bin_size+"/"
 
@@ -148,7 +139,7 @@ for U in U_list:
 
             print("\nN: ",N)
             print("L: ",L)
-            print("partition size: ", l_sector_wanted)
+            print("partition size: ",l_sector_wanted)
             print("U: ",U)
             print("beta: ",beta)
 
@@ -159,19 +150,14 @@ for U in U_list:
             SWAPn_col_sums = np.zeros((number_of_seeds,N+1)).astype(int)
             for s in range(number_of_seeds):
 
-                print("seed: ", s)
                 data = np.loadtxt(path+files_PnSquared[s])[0:500]
                 PnSquared_col_sums[s] = np.sum(data,axis=0)
-                print("1")
 
                 data = np.loadtxt(path+files_Pn[s])[0:500]
-                print("here good")
                 Pn_col_sums[s] = np.sum(data,axis=0)
-                print("2")
 
                 data = np.loadtxt(path+files_SWAPn[s])[0:500]
                 SWAPn_col_sums[s] = np.sum(data,axis=0)
-                print("3")
 
             # Jacknife 
             SWAPn_col_seed_sum = np.sum(SWAPn_col_sums,axis=0) # shape: (1,N+1)... I think
@@ -247,3 +233,8 @@ for U in U_list:
 print("<S2Acc>=",S2_plot)
 print("S2Acc_err=",S2_err_plot)
 print("beta=",beta_list)
+
+beta_list = np.array(beta_list)
+ #Format the data file
+with open("../ProcessedData/"+str(D)+"D_%d_%d_%d_%.6f_%.6f_betas_%d_S2.dat"%(L,N,l_max,U,t,bin_size),"w+") as processed_data:
+    np.savetxt(processed_data,np.c_[beta_list,S2_plot,S2_err_plot],delimiter=" ",fmt="%.16f",header="BH Parameters: L=%d,N=%d,D=%d,l=%d,U=%.6f,t=%.6f,bin_size=%d \n beta            <S_2>              StdErr."%(L,N,D,l_max,U,t,bin_size))
