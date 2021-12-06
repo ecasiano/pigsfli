@@ -47,8 +47,6 @@ beta_list = [1,2,3,4,6,8]
 beta_list = [1,2,3,4,5,6]
 beta_list = [2,4,6,8,10] # use this for the 32x32 system
 beta_list = [1,2,4,8,16,32]
-beta_list = [2,4,6,8,10,12]
-
 
 # bin size
 bs = 10001
@@ -57,20 +55,20 @@ bs = 10001
 D = 1
 
 # linear size of the hypercube
-L = 16
+L = 256
 
 # total number of particles in the system
-N = 16
+N = 256
 
 # maximum linear size of the subregion
-l_max = 8
+l_max = 128
 
 # Append sweep results to same list so we can copy paste to plotting script
 S2_plot = []
 S2_err_plot = []
 for U in U_list:
     for beta in beta_list:
-        for lA_sector_wanted in [8]:
+        for lA_sector_wanted in [128]:
             
             # total number of sites in the subregion (square geom.)
             mA_sector_wanted = lA_sector_wanted**D
