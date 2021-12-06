@@ -14,24 +14,9 @@
 import os
 import numpy as np
 
-# Set values of U sweep
-# U_list = np.round(np.geomspace(0.01,100,20),4)
-U_list = np.array([10.0])
-U_list = np.array([0.500000,
-0.730000,
-1.065800,
-1.556100,
-2.272000,
-3.300000,
-4.843100,
-7.071100,  
-10.323900,
-16.666667,
-22.007100,
-32.130800,
-46.911700,
-68.492100,
-100.000000])
+#  Set value of U
+# U_list=np.array([0.500000])
+# U_list=np.array([3.300000])
 U_list=np.array([10.000000])
 
 beta_list=[0.6,0.7,0.8,0.9,1.0,1.15,1.3,1.5,1.75,2.0,2.5,3.0,3.5,4.0,6.0]
@@ -52,7 +37,8 @@ for U in U_list:
             l_max = "%d"%l_sector_wanted
             beta = "%.6f"%beta
             bin_size = "10000"
-            if beta=="6.000000": bin_size = "10001"
+            bin_size_filename = bin_size
+            if beta=="6.000000": bin_size = "10001" # Accidentally ran beta=6 simulation w/ this size
             D = "1"
             U = "%.6f"%(U)
             t = "1.000000"
@@ -235,5 +221,5 @@ print("beta=",beta_list)
 
 beta_list = np.array(beta_list)
  #Format the data file
-with open("../ProcessedData/"+str(D)+"D_%d_%d_%d_%.6f_%.6f_betas_%d_S2.dat"%(L,N,l_max,U,t,bin_size),"w+") as processed_data:
-    np.savetxt(processed_data,np.c_[beta_list,S2_plot,S2_err_plot],delimiter=" ",fmt="%.16f",header="BH Parameters: L=%d,N=%d,D=%d,l=%d,U=%.6f,t=%.6f,bin_size=%d \n beta            <S_2>              StdErr."%(L,N,D,l_max,U,t,bin_size))
+with open("../ProcessedData/"+str(D)+"D_%d_%d_%d_%.6f_%.6f_betas_%d_S2acc.dat"%(L,N,l_max,U,t,int(bin_size_filename)),"w+") as processed_data:
+    np.savetxt(processed_data,np.c_[beta_list,S2_plot,S2_err_plot],delimiter=" ",fmt="%.16f",header="BH Parameters: L=%d,N=%d,D=%d,l=%d,U=%.6f,t=%.6f,bin_size=%d \n beta            <S2acc>            StdErr."%(L,N,D,l_max,U,t,int(bin_size_filename)))
