@@ -18,11 +18,11 @@ The development and maintenance of this code base has been supported in part by 
 
 ## Installation
 
-This program has been successfully compiled and run on both Intel and AMD systems using clang, g++, pathscale and icpc. Before installing, one needs to ensure that all dependencies are met.  We recommend that the required libraries (boost) are installed in a `local` folder inside your home directory: `$HOME/local`.
+This program has been successfully compiled and run on Intel systems using clang and g++. Before installing, one needs to ensure that all dependencies are met.  We recommend that the required libraries (boost) are installed in a `local` folder inside your home directory: `$HOME/local`.
 
 ## Dependencies 
 
-The code is written in c++ and makes use of <a href="http://www.boost.org/">boost</a> libraries.
+The code is written in c++ and makes use of <a href="http://www.boost.org/">boost</a> libraries and the <a href="https://github.com/jarro2783/cxxopts">cxxopt</a> heade-only library for command-line arguments.
 
 We use many of the boost header-only libraries, but two libraries will need to be compiled: boost_program_options and boost_filesystem libraries.  Let us assume that you will be installing both blitz and boost in the folder `$HOME/local` using the GNU C++ compiler.  For icpc or clang, the changes should be obvious, and in particular for the Intel compiler you will need to use `intel-linux` as the toolset while for clang you will use `darwin`.
 
