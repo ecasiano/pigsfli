@@ -2,18 +2,16 @@
 
 ## Introduction 
 
-This webpage contains the details of a worm algorithm path integral quantum Monte Carlo (WA-PIMC) code actively developed in c++ since 2008 in the [Del Maestro group](http://delmaestro.org/adrian) based on:
+This webpage contains the details of a lattice worm algorithm path-integral quantum Monte Carlo (WA-PIMC) code actively developed in c++ since 2019 based on:
 
-- T > 0: [M. Boninsegni, N. V. Prokofiev, and B. Svistunov, Phys. Rev. E <b>74</b>, 036701 (2006)](http://link.aps.org/doi/10.1103/PhysRevE.74.036701)
-- T = 0: [A. Sarsa, K.E. Schmidt and W. R. Magro, J. Chem. Phys. <b>113</b>, 1366 (2000)](http://aip.scitation.org/doi/abs/10.1063/1.481926)
+- T = 0: [N.V. Prokof'ev, B.V. Svistunov, I.S. Tupitsyn: Exact, Complete, and Universal Continuous-Time Worldline Monte Carlo Approach to the Statistics of Discrete Quantum Systems](https://arxiv.org/abs/cond-mat/9703200)
+- [N. Prokof'ev Lattice Path-Integral Monte Carlo Lecture Notes](http://mcwa.csi.cuny.edu/umass/lectures/part5.pdf)
 
-It can be used to simulate indistinguishable bosons with various types of realistic interactions in one, two and three spatial dimensions. As written, it takes a large number of command line options and allows for the measurement of essentially any physical observable of interest.
+In it's current version, it can be used to simulate indistinguishable bosons in the one,two, and three-dimensional hypercubib Bose-Hubbard Model. As written, it takes a large number of command line options and allows for the measurement of the system energy and the Rényi Entanglement Entropy between spatial bipartitions of the lattice.
 
-The design philosophy included the goal of abstracting the actual implementation of the WA-PIMC method to a kernel that will never need to be touched by the end user.  The code can be easily extended to study a wide variety of situations by including new types of containers, potentials estimators and communicators.
+If you have questions on code usage or bug reports, please contact me at ecasiano@vols.utk.edu.
 
-If you have questions, bug reports or plan to use this code for scientific research, please contact me at Adrian.DelMaestro@utk.edu.
-
-The development and maintenance of this code base has been supported in part by the National Science Foundation under Award Nos. [DMR-1553991](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991) and [DMR-1808440](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1808440).
+The development and maintenance of this code base has been supported in part by the National Science Foundation under Award No. [DMR-1553991](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991)
 
 [<img width="100" src="https://www.nsf.gov/images/logos/NSF_4-Color_bitmap_Logo.png">](http://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991)
 
