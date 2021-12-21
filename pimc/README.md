@@ -2,7 +2,7 @@
 
 ## Introduction 
 
-This webpage contains the details of a $$T=0$$ lattice worm algorithm path-integral quantum Monte Carlo (WA-PIMC) code actively developed in c++ since 2019 based on:
+This webpage contains the details of a ground state (i.e, zero-temperature) lattice worm algorithm path-integral quantum Monte Carlo (WA-PIMC) code actively developed in c++ since 2019 based on:
 
 - [N.V. Prokof'ev, B.V. Svistunov, I.S. Tupitsyn: Exact, Complete, and Universal Continuous-Time Worldline Monte Carlo Approach to the Statistics of Discrete Quantum Systems](https://arxiv.org/abs/cond-mat/9703200)
 - [N. Prokof'ev Lattice Path-Integral Monte Carlo Lecture Notes](http://mcwa.csi.cuny.edu/umass/lectures/part5.pdf)
