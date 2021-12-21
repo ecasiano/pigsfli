@@ -2,9 +2,9 @@
 
 ## Introduction 
 
-This webpage contains the details of a lattice worm algorithm path-integral quantum Monte Carlo (WA-PIMC) code actively developed in c++ since 2019 based on:
+This webpage contains the details of a $T=0$ lattice worm algorithm path-integral quantum Monte Carlo (WA-PIMC) code actively developed in c++ since 2019 based on:
 
-- T = 0: [N.V. Prokof'ev, B.V. Svistunov, I.S. Tupitsyn: Exact, Complete, and Universal Continuous-Time Worldline Monte Carlo Approach to the Statistics of Discrete Quantum Systems](https://arxiv.org/abs/cond-mat/9703200)
+- [N.V. Prokof'ev, B.V. Svistunov, I.S. Tupitsyn: Exact, Complete, and Universal Continuous-Time Worldline Monte Carlo Approach to the Statistics of Discrete Quantum Systems](https://arxiv.org/abs/cond-mat/9703200)
 - [N. Prokof'ev Lattice Path-Integral Monte Carlo Lecture Notes](http://mcwa.csi.cuny.edu/umass/lectures/part5.pdf)
 
 In it's current version, it can be used to simulate indistinguishable bosons in the one,two, and three-dimensional hypercubib Bose-Hubbard Model. As written, it takes a large number of command line options and allows for the measurement of the system energy and the Rényi Entanglement Entropy between spatial bipartitions of the lattice.
