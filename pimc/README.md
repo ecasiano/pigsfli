@@ -7,7 +7,7 @@ This webpage contains the details of a ground state (i.e, zero-temperature) latt
 - [N.V. Prokof'ev, B.V. Svistunov, I.S. Tupitsyn: Exact, Complete, and Universal Continuous-Time Worldline Monte Carlo Approach to the Statistics of Discrete Quantum Systems](https://arxiv.org/abs/cond-mat/9703200)
 - [N. Prokof'ev Lattice Path-Integral Monte Carlo Lecture Notes](http://mcwa.csi.cuny.edu/umass/lectures/part5.pdf)
 
-In it's current version, it can be used to simulate indistinguishable bosons in the one,two, and three-dimensional hypercubib Bose-Hubbard Model. As written, it takes a large number of command line options and allows for the measurement of the system energy and the Rényi Entanglement Entropy between spatial bipartitions of the lattice.
+In it's current version, it can be used to simulate indistinguishable bosons in the one,two, and three-dimensional hypercubic Bose-Hubbard Model. As written, it takes a large number of command line options and allows for the measurement of the system energy and the Rényi Entanglement Entropy between spatial bipartitions of the lattice.
 
 If you have questions on code usage or bug reports, please contact me at ecasiano@vols.utk.edu.
 
