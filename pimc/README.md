@@ -22,7 +22,7 @@ This program has been successfully compiled and run on Intel systems using clang
 
 ## Dependencies 
 
-The code is written in c++ and makes use of <a href="http://www.boost.org/">boost</a> libraries and, for handling of command-line arguments, the <a href="https://github.com/jarro2783/cxxopts">cxxopts</a> header-only library.
+The code is written in c++ and makes use of <a href="http://www.boost.org/">boost</a> libraries and, for handling of command-line arguments, the <a href="https://github.com/jarro2783/cxxopts">cxxopts</a> header-only library. For generation of random numbers and the ability to save the state of an RNG for simulation restarts, we use <a href="https://github.com/ajibadeshd/RNG_CLASS">RNG_CLASS</a>.
 
 We use many of the boost header-only libraries, but two libraries will need to be compiled: boost_program_options and boost_filesystem libraries.  Let us assume that you will be installing both blitz and boost in the folder `$HOME/local` using the GNU C++ compiler.  For icpc or clang, the changes should be obvious, and in particular for the Intel compiler you will need to use `intel-linux` as the toolset while for clang you will use `darwin`.
 
