@@ -20,6 +20,14 @@ The development and maintenance of this code base has been supported in part by 
 
 This program has been successfully compiled and run on Intel systems using clang and g++. Before installing, one needs to ensure that all dependencies are met.  We recommend that the required libraries (boost) are installed in a `local` folder inside your home directory: `$HOME/local`.
 
+git clone git@github.com:nscottnichols/deac-cpp.git
+cd deac-cpp
+mkdir build
+cd build
+cmake ../src
+make
+sudo make install
+
 ## Dependencies 
 
 The code is written in c++ and makes use of <a href="http://www.boost.org/">boost</a> libraries and, for handling of command-line arguments, the <a href="https://github.com/jarro2783/cxxopts">cxxopts</a> header-only library. For generation of random numbers and the ability to save the state of an RNG for simulation restarts, we use <a href="https://github.com/ajibadeshd/RNG_CLASS">RNG_CLASS</a>.
