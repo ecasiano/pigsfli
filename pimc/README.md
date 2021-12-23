@@ -34,56 +34,9 @@ sudo make install
 
 The code is written in c++ and makes use of <a href="http://www.boost.org/">boost</a> libraries and, for handling of command-line arguments, the <a href="https://github.com/jarro2783/cxxopts">cxxopts</a> header-only library. For generation of random numbers and the ability to save the state of an RNG for simulation restarts, we use <a href="https://github.com/ajibadeshd/RNG_CLASS">RNG_CLASS</a>.
 
-We use many of the boost header-only libraries, but two libraries will need to be compiled: boost_program_options and boost_filesystem libraries.  Let us assume that you will be installing both blitz and boost in the folder `$HOME/local` using the GNU C++ compiler.  For icpc or clang, the changes should be obvious, and in particular for the Intel compiler you will need to use `intel-linux` as the toolset while for clang you will use `darwin`.
-
-If you don't have a `$HOME/local` you should create this directory now via
-
-```bash
-mkdir $HOME/local
-```
-
-### Boost ###
-
-FIXME! (-ecasiano)
-
-For detailed instructions on installing boost with compiled libraries please see <a href="https://www.boost.org/more/getting_started/index.html">Section 5.2</a> of the official Boost documentation.
-
-1. Download and decompress boost into `$HOME/local/src/`
-2. Change to the boost source directory
-3. Execute `bootstrap.sh`
-If you want to compile for a specific toolset you could add `--with-toolset=gcc`.  Now you are ready to install.  Execute
-
-    ```bash
-    ./b2 install --prefix=PREFIX --with-program_options --with-filesystem --with-system --with-serialization cxxflags="-std=c++14" linkflags="-std=c++14"
-    ```
-    or if you are using the `clang` compiler on mac os
-
-    ```bash
-    ./b2 install --prefix=PREFIX --toolset=darwin --with-program_options --with-filesystem --with-system --with-serialization cxxflags="-std=c++14 -stdlib=libc++" linkflags="-std=c++14 -stdlib=libc++" 
-    ```
-
-4. If you want to have multiple versions of the library compiled with different compilers you can use the `--layout=versioned` flag above, or you could add `option.set layout : versioned ;` to your `project-config.jam`.  Note: you may have to rename the `$HOME/include/blitz_VER` directory to remove the version number.
-5. You should now have a `PREFIX/include` directory containing the header files for `blitz`, `boost` and `random` and your `PREFIX/lib` directory will contain the following files (the `.dylib` files will only appear on Mac OS X)
-    ```bash
-    libblitz.a   libboost_filesystem.a      libboost_program_options.a     libboost_system.a 
-    libblitz.la  libboost_filesystem.dylib  libboost_program_options.dylib libboost_system.dylib
-    ```
-
-6. Update the `LD_LIBRARY_PATH` (or `DYLD_LIBRARY_PATH` on mac os) variable inside your `.bahsrc` or `.bash_profile` to include `PREFIX/lib` e.g.
-
-    ```bash
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:PREFIX/lib
-    ```
-
-7. Source your `.bashrc` or `.bash_profile`.
-
-    ```bash
-    source ~/.bashrc
-    ```
-
 ## Path Integral Monte Carlo
 
-After successfully installing blitz and boost you are now ready to compile the
+After dependencies are satisfied, you are now ready to compile the
 main pimc program on your system.
 PIMC uses CMake for build, test and installation automation. For details on using CMake consult https://cmake.org/documentation/. In short, the following steps should work on UNIX-like systems:
 
@@ -93,16 +46,6 @@ PIMC uses CMake for build, test and installation automation. For details on usin
   cmake ../src
   make
   sudo make install
-  ```
-
-On Windows try:
-
-  ```
-  md build
-  cd build
-  cmake ../src
-  cmake --build . --config Release
-  cmake --build . --target install
   ```
 
 As above, and with further details below, but you should consider using the following CMake options with the appropriate value instead of xxx :
