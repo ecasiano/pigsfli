@@ -67,10 +67,10 @@ RM = /usr/local/Cellar/cmake/3.19.1/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/ecasiano/XCode/pimc/pimc/src
+CMAKE_SOURCE_DIR = /Users/ecasiano/Desktop/pimc/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/ecasiano/XCode/pimc/pimc/Build
+CMAKE_BINARY_DIR = /Users/ecasiano/Desktop/pimc/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -156,9 +156,9 @@ test/fast: test
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ecasiano/XCode/pimc/pimc/Build/CMakeFiles /Users/ecasiano/XCode/pimc/pimc/Build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ecasiano/Desktop/pimc/build/CMakeFiles /Users/ecasiano/Desktop/pimc/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ecasiano/XCode/pimc/pimc/Build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ecasiano/Desktop/pimc/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
