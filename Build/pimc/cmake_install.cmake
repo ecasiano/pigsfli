@@ -1,4 +1,4 @@
-# Install script for directory: /Users/ecasiano/XCode/pimc/pimc/src/pimc
+# Install script for directory: /Users/ecasiano/Desktop/pimc/src/pimc
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -38,7 +38,7 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/Users/ecasiano/XCode/pimc/pimc/Build/pimc/pigsl.e")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/Users/ecasiano/Desktop/pimc/build/pimc/pigsl.e")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/pigsl.e" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/pigsl.e")
     if(CMAKE_INSTALL_DO_STRIP)
@@ -48,14 +48,14 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/Users/ecasiano/XCode/pimc/pimc/src/pimc/include/")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/Users/ecasiano/Desktop/pimc/src/pimc/include/")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/pigsl.e/cmake/pigsl.eConfig.cmake")
     file(DIFFERENT EXPORT_FILE_CHANGED FILES
          "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/pigsl.e/cmake/pigsl.eConfig.cmake"
-         "/Users/ecasiano/XCode/pimc/pimc/Build/pimc/CMakeFiles/Export/share/pigsl.e/cmake/pigsl.eConfig.cmake")
+         "/Users/ecasiano/Desktop/pimc/build/pimc/CMakeFiles/Export/share/pigsl.e/cmake/pigsl.eConfig.cmake")
     if(EXPORT_FILE_CHANGED)
       file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/pigsl.e/cmake/pigsl.eConfig-*.cmake")
       if(OLD_CONFIG_FILES)
@@ -64,9 +64,9 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
       endif()
     endif()
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pigsl.e/cmake" TYPE FILE FILES "/Users/ecasiano/XCode/pimc/pimc/Build/pimc/CMakeFiles/Export/share/pigsl.e/cmake/pigsl.eConfig.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pigsl.e/cmake" TYPE FILE FILES "/Users/ecasiano/Desktop/pimc/build/pimc/CMakeFiles/Export/share/pigsl.e/cmake/pigsl.eConfig.cmake")
   if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^([Nn][Oo][Nn][Ee])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pigsl.e/cmake" TYPE FILE FILES "/Users/ecasiano/XCode/pimc/pimc/Build/pimc/CMakeFiles/Export/share/pigsl.e/cmake/pigsl.eConfig-none.cmake")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pigsl.e/cmake" TYPE FILE FILES "/Users/ecasiano/Desktop/pimc/build/pimc/CMakeFiles/Export/share/pigsl.e/cmake/pigsl.eConfig-none.cmake")
   endif()
 endif()
 
