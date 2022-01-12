@@ -22,6 +22,10 @@
 #include<sstream>
 #include<string.h>
 
+#include <boost/math/special_functions/lambert_w.hpp>
+using boost::math::lambert_w0;
+using boost::math::lambert_wm1;
+
 using namespace std;
 using namespace std::chrono;
 
@@ -1112,6 +1116,235 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
 /*--------------------------------------------------------------------*/
 
+void insert_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
+                 int &tail_idx, int M, int N, double U, double mu, double t,
+                 double beta, double eta, bool canonical, double &N_tracker,
+                 int &N_zero, int &N_beta, vector<int> &last_kinks,
+                 unsigned long long int &insert_worm_attempts,
+                 unsigned long long int &insert_worm_accepts,
+                 unsigned long long int &insert_anti_attempts,
+                 unsigned long long int &insert_anti_accepts,
+                 RNG &rng){
+    
+    // Variable declarations
+    int k,n,src,dest,prev,next,n_head,n_tail,src_replica,dest_replica;
+    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R,
+    p_type;
+    bool is_worm;
+    
+    // Can only perform update if there are no worm ends
+    if (head_idx != -1 || tail_idx != -1){return;}
+        
+    // Randomly sample a flat interval (or kink if you like)
+    //boost::random::uniform_int_distribution<> flats(0, num_kinks-1);
+    k = rng.randInt(num_kinks-1);
+    
+    // Extract the attributes of the kink at the bottom of the flat interval
+    tau = paths[k].tau;
+    n = paths[k].n;
+    src = paths[k].src;
+    dest = paths[k].dest;
+    prev = paths[k].prev;
+    next = paths[k].next;
+    src_replica = paths[k].src_replica; //due to way replica indices are coded
+    dest_replica = paths[k].dest_replica; //due to way replica indices are coded
+    
+    // Calculate the length of the flat interval
+    tau_prev = tau;
+    if (next != -1) // tau_next extractable iff sampled kink is not the last
+        tau_next = paths[next].tau;
+    else
+        tau_next = beta;
+    tau_flat = tau_next - tau_prev;
+
+    // Randomly choose to insert worm or antiworm
+    if (rng.rand() < 0.5){
+        is_worm = true;
+        insert_worm_attempts += 1;
+    }
+    else{
+        is_worm = false;
+        insert_anti_attempts += 1;
+    }
+    p_type = 0.5;
+    
+    // Determine the no. of particles after each worm end
+    if (is_worm){
+        n_tail = n + 1;
+        n_head = n;
+    }
+    else{
+        n_tail = n;
+        n_head = n - 1;
+    }
+    // Reject antiworm insertion if no particles in the flat region
+    if (n == 0 && !(is_worm)){insert_anti_attempts-=1;return;}
+
+    // Calculate the difference in diagonal energy dV = \epsilon_w - \epsilon
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    // To make acceptance ratio unity,antiworm needs to sample w/ dV=eps-eps_w
+    if (!is_worm){dV *= -1;} // dV=eps-eps_w
+
+    // debugging
+    // if (!is_worm){return;}
+
+    // cout << is_worm << " ";
+    /* ==================== Truncated Exponential Sampling ================== */
+
+    // sample tau_1
+    double y,Z,A,x,a,b,c;
+    double arg;
+
+    c = -dV;
+    b = tau_next;
+    a = tau_prev;
+
+    x = rng.rand();
+
+    // Compute normalization of truncated exponential dist.
+    Z = (1/c) * (exp(c*(b-a)) - 1) - (b - a);
+    
+    //
+    y = Z*x - (1/c)*exp(c*(b-a)) - a;
+
+    //
+    A = -(1/c)*exp(c*b);
+
+    // Determine LambertW branch & compute tau
+    double inv_e = boost::math::constants::exp_minus_one<double>();
+    // arg = max(-1/exp(1), A*c*exp(c*y));
+
+    // arg = max(-inv_e, A*c*exp(c*y));  // z in boost documentation
+    arg = max(-inv_e, -exp(c*(b+y)));  // z in boost documentation
+    if (abs(arg) < -1e-20){arg = 0;}
+
+    // cout << arg << endl;
+    // if (arg < -inv_e){
+    //     cout << setprecision(24) << arg << endl;
+    // }
+    // cout << arg << " " << exp(c*y) << " " << y << endl;
+    // cout << arg << -1/exp(1) << " " << A*c*exp(c*y) << "        " << A << " " << Z << 
+    // " " << endl;
+    // cout << arg << endl;
+    // if (arg < -1e-307){arg = -1e-306;}
+    if (c < 0){ // k = 0 branch
+        tau = (1/c)*lambert_w0(arg)-y;
+    }
+    else {      // k = -1 branch
+        tau = (1/c)*lambert_wm1(arg)-y;
+    }
+    // cout << a << " " << tau << " ";
+
+    // cout << a << " " << b << " " << c << " " << arg << " " << tau 
+    // << " " << y << " " << Z << " " << N_tracker << " " << is_worm << " "
+    // <<  tau_h << " " << tau_t << " " << endl;
+
+    if (is_worm)
+        tau_t = tau;
+    else
+        tau_h = tau;
+
+    // if (tau<=0){"AHHHHHHHHHH";return;exit(1);};
+
+    // sample tau_2
+    x = rng.rand();
+    a = tau; // this is the new lower bound for the simple truncexpon sampling
+    Z = 1.0 - exp(-(-c)*(b-a));
+    tau = a - log(1.0-Z*x)  / (-c);
+
+    if (is_worm)
+        tau_h = tau;
+    else
+        tau_t = tau;
+
+    // cout << tau << " " << b << " ";
+
+    // Compute normalization constant of joint distribution
+    Z = (exp(c*(b-a)) + a*c - b*c - 1)/(c*c);
+
+    /* ====================================================================== */
+
+    // cout << n << " " << Z << " " << c << endl;
+
+    // cout << a << " " << b << " " << c << " " << arg << " " << tau 
+    // << " " << y << " " << Z << " " << N_tracker << " " << is_worm << " "
+    // <<  tau_h << " " << tau_t << " " << endl;
+
+    // cout << is_worm << " " << tau_t << " " << tau_h << " " << tau_next << endl;
+
+    // Reject update if illegal worm insertion is proposed
+    if (tau_h == tau_prev || tau_t == tau_prev){return;}
+    if (tau_h == tau_t){return;}
+
+    // Determine length of modified path and particle change
+    l_path = tau_h - tau_t;
+    dN = l_path/beta;
+    
+    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    if (canonical)
+        if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+    
+    // Build the Metropolis ratio (R)
+    p_dw = 0.5;
+    p_iw = 0.5;
+    R = eta * eta * n_tail * Z * num_kinks * (p_dw/p_iw) / p_type;
+    // cout << R << endl;
+
+    // Metropolis sampling
+    if (rng.rand() < R){ // Accept
+
+        // Activate the first two available kinks
+        if (is_worm){
+            paths[num_kinks]=Kink(tau_t,n_tail,src,src,k,num_kinks+1,
+                                  src_replica,src_replica);
+            paths[num_kinks+1]=Kink(tau_h,n_head,src,src,num_kinks,next,
+                                    src_replica,src_replica);
+            
+            // Save indices of head & tail kinks
+            head_idx = num_kinks+1;
+            tail_idx = num_kinks;
+            
+            // Add to Acceptance counter
+            insert_worm_accepts += 1;
+        }
+        else{ // Antiworm
+            paths[num_kinks]=Kink(tau_h,n_head,src,src,k,num_kinks+1,
+                                  src_replica,src_replica);
+            paths[num_kinks+1]=Kink(tau_t,n_tail,src,src,num_kinks,next,
+                                    src_replica,src_replica);
+            
+            // Save indices of head & tail kinks
+            head_idx = num_kinks;
+            tail_idx = num_kinks+1;
+            
+            // Add to Acceptance counter
+            insert_anti_accepts += 1;
+        }
+        
+        // "Connect" next of lower bound kink to nearest worm end
+        paths[k].next = num_kinks;
+        
+        // "Connect" prev of next kink to nearest worm end
+        if(next!=-1){paths[next].prev = num_kinks+1;}
+        
+        // Update trackers for: no of active kinks, total particles
+        num_kinks += 2;
+        N_tracker += dN;
+        
+        // If later worm end is last kink on site, update last kinks tracker vec
+        if (next==-1){
+            if (is_worm){last_kinks[src]=head_idx;}
+            else {last_kinks[src]=tail_idx;}
+        }
+        
+        return;
+    }
+    else // Reject
+        return;
+}
+
+/*--------------------------------------------------------------------*/
+
 void delete_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, double U, double mu, double t,
                  double beta, double eta, bool canonical, double &N_tracker,
@@ -1210,6 +1443,195 @@ void delete_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     p_iw = 1.0;
     R = (eta*eta) * n_tail * exp(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
     (num_kinks-2) * (tau_flat*tau_flat);
+    R = 1.0/R;
+    
+    // Metropolis sampling
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rng.rand() < R){ // Accept
+        
+        // Add to Acceptance counter
+        if (is_worm)
+            delete_worm_accepts += 1;
+        else
+            delete_anti_accepts += 1;
+        
+        // Stage 1: Delete the higher worm end
+        
+        // num_kinks-1 will be swapped. Modify links to these.
+        if (paths[num_kinks-1].next!=-1)
+            paths[paths[num_kinks-1].next].prev = high_end;
+        paths[paths[num_kinks-1].prev].next = high_end;
+                
+        swap(paths[high_end],paths[num_kinks-1]);
+        
+        // Upper,lower bounds of flat could've been swapped. Correct if so.
+        if (prev==num_kinks-1){prev=high_end;}
+        else if (next==num_kinks-1){next=high_end;}
+        else if (low_end==num_kinks-1){low_end=high_end;}
+        else {;}
+        
+        // The swapped kink could've been the last on its site.
+        if (paths[high_end].next==-1){
+            last_kinks[paths[high_end].src]=high_end;
+        }
+        
+        // Connect upper,lower bounds to lower worm end
+        if (next!=-1)
+            paths[next].prev = low_end;
+        paths[low_end].next = next;
+        
+        if (next==-1){last_kinks[src]=low_end;}
+
+        // Stage 2: Delete the lower worm end
+        
+        // num_kinks-2 will be swapped. Modify links to these.
+        if (paths[num_kinks-2].next!=-1)
+            paths[paths[num_kinks-2].next].prev = low_end;
+        paths[paths[num_kinks-2].prev].next = low_end;
+        
+        swap(paths[low_end],paths[num_kinks-2]);
+
+        if (prev==num_kinks-2){prev=low_end;}
+        else if (next==num_kinks-2){next=low_end;}
+        else {;}
+
+        if (paths[low_end].next==-1){
+            last_kinks[paths[low_end].src]=low_end;
+        }
+        
+        if (next!=-1)
+            paths[next].prev = prev;
+        paths[prev].next = next;
+        
+        if (next==-1){last_kinks[src]=prev;}
+
+        // Deactivate the head,tail indices
+        head_idx = -1;
+        tail_idx = -1;
+        
+        // Update trackers for: num of active kinks, total particles
+        num_kinks -= 2;
+        N_tracker += dN;
+        
+        return;
+    }
+        
+    else // Reject
+            return;
+}
+
+/*--------------------------------------------------------------------*/
+
+void delete_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
+                 int &tail_idx, int M, int N, double U, double mu, double t,
+                 double beta, double eta, bool canonical, double &N_tracker,
+                 int &N_zero, int &N_beta, vector<int> &last_kinks,
+                 unsigned long long int &delete_worm_attempts,
+                 unsigned long long int &delete_worm_accepts,
+                 unsigned long long int &delete_anti_attempts,
+                 unsigned long long int &delete_anti_accepts,
+                 RNG &rng){
+    
+    // Variable declarations
+    int n,src,dest,prev,next,n_head,n_tail;
+    int prev_h,next_h,prev_t,next_t,high_end,low_end;
+    double tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R;
+    bool is_worm;
+    
+    // Can only propose worm deletion if both worm ends are present
+    if (head_idx == -1 || tail_idx == -1){return;}
+    
+    // Can only delete worm if wormends are on same flat interval
+    if (head_idx != paths[tail_idx].prev &&
+        tail_idx != paths[head_idx].prev)
+        return;
+    
+    // Extract worm end attributes
+    tau_h = paths[head_idx].tau; // Head attributes
+    n_head = paths[head_idx].n;
+    src = paths[head_idx].src;
+    dest = paths[head_idx].dest;
+    prev_h = paths[head_idx].prev;
+    next_h = paths[head_idx].next;
+    
+    tau_t = paths[tail_idx].tau; // Tail attributes
+    n_tail = paths[tail_idx].n;
+    src = paths[tail_idx].src;
+    dest = paths[tail_idx].dest;
+    prev_t = paths[tail_idx].prev;
+    next_t = paths[tail_idx].next;
+
+    // Identify the type of worm
+    if (tau_h > tau_t)
+        is_worm = true;
+    else
+        is_worm = false; // antiworm
+    
+    // Identify lower and upper bound of flat interval where worm lives
+    if(is_worm){
+        tau_prev = paths[prev_t].tau;
+        delete_worm_attempts += 1; // Attempts counter
+        if(paths[head_idx].next == -1)
+            tau_next = beta;
+        else
+            tau_next = paths[next_h].tau;
+        n = paths[prev_t].n; // particles originally in the flat
+            }
+    else{ // antiworm
+        tau_prev = paths[prev_h].tau;
+        delete_anti_attempts += 1; // Attempts counter
+        if (paths[tail_idx].next == -1)
+            tau_next = beta;
+        else
+            tau_next = paths[next_t].tau;
+        n = paths[prev_h].n;
+            }
+    
+    // Calculate the length of the flat interval
+    tau_flat = tau_next - tau_prev;
+    
+    // Define upper,lower index variables independent of worm type
+    if (is_worm){
+        next = next_h;
+        prev = prev_t;
+        high_end = head_idx;
+        low_end = tail_idx;
+    }
+    else{
+        next = next_t;
+        prev = prev_h;
+        high_end = tail_idx;
+        low_end = head_idx;
+    }
+    
+    // Determine length of modified path and particle change
+    l_path = tau_h-tau_t;
+    dN = -l_path/beta;
+    
+    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    if (canonical)
+        if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+        
+    // Calculate the difference in diagonal energy dV = \epsilon_w - \epsilon
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+
+    // In inverse update, antiworm could've been sampled w/ dV=\eps-\eps_w
+    if (!is_worm){dV *= -1;} // dV=eps-eps_w
+
+    // Compute normalization constant of joint distribution
+    double Z,a,b,c;
+    a = tau_prev;
+    b = tau_next;
+    c = -dV;
+    Z = (exp(c*(b-a)) + a*c - b*c - 1)/(c*c);
+
+    // In inverse update (insert), worm type must be randomly chosen
+    double p_type = 0.5;
+    
+    // Build the Metropolis ratio (R)
+    p_dw = 1.0;
+    p_iw = 1.0;
+    R = eta * eta * n_tail * Z * (num_kinks-2) * (p_dw/p_iw) / p_type;
     R = 1.0/R;
     
     // Metropolis sampling

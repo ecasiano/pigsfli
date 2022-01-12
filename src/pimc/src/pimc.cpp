@@ -449,15 +449,29 @@ cout << "U: " << U << endl;
             
             label = rng_ptr->randInt(14);
 
+        //   if (label==0){     // worm_insert
+        //       insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+        //                   M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+        //                   N_zero[0],N_beta[0],last_kinks[0],
+        //                   dummy_counter,dummy_counter,
+        //                   dummy_counter,dummy_counter,*rng_ptr);
+        //   }
           if (label==0){     // worm_insert
-              insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+              insert_worm_2(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                           M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                           N_zero[0],N_beta[0],last_kinks[0],
                           dummy_counter,dummy_counter,
                           dummy_counter,dummy_counter,*rng_ptr);
           }
+        //   else if (label==1){ // worm_delete
+        //       delete_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+        //                   M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
+        //                   N_zero[0],N_beta[0],last_kinks[0],
+        //                   dummy_counter,dummy_counter,
+        //                   dummy_counter,dummy_counter,*rng_ptr);
+        //   }
           else if (label==1){ // worm_delete
-              delete_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+              delete_worm_2(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                           M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                           N_zero[0],N_beta[0],last_kinks[0],
                           dummy_counter,dummy_counter,
@@ -1014,16 +1028,30 @@ cout << "U: " << U << endl;
     for (int r=0;r<num_replicas;r++){
         
         label = rng_ptr->randInt(14);
-        
+                
+        // if (label==0){     // worm_insert
+        //     insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+        //                 M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
+        //                 N_zero[r],N_beta[r],last_kinks[r],
+        //                 insert_worm_attempts,insert_worm_accepts,
+        //                 insert_anti_attempts,insert_anti_accepts,*rng_ptr);
+        // }
         if (label==0){     // worm_insert
-            insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+            insert_worm_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                         N_zero[r],N_beta[r],last_kinks[r],
                         insert_worm_attempts,insert_worm_accepts,
                         insert_anti_attempts,insert_anti_accepts,*rng_ptr);
         }
+        // else if (label==1){ // worm_delete
+        //     delete_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+        //                 M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
+        //                 N_zero[r],N_beta[r],last_kinks[r],
+        //                 delete_worm_attempts,delete_worm_accepts,
+        //                 delete_anti_attempts,delete_anti_accepts,*rng_ptr);
+        // }
         else if (label==1){ // worm_delete
-            delete_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+            delete_worm_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                         N_zero[r],N_beta[r],last_kinks[r],
                         delete_worm_attempts,delete_worm_accepts,
