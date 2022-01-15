@@ -1128,9 +1128,9 @@ void insert_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Variable declarations
     int k,n,src,dest,prev,next,n_head,n_tail,src_replica,dest_replica;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R,
-    p_type;
+    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R;
     bool is_worm;
+    double inv_e = boost::math::constants::exp_minus_one<double>(); // 1/e
     
     // Can only perform update if there are no worm ends
     if (head_idx != -1 || tail_idx != -1){return;}
@@ -1166,7 +1166,7 @@ void insert_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
         is_worm = false;
         insert_anti_attempts += 1;
     }
-    p_type = 0.5;
+    // p_type = 1/2;
     
     // Determine the no. of particles after each worm end
     if (is_worm){
@@ -1188,11 +1188,11 @@ void insert_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // debugging
     // if (!is_worm){return;}
 
-    // cout << is_worm << " ";
     /* ==================== Truncated Exponential Sampling ================== */
 
     // sample tau_1
-    double y,Z,A,x,a,b,c;
+    double y,A,x,a,b,c,tau_1,tau_2,a_new;
+    // long double arg;
     double arg;
 
     c = -dV;
@@ -1202,75 +1202,56 @@ void insert_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     x = rng.rand();
 
     // Compute normalization of truncated exponential dist.
-    Z = (1/c) * (exp(c*(b-a)) - 1) - (b - a);
+    double Z_1, Z_2, Z;
+
+    Z = (exp(c*(b-a)) + a*c - b*c - 1)/(c*c); // joint
+
+    Z_1 = (1/c) * (exp(c*(b-a)) - 1) - (b - a); // marginalized dist.
     
     //
-    y = Z*x - (1/c)*exp(c*(b-a)) - a;
+    y = Z_1*x - (1/c)*exp(c*(b-a)) - a;
 
-    //
-    A = -(1/c)*exp(c*b);
+    // this was the sampling without simplifying Ace^(cy) and no restriction
+    // A = -(1/c)*exp(c*b);
+    // arg = max(-1/exp(1), A*c*exp(c*y));
+    // cout << c*(b+y) << " " << -exp(c*(b+y)) << endl;
+    // if (abs(arg) < 1e-15){arg = 0.0;}
 
     // Determine LambertW branch & compute tau
-    double inv_e = boost::math::constants::exp_minus_one<double>();
-    // arg = max(-1/exp(1), A*c*exp(c*y));
-
-    // arg = max(-inv_e, A*c*exp(c*y));  // z in boost documentation
+    if (abs(c*(b+y)) < 600){
     arg = max(-inv_e, -exp(c*(b+y)));  // z in boost documentation
-    if (abs(arg) < -1e-20){arg = 0;}
 
-    // cout << arg << endl;
-    // if (arg < -inv_e){
-    //     cout << setprecision(24) << arg << endl;
-    // }
-    // cout << arg << " " << exp(c*y) << " " << y << endl;
-    // cout << arg << -1/exp(1) << " " << A*c*exp(c*y) << "        " << A << " " << Z << 
-    // " " << endl;
-    // cout << arg << endl;
-    // if (arg < -1e-307){arg = -1e-306;}
+    }
+    else{ // exponent c*y is too large. Better to ignore and carry on. 
+        return;
+    }
+
+
     if (c < 0){ // k = 0 branch
-        tau = (1/c)*lambert_w0(arg)-y;
+        tau_1 = (1/c)*lambert_w0(arg)-y;
     }
     else {      // k = -1 branch
-        tau = (1/c)*lambert_wm1(arg)-y;
+        tau_1 = (1/c)*lambert_wm1(arg)-y;
     }
-    // cout << a << " " << tau << " ";
-
-    // cout << a << " " << b << " " << c << " " << arg << " " << tau 
-    // << " " << y << " " << Z << " " << N_tracker << " " << is_worm << " "
-    // <<  tau_h << " " << tau_t << " " << endl;
-
-    if (is_worm)
-        tau_t = tau;
-    else
-        tau_h = tau;
-
-    // if (tau<=0){"AHHHHHHHHHH";return;exit(1);};
 
     // sample tau_2
     x = rng.rand();
-    a = tau; // this is the new lower bound for the simple truncexpon sampling
-    Z = 1.0 - exp(-(-c)*(b-a));
-    tau = a - log(1.0-Z*x)  / (-c);
+    a_new = tau_1; // this is the new lower bound for the simple truncexpon sampling
+    Z_2 = 1.0 - exp(-(-c)*(b-a_new)); // conditional dist.
+    tau_2 = a_new - log(1.0-Z_2*x)  / (-c);
 
-    if (is_worm)
-        tau_h = tau;
-    else
-        tau_t = tau;
+    if (is_worm){
+        tau_t = tau_1;
+        tau_h = tau_2;
+    }
+    else{
+        tau_h = tau_1;
+        tau_t = tau_2;
+    }
 
-    // cout << tau << " " << b << " ";
-
-    // Compute normalization constant of joint distribution
-    Z = (exp(c*(b-a)) + a*c - b*c - 1)/(c*c);
-
-    /* ====================================================================== */
-
-    // cout << n << " " << Z << " " << c << endl;
-
-    // cout << a << " " << b << " " << c << " " << arg << " " << tau 
-    // << " " << y << " " << Z << " " << N_tracker << " " << is_worm << " "
-    // <<  tau_h << " " << tau_t << " " << endl;
-
-    // cout << is_worm << " " << tau_t << " " << tau_h << " " << tau_next << endl;
+    // cout << a << " "<< tau_1 << " "<< a_new << " "<< tau_2 << " "<< b << " " 
+    // << c*y << " " << c+y << " " << arg << endl ;
+    /* ====================================================================== */ 
 
     // Reject update if illegal worm insertion is proposed
     if (tau_h == tau_prev || tau_t == tau_prev){return;}
@@ -1287,7 +1268,7 @@ void insert_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Build the Metropolis ratio (R)
     p_dw = 0.5;
     p_iw = 0.5;
-    R = eta * eta * n_tail * Z * num_kinks * (p_dw/p_iw) / p_type;
+    R = eta * eta * n_tail * Z * num_kinks * (p_dw/p_iw) * 2;
     // cout << R << endl;
 
     // Metropolis sampling
@@ -1626,12 +1607,12 @@ void delete_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     Z = (exp(c*(b-a)) + a*c - b*c - 1)/(c*c);
 
     // In inverse update (insert), worm type must be randomly chosen
-    double p_type = 0.5;
+    // double p_type = 1/2;
     
     // Build the Metropolis ratio (R)
     p_dw = 1.0;
     p_iw = 1.0;
-    R = eta * eta * n_tail * Z * (num_kinks-2) * (p_dw/p_iw) / p_type;
+    R = eta * eta * n_tail * Z * (num_kinks-2) * (p_dw/p_iw) * 2;
     R = 1.0/R;
     
     // Metropolis sampling
