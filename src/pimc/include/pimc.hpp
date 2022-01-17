@@ -1191,7 +1191,7 @@ void insert_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     /* ==================== Truncated Exponential Sampling ================== */
 
     // sample tau_1
-    double y,A,x,a,b,c,tau_1,tau_2,a_new;
+    double y,x,a,b,c,tau_1,tau_2,a_new;
     // long double arg;
     double arg;
 
@@ -1894,6 +1894,225 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
 /*--------------------------------------------------------------------*/
 
+void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
+                int &tail_idx, int M, int N, double U, double mu, double t,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &insertZero_worm_attempts,
+                unsigned long long int &insertZero_worm_accepts,
+                unsigned long long int &insertZero_anti_attempts,
+                unsigned long long int &insertZero_anti_accepts,
+                RNG &rng){
+    
+    // Variable declarations
+    int n,src,dest,prev,next,n_head,n_tail,i,N_b,src_replica,dest_replica;
+    double tau_prev,tau_flat,l_path,dN,dV,R,p_type,tau_new,p_wormend,C,
+    p_dz,p_iz;
+    bool is_worm;
+
+    // Cannot insert if there's two worm ends present
+    if (head_idx != -1 and tail_idx != -1){return;}
+        
+    // Randomly select site on which to insert worm/antiworm from tau=0
+    //boost::random::uniform_int_distribution<> sites(0, M-1);
+    i = rng.randInt(M-1);
+    
+    // Extract attributes of insertion flat
+    tau_prev = paths[i].tau; // tau is just zero
+    n = paths[i].n;
+    src = paths[i].src;
+    dest = paths[i].dest;
+    prev = paths[i].prev;
+    next = paths[i].next;
+    src_replica = paths[i].src_replica;
+    dest_replica = paths[i].dest_replica;
+    
+    // Determine the length of insertion flat interval
+    if (next != -1)
+        tau_flat = paths[next].tau;
+    else
+        tau_flat = beta;
+    
+    // Choose worm/antiworm insertion based on worm ends present
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (head_idx==-1 and tail_idx==-1){ // no worm ends present
+        if (n==0){ // can only insert worm, not antiworm
+            is_worm = true;
+            p_type = 1.0;
+        }
+        else{ // choose worm or antiworm insertion with equal probability
+            if (rng.rand() < 0.5)
+                is_worm = true;
+            else
+                is_worm = false;
+            p_type = 0.5;
+        }
+    }
+    else if (head_idx!=-1){ // only worm head present, can insert antiworm only
+        if (n==0){
+            insertZero_anti_attempts += 1;
+            return; // cannot insert proposed antiworm, no particles present
+        }
+        else{
+            is_worm = false;
+            p_type = 1.0;
+        }
+    }
+    else{ // only tail present, can insert worm only
+        is_worm = true;
+        p_type = 1.0;
+    }
+    
+    // Add to worm/antiworm insertion attempt counters
+    if (is_worm){insertZero_worm_attempts += 1;}
+    else {insertZero_anti_attempts += 1;}
+    
+    // Randomly choose where to insert worm end on the flat interval
+    // tau_new = tau_flat*rng.rand();
+
+    // Determine the no. of particles after each worm end
+    if (is_worm){
+        n_tail = n + 1;
+        n_head = n;
+    }
+    else{
+        n_tail = n;
+        n_head = n - 1;
+    }
+    
+    // Calculate the diagonal energy difference dV = \epsilon_w - \epsilon
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    if (!is_worm){dV *= -1;}
+
+    /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
+    // Sample time on flat interval from truncated exponential for insertion
+    double x,Z,a,b,c;
+
+    a = 0.0;
+    b = tau_flat;
+
+    c = dV; 
+
+    x = rng.rand();
+    Z = 1.0 - exp(-c*(b-a)); //
+    tau_new = a - log(1.0-Z*x)  / c;
+    // if (!is_worm){cout << tau_new << endl;}
+    /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+    
+    // deleteZero (reverse update) might've had to choose either head or tail
+    if (head_idx==-1 and tail_idx==-1) // only one end after insertZero
+        p_wormend = 1.0;
+    else{                              // two worm ends after insertZero
+        if (is_worm){
+            if (paths[paths[tail_idx].prev].tau != 0)
+                p_wormend = 1.0; //cannot choose tail.was not coming from tau=0.
+            else
+                p_wormend = 0.5; // deleteZero could choose either head or tail
+        }
+        else{ // if insert anti (i.e, a tail) the end present was a head
+            if (paths[paths[head_idx].prev].tau != 0)
+                p_wormend = 1.0;
+            else
+                p_wormend = 0.5;
+        }
+    }
+    
+    // Determine the length of the path to be modified
+    l_path = tau_new;
+    
+    // Determine the total particle change based on worm type
+    if (is_worm){
+        dN = +1.0 * l_path/beta;
+    }
+    else{
+        dN = -1.0 * l_path/beta;
+    }
+    
+    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    if (canonical)
+        if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+    
+    // Count the TOTAL number of particles at tau=0
+    N_b = N_zero;
+    
+    // Build the weight ratio W'/W
+    C = 1.0;
+//     if (is_worm){
+// //        C = sqrt(N_b+1)/sqrt(n+1);
+//         W = eta * sqrt(n_tail) * C * exp(-dV*tau_new);
+//     }
+//     else{
+// //        C = sqrt(n)/sqrt(N_b);
+//         W = eta * sqrt(n_tail) * C * exp(dV*tau_new);
+//     }
+    
+    // Build the Metropolis Ratio (R)
+    p_dz = 0.5;
+    p_iz = 0.5;
+    R = eta * sqrt(n_tail) * C * (p_dz/p_iz) * M * p_wormend * (Z/dV) / p_type;
+    // if (!is_worm){cout << R << " " << Z << " " << dV << endl;}
+
+    // Metropolis sampling
+    if (rng.rand() < R){ // Accept
+        
+        // Activate the first available kink
+        if (is_worm){
+            paths[num_kinks] = Kink(tau_new,n_head,src,src,src,next,
+                                    dest_replica,dest_replica);
+            
+            // Save head index
+            head_idx = num_kinks;
+            
+            // Update the number of particles in the initial kink at site i
+            paths[i].n = n_tail;
+            
+            // Add to Acceptance counter
+            insertZero_worm_accepts += 1;
+            
+            // Worm inserted, add one to tau=0 particle tracker
+            N_zero += 1;
+        }
+        else{ // antiworm
+            paths[num_kinks] = Kink(tau_new,n_tail,src,src,src,next,
+                                    dest_replica,dest_replica);
+            
+            // Save head index
+            tail_idx = num_kinks;
+            
+            // Update number of particles in initial kink of insertion site
+            paths[i].n = n_head;
+            
+            // Add to Acceptance counter
+            insertZero_anti_accepts += 1;
+            
+            // Antiworm inserted, subtract one to tau=0 particle tracker
+            N_zero -= 1;
+        }
+        
+        // "Connect" next of lower bound kink to the new worm end
+        paths[src].next = num_kinks;
+        
+        // "Connect" prev of next kink to the new worm end
+        if (next!=-1){paths[next].prev = num_kinks;}
+        
+        // Update trackers for: no. of active kinks, total particles
+        num_kinks += 1;
+        N_tracker += dN;
+        
+        // If new worm end is last kink on site, update last_kinks vector
+        if (next==-1){
+            if (is_worm){last_kinks[src]=head_idx;}
+            else {last_kinks[src]=tail_idx;}
+        }
+
+        return;
+    }
+    else // Reject
+        return;
+}
+
+/*--------------------------------------------------------------------*/
+
 void deleteZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
@@ -2033,6 +2252,221 @@ void deleteZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     p_dz = 0.5;
     p_iz = 0.5;
     R = W * (p_dz/p_iz) * M * p_wormend * tau_flat / p_type;
+    R = 1.0/R;
+    
+    // Metropolis sampling
+    if (rng.rand() < R){ // accept
+        
+        // Update the number of particles in the initial kink of worm end site
+        paths[paths[worm_end_idx].prev].n = n;
+        
+        // num_kinks-1 (last available kink) will be swapped. Modify links to it
+        if (paths[num_kinks-1].next!=-1) // avoids access with -1 index
+            paths[paths[num_kinks-1].next].prev = worm_end_idx;
+        paths[paths[num_kinks-1].prev].next = worm_end_idx;
+        
+        swap(paths[worm_end_idx],paths[num_kinks-1]);
+        
+        // Upper bound of flat could've been swapped. Correct if so.
+        if (next==num_kinks-1){next=worm_end_idx;}
+                
+        // The other worm end could've been swapped. Reindex it if so.
+        if (delete_head){
+            if (tail_idx==num_kinks-1){tail_idx=worm_end_idx;}
+        }
+        else{
+            if (head_idx==num_kinks-1){head_idx=worm_end_idx;}
+        }
+        
+        // Whatever kink was swapped could've been the last on its site.
+        if (paths[worm_end_idx].next==-1){
+            last_kinks[paths[worm_end_idx].src]=worm_end_idx;
+        }
+        
+        // If deleted worm end was last kink on site, update last kinks tracker
+        if (next==-1){last_kinks[src]=prev;}
+        
+        // Reconnect the lower,upper bounds of the flat interval.
+        paths[prev].next = next;
+        if (next!=-1)
+            paths[next].prev = prev;
+
+        // Deactivate the worm end
+        if (delete_head){
+            head_idx = -1;
+            
+            // Add to Acceptance counter
+            deleteZero_worm_accepts += 1;
+            
+            // Worm deleted, subtract one to tau=0 particle tracker
+            N_zero -= 1;
+        }
+        else{
+            tail_idx = -1;
+            
+            // Add to Acceptance counter
+            deleteZero_anti_accepts += 1;
+            
+            // Antiworm deleted, add one to tau=0 particle tracker
+            N_zero += 1;
+        }
+        
+        // Update trackers for: num of active kinks, total particles
+        num_kinks -= 1;
+        N_tracker += dN;
+        
+        return;
+    }
+    else // reject
+        return;
+}
+/*--------------------------------------------------------------------*/
+
+void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
+                int &tail_idx, int M, int N, double U, double mu, double t,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &deleteZero_worm_attempts,
+                unsigned long long int &deleteZero_worm_accepts,
+                unsigned long long int &deleteZero_anti_attempts,
+                unsigned long long int &deleteZero_anti_accepts,
+                RNG &rng){
+    
+    // Variable declarations
+    int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
+    double tau,tau_next,tau_flat,l_path,dN,dV,R,p_type,p_wormend,
+    C,p_dz,p_iz,Z;
+    bool delete_head;
+
+    // Cannot delete if there are no worm ends present
+    if (head_idx==-1 && tail_idx==-1){return;}
+
+    // Cannot delete if there are no worm ends coming from tau=0
+    if (head_idx!=-1 && tail_idx!=-1){
+        if (paths[paths[head_idx].prev].tau != 0 and
+            paths[paths[tail_idx].prev].tau != 0){return;}
+    }
+    else if (head_idx!=-1){ // only head present
+        if (paths[paths[head_idx].prev].tau != 0){return;}
+    }
+    else{ // only tail present
+        if (paths[paths[tail_idx].prev].tau != 0){return;}
+    }
+
+    // Decide which worm end to delete
+    if (head_idx!=-1 && tail_idx!=-1){ // both wormends present
+        if (paths[paths[head_idx].prev].tau == 0 &&
+            paths[paths[tail_idx].prev].tau == 0){ //both near 0
+            if (rng.rand() < 0.5)
+                delete_head = true;
+            else
+                delete_head = false;
+            p_wormend = 0.5;
+        }
+        else if (paths[paths[head_idx].prev].tau == 0){
+            delete_head = true;
+            p_wormend = 1.0;
+        }
+        else{ // only the tail is near zero
+            delete_head = false;
+            p_wormend = 1.0;
+        }
+    }
+    else if (head_idx!=-1){ // only head present
+        delete_head = true;
+        p_wormend = 1.0;
+    }
+    else{ // only tail present
+        delete_head = false;
+        p_wormend = 1.0;
+    }
+
+    // Get index of worm end to be deleted
+    if (delete_head)
+        worm_end_idx = head_idx;
+    else
+        worm_end_idx = tail_idx;
+
+    // Extract worm end attributes
+    tau = paths[worm_end_idx].tau;
+    n = paths[worm_end_idx].n;
+    src = paths[worm_end_idx].src;
+    dest = paths[worm_end_idx].dest;
+    prev = paths[worm_end_idx].prev;
+    next = paths[worm_end_idx].next;
+
+    // Calculate the length of the flat interval (excluding the wormend)
+    if (next == -1)
+        tau_next = beta;
+    else
+        tau_next = paths[next].tau;
+    tau_flat = tau_next;
+
+    // No. of particles before,after the worm end to be deleted
+    if (delete_head) // delete worm
+        n_tail = n+1;
+    else //  delete antiworm
+        n_tail = n;
+    n_head = n_tail-1;
+    
+    // Worm insert (reverse update) probability of choosing worm or antiworm
+    if (head_idx!=-1 and tail_idx!=-1) // worm end present before insertion
+        p_type = 1.0;
+    else{ // no worm ends present before insertion
+        if (n==0)
+            p_type = 1.0; // only worm can be inserted if no particles on flat
+        else
+            p_type = 0.5;
+    }
+
+    // Add to deleteZero PROPOSAL counters
+    if (delete_head) // delete head (delete worm)
+        deleteZero_worm_attempts += 1;
+    else                   // delete tail (delete antiworm)
+        deleteZero_anti_attempts += 1;
+    
+    // Determine the length of path to be modified
+    l_path = tau;
+    
+    // Determine the total particle change based on worm type
+    if (delete_head) // delete worm
+        dN = -1.0 * l_path / beta;
+    else // delete anti
+        dN = +1.0 * l_path / beta;
+    
+    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    if (canonical)
+        if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+        
+    // Calculate diagonal energy difference
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    
+    // Determine the number of total bosons before the worm/anti was inserted
+    if (delete_head)   // delete worm
+        N_b = N_zero-1;
+    else               // delete antiworm
+        N_b = N_zero+1;
+    
+//     // Build the weigh ratio W'/W
+     C = 1.0;
+//     if (delete_head){ // delete worm
+// //        C = sqrt(N_b+1)/sqrt(n+1);
+//         W = eta * sqrt(n_tail) * C * exp(-dV*tau);
+//     }
+//     else{ // delete antiworm
+// //        C = sqrt(n)/sqrt(N_b);
+//         W = eta * sqrt(n_tail) * C * exp(dV*tau);
+//     }
+
+    // Inverse move (insertZero) truncated sampling
+    if (!delete_head){dV *= -1;}
+    Z = 1.0 - exp(-dV*(tau_next));
+    
+    // Build the Metropolis Ratio  (R)
+    p_dz = 0.5;
+    p_iz = 0.5;
+    // R = W * (p_dz/p_iz) * M * p_wormend * (Z/dV) / p_type;
+    R = eta * sqrt(n_tail) * C * (p_dz/p_iz) * M * p_wormend * (Z/dV) / p_type;
     R = 1.0/R;
     
     // Metropolis sampling
@@ -2293,6 +2727,212 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
 /*--------------------------------------------------------------------*/
 
+void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
+                int &tail_idx, int M, int N, double U, double mu, double t,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &insertBeta_worm_attempts,
+                unsigned long long int &insertBeta_worm_accepts,
+                unsigned long long int &insertBeta_anti_attempts,
+                unsigned long long int &insertBeta_anti_accepts,
+                RNG &rng){
+    
+    // Variable declarations
+    int n,src,dest,prev,next,n_head,n_tail,i,N_b,src_replica,dest_replica;
+    double tau_prev,tau_flat,
+    l_path,dN,dV,R,p_type,tau_new,p_wormend,C,W,p_db,p_ib;
+    bool is_worm;
+
+    // Cannot insert if there's two worm ends present
+    if (head_idx != -1 and tail_idx != -1){return;}
+        
+    // Randomly select site on which to insert worm/antiworm from tau=0
+    //boost::random::uniform_int_distribution<> sites(0, M-1);
+    i = rng.randInt(M-1);
+    
+    // Extract the flat interval where insertion is proposed & its attributes
+    tau_prev = paths[last_kinks[i]].tau;
+    n = paths[last_kinks[i]].n;
+    src = paths[last_kinks[i]].src;
+    dest = paths[last_kinks[i]].dest;
+    prev = paths[last_kinks[i]].prev;
+    next = paths[last_kinks[i]].next;
+    src_replica = paths[last_kinks[i]].src_replica;
+    dest_replica = paths[last_kinks[i]].dest_replica;
+    
+    // Determine the length of insertion flat interval
+    tau_flat = beta - tau_prev;
+    
+    // Choose worm/antiworm insertion based on worm ends present
+    if (head_idx==-1 and tail_idx==-1){ // no worm ends present
+        if (n==0){ // can only insert worm, not antiworm
+            is_worm = true;
+            p_type = 1.0;
+        }
+        else{ // choose worm or antiworm insertion with equal probability
+            if (rng.rand() < 0.5)
+                is_worm = true;
+            else
+                is_worm = false;
+            p_type = 0.5;
+        }
+    }
+    else if (tail_idx!=-1){ // only worm tail present, can insert antiworm only
+        if (n==0){
+            insertBeta_anti_attempts += 1.0;
+            return; // cannot insert proposed antiworm, no particles present
+        }
+        else{
+            is_worm = false;
+            p_type = 1.0;
+        }
+    }
+    else{ // only head present, can insert worm only
+        is_worm = true;
+        p_type = 1.0;
+    }
+    
+    // Add to worm/antiworm insertion attempt counters
+    if (is_worm){insertBeta_worm_attempts += 1;}
+    else {insertBeta_anti_attempts += 1;}
+    
+    // Randomly choose where to insert worm end on the flat interval
+    // tau_new = tau_prev + tau_flat*rng.rand();
+    
+    // Determine the no. of particles after each worm end
+    if (is_worm){
+        n_tail = n + 1;
+        n_head = n;
+    }
+    else{
+        n_tail = n;
+        n_head = n - 1;
+    }
+    
+    // Calculate the diagonal energy difference dV = \epsilon_w - \epsilon
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    if (!is_worm){dV *= -1;}
+
+    /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
+    // Sample time on flat interval from truncated exponential for insertion
+    double x,Z,a,b,c;
+
+    a = tau_prev;
+    b = beta;
+
+    c = dV; 
+
+    x = rng.rand();
+    Z = 1.0 - exp(-c*(b-a)); //
+    tau_new = b + log(1.0-Z*x)  / c;
+    // if (!is_worm){cout << tau_new << endl;}
+    /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+    
+    // deleteBeta (reverse update) might've had to choose either head or tail
+    if (head_idx==-1 and tail_idx==-1) // only one end after insertZero
+        p_wormend = 1.0;
+    else{                              // two worm ends after insertZero
+        if (is_worm){
+            if (paths[head_idx].next != -1)
+                p_wormend = 1.0; // cannot choose head.was not coming from beta.
+            else
+                p_wormend = 0.5; // deleteBeta could choose either head or tail
+        }
+        else{ // if insert anti (i.e, a head) the end present was a tail
+            if (paths[tail_idx].next != -1)
+                p_wormend = 1.0;
+            else
+                p_wormend = 0.5;
+        }
+    }
+    
+    // Determine the length of the path to be modified
+    l_path = beta - tau_new;
+    
+    // Determine the total particle change based on worm type
+    if (is_worm){
+        dN = +1.0 * l_path/beta;
+    }
+    else{
+        dN = -1.0 * l_path/beta;
+    }
+    
+    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    if (canonical)
+        if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+    
+    // Count the TOTAL number of particles at tau=0
+    N_b = N_beta;
+    
+    // Build the weight ratio W'/W
+     C = 1.0; // C_pre/C_post
+    if (is_worm){
+//        C = sqrt(N_b+1)/sqrt(n+1);
+        // W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau_new));
+    }
+    else{
+//        C = sqrt(n)/sqrt(N_b);
+        // W = eta * sqrt(n_tail) * C * exp(dV*(beta-tau_new));
+    }
+    
+    // Build the Metropolis Ratio (R)
+    p_db = 0.5;
+    p_ib = 0.5;
+    R = eta * sqrt(n_tail) * C * (p_db/p_ib) * M * p_wormend * (Z/dV) / p_type;
+
+    // Metropolis sampling
+    if (rng.rand() < R){ // Accept
+        
+        // Activate the first available kink
+        if (is_worm){
+            paths[num_kinks] = Kink (tau_new,n_tail,src,src,
+                                            last_kinks[src],next,
+                                            src_replica,src_replica);
+            
+            // Save tail index
+            tail_idx = num_kinks;
+            
+            // Add to Acceptance counter
+            insertBeta_worm_accepts += 1;
+            
+            // Worm inserted, add one to tau=beta particle tracker
+            N_beta += 1;
+        }
+        else{ // antiworm
+            paths[num_kinks] = Kink (tau_new,n_head,src,src,
+                                            last_kinks[src],next,
+                                            src_replica,src_replica);
+            
+            // Save head index
+            head_idx = num_kinks;
+            
+            // Add to Acceptance counter
+            insertBeta_anti_accepts += 1;
+            
+            // Antiworm inserted, subtract one to tau=beta particle tracker
+            N_beta -= 1;
+        }
+        
+        // "Connect" next of lower bound kink to the new worm end
+        paths[last_kinks[src]].next = num_kinks;
+        
+        // Update trackers for: no. of active kinks, total particles
+        num_kinks += 1;
+        N_tracker += dN;
+        
+        // If new worm end is last kink on site, update last_kinks vector
+        if (next==-1){
+            if (is_worm){last_kinks[src]=tail_idx;}
+            else {last_kinks[src]=head_idx;}
+        }
+        return;
+    }
+    else // Reject
+        return;
+}
+
+/*--------------------------------------------------------------------*/
+
 void deleteBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 int &tail_idx, int M, int N, double U, double mu, double t,
                 double beta, double eta, bool canonical, double &N_tracker,
@@ -2430,6 +3070,217 @@ void deleteBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     p_db = 0.5;
     p_ib = 0.5;
     R = W * (p_db/p_ib) * M * p_wormend * tau_flat / p_type;
+    R = 1.0/R;
+    
+    // Metropolis sampling
+    if (rng.rand() < R){ // accept
+                
+        // num_kinks-1 (last available kink) will be swapped. Modify links to it
+        if (paths[num_kinks-1].next!=-1) // avoids access with -1 index
+            paths[paths[num_kinks-1].next].prev = worm_end_idx;
+        paths[paths[num_kinks-1].prev].next = worm_end_idx;
+        
+        swap(paths[worm_end_idx],paths[num_kinks-1]);
+        
+        // Lower bound of flat could've been swapped. Correct if so.
+        if (prev==num_kinks-1){prev=worm_end_idx;}
+        
+        // The other worm end could've been swapped. Reindex it if so.
+        if (delete_head){
+            if (tail_idx==num_kinks-1){tail_idx=worm_end_idx;}
+        }
+        else{
+            if (head_idx==num_kinks-1){head_idx=worm_end_idx;}
+        }
+        
+        // Whatever kink was swapped could've been the last on its site.
+        if (paths[worm_end_idx].next==-1){
+            last_kinks[paths[worm_end_idx].src]=worm_end_idx;
+        }
+        
+        // Deleted worm end was last kink on site, update last kinks tracker
+        last_kinks[src]=prev;
+        
+        // Reconnect the lower,upper bounds of the flat interval.
+        paths[prev].next = next;
+
+        // Deactivate the worm end
+        if (delete_head){
+            head_idx = -1;
+            
+            // Add to Acceptance counter
+            deleteBeta_anti_accepts += 1;
+            
+            // Antiworm deleted, add one to tau=beta particle tracker
+            N_beta += 1;
+        }
+        else{
+            tail_idx = -1;
+            
+            // Add to Acceptance counter
+            deleteBeta_worm_accepts += 1;
+            
+            // Worm deleted, subtracts one to tau=beta particle tracker
+            N_beta -= 1;
+        }
+        
+        // Update trackers for: num of active kinks, total particles
+        num_kinks -= 1;
+        N_tracker += dN;
+        
+        return;
+    }
+    else // reject
+        return;
+}
+/*--------------------------------------------------------------------*/
+
+void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
+                int &tail_idx, int M, int N, double U, double mu, double t,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &deleteBeta_worm_attempts,
+                unsigned long long int &deleteBeta_worm_accepts,
+                unsigned long long int &deleteBeta_anti_attempts,
+                unsigned long long int &deleteBeta_anti_accepts,
+                RNG &rng){
+    
+    // Variable declarations
+    int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
+    double tau,tau_prev,tau_flat,l_path,dN,dV,R,p_type,p_wormend,C,W,p_db,p_ib;
+    bool delete_head;
+
+    // Cannot delete if there are no worm ends present
+    if (head_idx==-1 && tail_idx==-1){return;}
+
+    // Cannot delete if there are no worm ends coming from tau=beta
+    if (head_idx!=-1 && tail_idx!=-1){
+        if (paths[head_idx].next != -1 and
+            paths[tail_idx].next != -1){return;}
+    }
+    else if (head_idx!=-1){ // only head present
+        if (paths[head_idx].next != -1){return;}
+    }
+    else{ // only tail present
+        if (paths[tail_idx].next != -1){return;}
+    }
+    
+    // Decide which worm end to delete
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (head_idx!=-1 && tail_idx!=-1){ // both wormends present
+        if (paths[head_idx].next == -1 &&
+            paths[tail_idx].next == -1){ // both last
+            if (rng.rand() < 0.5)
+                delete_head = true;  // delete antiworm
+            else
+                delete_head = false; // delete worm
+            p_wormend = 0.5;
+        }
+        else if (paths[head_idx].next == -1){
+            delete_head = true;
+            p_wormend = 1.0;
+        }
+        else{ // only the tail is near zero
+            delete_head = false;
+            p_wormend = 1.0;
+        }
+    }
+    else if (head_idx!=-1){ // only head present
+        delete_head = true;
+        p_wormend = 1.0;
+    }
+    else{ // only tail present
+        delete_head = false;
+        p_wormend = 1.0;
+    }
+
+    // Get index of worm end to be deleted
+    if (delete_head)
+        worm_end_idx = head_idx;
+    else
+        worm_end_idx = tail_idx;
+
+    // Extract worm end attributes
+    tau = paths[worm_end_idx].tau;
+    n = paths[worm_end_idx].n;
+    src = paths[worm_end_idx].src;
+    dest = paths[worm_end_idx].dest;
+    prev = paths[worm_end_idx].prev;
+    next = paths[worm_end_idx].next;
+
+    // Calculate the length of the flat interval (excluding the worm end)
+    tau_prev = paths[prev].tau;
+    tau_flat = beta - tau_prev;
+
+    // No. of particles before,after the worm end to be deleted
+    if (delete_head) // delete antiworm
+        n_tail = n+1;
+    else //  delete worm
+        n_tail = n;
+    n_head = n_tail-1;
+    
+    // Worm insert (reverse update) probability of choosing worm or antiworm
+    if (head_idx!=-1 and tail_idx!=-1) // worm end present before insertion
+        p_type = 1.0;
+    else{ // no worm ends present before insertion
+        if (paths[paths[worm_end_idx].prev].n==0)
+            p_type = 1.0; // only worm can be inserted if no particles on flat
+        else
+            p_type = 0.5;
+    }
+
+    // Add to deleteBeta PROPOSAL counters
+    if (delete_head) // delete antiworm
+        deleteBeta_anti_attempts += 1;
+    else                   // delete worm
+        deleteBeta_worm_attempts += 1;
+    
+    // Determine the length of path to be modified
+    l_path = beta - tau;
+    
+    // Determine the total particle change based on worm type
+    if (delete_head) // delete antiworm
+        dN = +1.0 * l_path / beta;
+    else // delete worm
+        dN = -1.0 * l_path / beta;
+    
+    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    if (canonical)
+        if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+    
+    // Calculate diagonal energy difference
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    if (delete_head){dV *= -1;}
+    
+    // Determine the number of total bosons before the worm/anti was inserted
+    if (delete_head)     // delete antiworm
+        N_b = N_beta+1;
+    else                 // delete worm
+        N_b = N_beta-1;
+    
+    // Build the weigh ratio W'/W
+    C = 1.0;
+    if (!delete_head){ // delete worm
+//        C = sqrt(N_b+1)/sqrt(n);
+        // W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau));
+    }
+    else{ // delete antiworm
+//        C = sqrt(n+1)/sqrt(N_b);
+        // W = eta * sqrt(n_tail) * C * exp(-dV*(tau-beta));
+    }
+    
+    // inverse move (insertBeta) truncated exponential sampling
+   double x,Z,a,b,c;
+
+    a = tau_prev;
+    b = beta;
+    c = dV; 
+    Z = 1.0 - exp(-c*(b-a));
+
+    // Build the Metropolis Ratio  (R)
+    p_db = 0.5;
+    p_ib = 0.5;
+    R = eta * sqrt(n_tail) * C * (p_db/p_ib) * M * p_wormend * (Z/dV) / p_type;
     R = 1.0/R;
     
     // Metropolis sampling
