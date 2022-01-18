@@ -2740,8 +2740,8 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,i,N_b,src_replica,dest_replica;
     double tau_prev,tau_flat,
-    l_path,dN,dV,R,p_type,tau_new,p_wormend,C,W,p_db,p_ib;
-    bool is_worm;
+    l_path,dN,dV,R,p_type,tau_new,p_wormend,C,p_db,p_ib;
+    bool is_worm; 
 
     // Cannot insert if there's two worm ends present
     if (head_idx != -1 and tail_idx != -1){return;}
@@ -3147,7 +3147,7 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Variable declarations
     int n,src,dest,prev,next,n_head,n_tail,N_b,worm_end_idx;
-    double tau,tau_prev,tau_flat,l_path,dN,dV,R,p_type,p_wormend,C,W,p_db,p_ib;
+    double tau,tau_prev,tau_flat,l_path,dN,dV,R,p_type,p_wormend,C,p_db,p_ib;
     bool delete_head;
 
     // Cannot delete if there are no worm ends present
@@ -3270,8 +3270,7 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     
     // inverse move (insertBeta) truncated exponential sampling
-   double x,Z,a,b,c;
-
+    double Z,a,b,c;
     a = tau_prev;
     b = beta;
     c = dV; 
@@ -3745,6 +3744,157 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
 
 /*--------------------------------------------------------------------*/
 
+void insert_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
+                int &head_idx,int &tail_idx,
+                int M, int N, double U, double mu, double t,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &ikbh_attempts,
+                unsigned long long int &ikbh_accepts,
+                RNG &rng){
+    
+//    if (t==0.0){return;}
+    // Variable declarations
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    src_replica,dest_replica;
+    double tau,tau_h,p_site,R,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,
+    tau_kink,tau_min,dV_i,dV_j,dV;
+        
+    // Update only possible if worm head present
+    if (head_idx==-1){return;}
+    
+    // Need at least two sites to perform a spaceshift
+    if (M<2){return;}
+        
+    // Add to proposal counter
+    ikbh_attempts += 1;
+    
+    // Extract the worm head site and replica
+    i = paths[head_idx].src;
+    src_replica = paths[head_idx].src_replica;
+    dest_replica = paths[head_idx].dest_replica;
+    
+    // Randomly choose a nearest neighbor site
+    //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
+    j = adjacency_matrix[i][rng.randInt(total_nn-1)];
+    p_site = 1.0/total_nn;
+    
+    // Retrieve the time of the worm head
+    tau_h = paths[head_idx].tau;
+    
+    // Determine index of lower/upper kinks of flat where head is (site i)
+    prev_i = paths[head_idx].prev;
+    next_i = paths[head_idx].next;
+    
+    // Determine index of lower/upper kinks of flat where head jumps to (site j)
+    tau = 0.0;            // tau_prev_j candidate
+    prev = j;           // prev_j candidate
+    prev_j = j;         // this avoids "variable maybe not initialized" warning
+    while (tau<tau_h){
+        // Set the lower bound index
+        prev_j = prev;
+        
+        // Update lower bound index and tau candidates for next iteration
+        prev = paths[prev].next;
+        if (prev==-1){break;}
+        tau = paths[prev].tau;
+    }
+    next_j=prev;
+    
+    // Determine upper,lower bound times on both sites (upper time not needed)
+    tau_prev_i = paths[prev_i].tau;
+    tau_prev_j = paths[prev_j].tau;
+    
+    // Determine lowest time at which kink could've been inserted
+    if (tau_prev_i>tau_prev_j){tau_min=tau_prev_i;}
+    else {tau_min=tau_prev_j;}
+    
+    // Randomly choose the time of the kink
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    
+    // Extract no. of particles in the flats adjacent to the new kink
+    n_wi = paths[prev_i].n;
+    n_i = n_wi-1;
+    n_j = paths[prev_j].n;
+    n_wj = n_j+1;                   // "w": segment with the extra particle
+        
+    // Calculate the diagonal energy difference on both sites
+    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
+    dV = dV_j - dV_i;
+    if (dV == 0){dV = 1e-20;}
+
+    /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
+    // Sample time on flat interval from truncated exponential for insertion
+    double x,Z,a,b,c;
+
+    a = tau_min;
+    b = tau_h;
+
+    c = dV; 
+
+    x = rng.rand();
+    Z = 1.0 - exp(-c*(b-a)); //
+    tau_kink = b + log(1.0-Z*x)  / c;
+    // if (!is_worm){cout << tau_new << endl;}
+    /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+    
+    // Calculate the weight ratio W'/W
+    // W = t * n_wj * exp((dV_i-dV_j)*(tau_h-tau_kink));
+    
+    // Build the Metropolis ratio (R)
+    p_dkbh = 0.5;
+    p_ikbh = 0.5;
+    // R = W * (p_dkbh/p_ikbh) * (tau_h-tau_min)/p_site;
+    R = t * n_wj * (p_dkbh/p_ikbh) * (Z/dV) / p_site;
+
+    // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
+    
+    // Metropolis Sampling
+    if (rng.rand() < R){ // Accept
+        
+        // Add to acceptance counter
+        ikbh_accepts += 1;
+                
+        // Change kink that stored head information to a regular kink
+        paths[head_idx].tau = tau_kink;
+        paths[head_idx].n = n_i;
+        paths[head_idx].src = i;  // more like site
+        paths[head_idx].dest = j; // more like connecting site
+        paths[head_idx].prev = prev_i;
+        paths[head_idx].next = next_i;
+        
+        // Create the kinks on the destination site
+        paths[num_kinks]=Kink(tau_kink,n_wj,j,i,prev_j,num_kinks+1,
+                              src_replica,dest_replica);
+        paths[num_kinks+1]=Kink(tau_h,n_j,j,j,num_kinks,next_j,
+                                src_replica,dest_replica);
+        
+        // Set new worm head index
+        head_idx = num_kinks+1;
+                
+        // "Connect" next of lower bound kink to new kink
+        paths[prev_j].next = num_kinks;
+        
+        // "Connect" prev of next kink to worm head
+        if(next_j!=-1){paths[next_j].prev = head_idx;}
+                
+        // Update number of kinks tracker
+        num_kinks += 2;
+        
+        // If worm head is last kink on site j, update last kinks tracker vector
+        if (next_j==-1){last_kinks[j]=head_idx;}
+        
+        return;
+        
+    }
+    else // Reject
+        return;
+    }
+
+/*--------------------------------------------------------------------*/
+
 void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
@@ -3841,6 +3991,226 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
     p_dkbh = 0.5;
     p_ikbh = 0.5;
     R = W * (p_dkbh/p_ikbh) * (tau_h-tau_min)/p_site;
+    R = 1.0/R;
+
+    // Metropolis Sampling
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rng.rand() < R){ // Accept
+
+        // Add to acceptance counter
+        dkbh_accepts += 1;
+
+        // Stage 1: Delete kink on i
+        if (paths[num_kinks-1].next!=-1)
+            paths[paths[num_kinks-1].next].prev = kink_idx_i;
+        paths[paths[num_kinks-1].prev].next = kink_idx_i;
+
+        swap(paths[kink_idx_i],paths[num_kinks-1]);
+
+        // Important kinks might've been at end of paths vector
+        if (prev_i==num_kinks-1){prev_i=kink_idx_i;}
+        else if (next_i==num_kinks-1){next_i=kink_idx_i;}
+        else if (prev_j==num_kinks-1){prev_j=kink_idx_i;}
+        else if (next_j==num_kinks-1){next_j=kink_idx_i;}
+        else if (kink_idx_j==num_kinks-1){kink_idx_j=kink_idx_i;}
+        else if (head_idx==num_kinks-1){head_idx=kink_idx_i;}
+        else {;}
+
+        // I don't remember why I left this statement out of the block above :(
+        if (tail_idx==num_kinks-1){tail_idx=kink_idx_i;}
+
+        // The kink sent to where deleted kink was might be last on it's site
+        if (paths[kink_idx_i].next==-1){
+            last_kinks[paths[kink_idx_i].src]=kink_idx_i;
+        }
+        
+        // Reconnect upper and lower bounds of the flat
+        if (next_i!=-1)
+            paths[next_i].prev = prev_i;
+        paths[prev_i].next = next_i;
+
+        if (next_i==-1){last_kinks[i]=prev_i;}
+
+        // Stage 2: Delete worm head on j
+        if (paths[num_kinks-2].next!=-1)
+            paths[paths[num_kinks-2].next].prev = head_idx;
+        paths[paths[num_kinks-2].prev].next = head_idx;
+
+        swap(paths[head_idx],paths[num_kinks-2]);
+
+        if (prev_i==num_kinks-2){prev_i=head_idx;}
+        else if (next_i==num_kinks-2){next_i=head_idx;}
+        else if (prev_j==num_kinks-2){prev_j=head_idx;}
+        else if (next_j==num_kinks-2){next_j=head_idx;}
+        else if (kink_idx_j==num_kinks-2){kink_idx_j=head_idx;}
+        else {;}
+
+        if (tail_idx==num_kinks-2){tail_idx=head_idx;}
+
+        if (paths[head_idx].next==-1){
+            last_kinks[paths[head_idx].src]=head_idx;
+        }
+
+        if (next_j!=-1)
+            paths[next_j].prev = kink_idx_j;
+        paths[kink_idx_j].next = next_j;
+
+        if (next_j==-1){last_kinks[j]=kink_idx_j;}
+
+        // Stage 3: Delete kink on j
+        if (paths[num_kinks-3].next!=-1)
+            paths[paths[num_kinks-3].next].prev = kink_idx_j;
+        paths[paths[num_kinks-3].prev].next = kink_idx_j;
+
+        swap(paths[kink_idx_j],paths[num_kinks-3]);
+
+        if (prev_i==num_kinks-3){prev_i=kink_idx_j;}
+        else if (next_i==num_kinks-3){next_i=kink_idx_j;}
+        else if (prev_j==num_kinks-3){prev_j=kink_idx_j;}
+        else if (next_j==num_kinks-3){next_j=kink_idx_j;}
+        else {;}
+
+        if (tail_idx==num_kinks-3){tail_idx=kink_idx_j;}
+
+        if (paths[kink_idx_j].next==-1){
+            last_kinks[paths[kink_idx_j].src]=kink_idx_j;
+        }
+
+        if (next_j!=-1)
+            paths[next_j].prev = prev_j;
+        paths[prev_j].next = next_j;
+
+        if (next_j==-1){last_kinks[j]=prev_j;}
+
+        // Stage 4: Insert worm head on i
+        paths[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i,
+                                src_replica,dest_replica);
+
+        head_idx = num_kinks-3;
+
+        paths[prev_i].next = head_idx;
+        if(next_i!=-1){paths[next_i].prev = head_idx;}
+
+        if (next_i==-1){last_kinks[i]=head_idx;}
+
+        // Update number of kinks tracker
+        num_kinks -= 2;
+
+        return;
+
+    }
+    else // Reject
+        return;
+    }
+
+/*--------------------------------------------------------------------*/
+
+void delete_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
+                int &head_idx,int &tail_idx,
+                int M, int N, double U, double mu, double t,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &dkbh_attempts,
+                unsigned long long int &dkbh_accepts,
+                RNG &rng){
+
+    // Variable declarations
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    kink_idx_i,kink_idx_j,src_replica,dest_replica;
+    double tau,tau_h,p_site,R,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,
+    tau_kink,tau_min,dV_i,dV_j,tau_next_i,dV;
+
+    // Update only possible if worm head present
+    if (head_idx==-1){return;}
+
+    // There has to be a regular kink before the worm head
+    if (paths[paths[head_idx].prev].src
+    ==paths[paths[head_idx].prev].dest){return;}
+
+    // Need at least two sites to perform a spaceshift
+    if (M<2){return;}
+
+    // Indices of: upper bound kink, kink before head, lower bound kink ; site j
+    next_j = paths[head_idx].next;
+    kink_idx_j = paths[head_idx].prev;
+    prev_j = paths[kink_idx_j].prev;
+
+    // Times of: worm head, kink before head, lower bound kink; site j
+    tau_h = paths[head_idx].tau;
+    tau_kink = paths[kink_idx_j].tau;
+    tau_prev_j = paths[prev_j].tau;
+
+    // Only kinks in which the particle hops from i TO j can be deleted
+    if (paths[kink_idx_j].n-paths[prev_j].n<0){return;}
+
+    // Retrieve worm head site (j) and connecting site (i)
+    j = paths[kink_idx_j].src;
+    i = paths[kink_idx_j].dest;
+    src_replica = paths[kink_idx_j].src_replica;
+    dest_replica = paths[kink_idx_j].dest_replica;
+    
+    // Determine index of lower/upper bounds of flat where kink connects to (i)
+    tau = 0.0;            // tau_prev_i candidate
+    prev = i;           // prev_i candidate
+    prev_i = i;         // this avoids "variable maybe not initialized" warning
+    while (tau<tau_kink){
+        // Set the lower bound index
+        prev_i = prev;
+
+        // Update lower bound index and tau candidates for next iteration
+        prev = paths[prev].next;
+        if (prev==-1){break;}
+        tau = paths[prev].tau;
+    }
+    kink_idx_i = prev;
+    next_i=paths[kink_idx_i].next;
+
+    // Retrieve time of lower,upper bounds on connecting site (i)
+    tau_prev_i = paths[prev_i].tau;
+    if (next_i!=-1){tau_next_i = paths[next_i].tau;}
+    else{tau_next_i=beta;}
+
+    // Deletion cannot interfere w/ kinks on other site
+    if (tau_h >= tau_next_i){return;}
+
+    // Add to proposal counter
+    dkbh_attempts += 1;
+
+    // Determine lowest time at which kink could've been inserted
+    if (tau_prev_i>tau_prev_j){tau_min=tau_prev_i;}
+    else {tau_min=tau_prev_j;}
+
+    // Probability of inverse move (ikbh) of choosing site where worm end is
+    p_site = 1.0/total_nn;
+
+    // Extract no. of particles in the flats adjacent to the new kink
+    n_wi = paths[prev_i].n;
+    n_i = n_wi-1;
+    n_j = paths[prev_j].n;
+    n_wj = n_j+1;                   // "w": segment with the extra particle
+
+    // Calculate the diagonal energy difference on both sites
+    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
+    dV = dV_j - dV_i;
+    if (dV == 0){dV = 1e-20;}
+
+    // Calculate the weight ratio W'/W
+    // W = t * n_wj * exp((dV_i-dV_j)*(tau_h-tau_kink));
+
+    // inverse move (insert kink before head) truncated sampling
+    double Z,a,b,c;
+    a = tau_min;
+    b = tau_h;
+    c = dV;
+    Z = 1.0 - exp(-c*(b-a)); //
+
+    // Build the Metropolis ratio (R)
+    p_dkbh = 0.5;
+    p_ikbh = 0.5;
+    // R = W * (p_dkbh/p_ikbh) * (tau_h-tau_min)/p_site;
+    R = t * n_wj * (p_dkbh/p_ikbh) * (Z/dV) / p_site;
     R = 1.0/R;
 
     // Metropolis Sampling
@@ -4098,6 +4468,168 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
 
 /*--------------------------------------------------------------------*/
 
+void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
+                int &head_idx,int &tail_idx,
+                int M, int N, double U, double mu, double t,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &ikah_attempts,
+                unsigned long long int &ikah_accepts,
+                RNG &rng){
+    
+    // Variable declarations
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    src_replica,dest_replica;
+    double tau,tau_h,p_site,R,p_dkah,p_ikah,tau_prev_i,tau_prev_j,
+    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,dV;
+    
+    // Update only possible if worm head present
+    if (head_idx==-1){return;}
+    
+    // Need at least two sites to perform a spaceshift
+    if (M<2){return;}
+    
+    // Add to proposal counter
+    ikah_attempts += 1;
+    
+    // Extract the worm head site
+    i = paths[head_idx].src;
+    src_replica = paths[head_idx].src_replica;
+    dest_replica = paths[head_idx].dest_replica;
+
+    // Randomly choose a nearest neighbor site
+    //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
+    j = adjacency_matrix[i][rng.randInt(total_nn-1)];
+    p_site = 1.0/total_nn;
+    
+    // Retrieve the time of the worm head
+    tau_h = paths[head_idx].tau;
+    
+    // Determine index of lower/upper kinks of flat where head is (site i)
+    prev_i = paths[head_idx].prev;
+    next_i = paths[head_idx].next;
+    
+    // Determine index of lower/upper kinks of flat where head jumps to (site j)
+    tau = 0.0;            // tau_prev_j candidate
+    prev = j;           // prev_j candidate
+    prev_j = j;         // this avoids "variable maybe not initialized" warning
+    while (tau<tau_h){
+
+        // Set the lower bound index
+        prev_j = prev;
+        
+        // Update lower bound index and tau candidates for next iteration
+        prev = paths[prev].next;
+        if (prev==-1){break;}
+        tau = paths[prev].tau;
+    }
+    next_j=prev;
+    
+    // Determine upper,lower bound times on both sites
+    tau_prev_i = paths[prev_i].tau;
+    tau_prev_j = paths[prev_j].tau;
+    if (next_i!=-1)
+        tau_next_i = paths[next_i].tau;
+    else
+        tau_next_i = beta;
+    if (next_j!=-1)
+        tau_next_j = paths[next_j].tau;
+    else
+        tau_next_j = beta;
+    
+    // Determine highest time at which kink could've been inserted
+    if (tau_next_i<tau_next_j){tau_max=tau_next_i;}
+    else {tau_max=tau_next_j;}
+    
+    // Randomly choose the time of the kink
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    // tau_kink = tau_h + rng.rand()*(tau_max-tau_h);
+    // if (tau_kink==tau_h){return;}
+    
+     // Extract no. of particles in the flats adjacent to the new kink
+     n_wi = paths[prev_i].n;
+     n_i = n_wi-1;
+     n_wj = paths[prev_j].n;
+     n_j = n_wj-1;                   // "w": segment with the extra particle
+    
+    // Update not possible if no particles on destinaton site (j)
+    if (n_wj==0){return;}
+
+    // Calculate the diagonal energy difference on both sites
+    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
+    dV = dV_i - dV_j;
+    if (dV == 0){dV = 1e-20;}
+
+    /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
+    // Sample time on flat interval from truncated exponential for insertion
+    double x,Z,a,b,c;
+
+    a = tau_h;
+    b = tau_max;
+
+    c = dV; 
+
+    x = rng.rand();
+    Z = 1.0 - exp(-c*(b-a));
+    tau_kink = a - log(1.0-Z*x)  / c;
+    // if (!is_worm){cout << tau_new << endl;}
+    /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+    
+    // Calculate the weight ratio W'/W
+    // W = t * n_wj * exp((-dV_i+dV_j)*(tau_kink-tau_h));
+    
+    // Build the Metropolis ratio (R)
+    p_dkah = 0.5;
+    p_ikah = 0.5;
+    R = t * n_wj * (p_dkah/p_ikah) * (Z/dV) / p_site;
+
+    // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
+    
+    // Metropolis Sampling
+    if (rng.rand() < R){ // Accept
+        
+        // Add to acceptance counter
+        ikah_accepts += 1;
+                
+        // Change kink that stored head information to a regular kink
+        paths[head_idx].tau = tau_kink;
+        paths[head_idx].n = n_i;
+        paths[head_idx].src = i;
+        paths[head_idx].dest = j;
+        paths[head_idx].prev = prev_i;
+        paths[head_idx].next = next_i;
+        
+        // Create the kinks on the destination site
+        paths[num_kinks]=Kink(tau_h,n_j,j,j,prev_j,num_kinks+1,
+                              src_replica,dest_replica);
+        paths[num_kinks+1]=Kink(tau_kink,n_wj,j,i,num_kinks,next_j,
+                                src_replica,dest_replica);
+        
+        // Set new worm head index
+        head_idx = num_kinks;
+                
+        // "Connect" next of lower bound kink to worm head
+        paths[prev_j].next = head_idx;
+        
+        // "Connect" prev of next kink to new kink
+        if(next_j!=-1){paths[next_j].prev = num_kinks+1;}
+        
+        // If new kink is last kink on site j, update last kinks tracker vector
+        if (next_j==-1){last_kinks[j]=num_kinks+1;}
+        
+        // Update number of kinks tracker
+        num_kinks += 2;
+
+        return;
+        }
+        else // Reject
+            return;
+        }
+
+/*--------------------------------------------------------------------*/
+
 void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
@@ -4198,6 +4730,226 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
     p_dkah = 0.5;
     p_ikah = 0.5;
     R = W * (p_dkah/p_ikah) * (tau_max-tau_h)/p_site;
+    R = 1.0/R;
+
+    // Metropolis Sampling
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rng.rand() < R){ // Accept
+
+        // Add to acceptance counter
+        dkah_accepts += 1;
+        
+        // Stage 1: Delete kink on i
+        if (paths[num_kinks-1].next!=-1)
+            paths[paths[num_kinks-1].next].prev = kink_idx_i;
+        paths[paths[num_kinks-1].prev].next = kink_idx_i;
+        
+        swap(paths[kink_idx_i],paths[num_kinks-1]);
+        
+        if (prev_i==num_kinks-1){prev_i=kink_idx_i;}
+        else if (next_i==num_kinks-1){next_i=kink_idx_i;}
+        else if (prev_j==num_kinks-1){prev_j=kink_idx_i;}
+        else if (next_j==num_kinks-1){next_j=kink_idx_i;}
+        else if (kink_idx_j==num_kinks-1){kink_idx_j=kink_idx_i;}
+        else if (head_idx==num_kinks-1){head_idx=kink_idx_i;}
+        else {;}
+        
+        if (tail_idx==num_kinks-1){tail_idx=kink_idx_i;}
+        
+        if (paths[kink_idx_i].next==-1){
+            last_kinks[paths[kink_idx_i].src]=kink_idx_i;
+        }
+        
+        if (next_i!=-1)
+            paths[next_i].prev = prev_i;
+        paths[prev_i].next = next_i;
+        
+        if (next_i==-1){last_kinks[i]=prev_i;}
+
+        // Stage 2: Delete kink on j
+        if (paths[num_kinks-2].next!=-1)
+            paths[paths[num_kinks-2].next].prev = kink_idx_j;
+        paths[paths[num_kinks-2].prev].next = kink_idx_j;
+        
+        swap(paths[kink_idx_j],paths[num_kinks-2]);
+        
+        if (prev_i==num_kinks-2){prev_i=kink_idx_j;}
+        else if (next_i==num_kinks-2){next_i=kink_idx_j;}
+        else if (prev_j==num_kinks-2){prev_j=kink_idx_j;}
+        else if (next_j==num_kinks-2){next_j=kink_idx_j;}
+        else if (head_idx==num_kinks-2){head_idx=kink_idx_j;}
+        else {;}
+        
+        if (tail_idx==num_kinks-2){tail_idx=kink_idx_j;}
+        
+        if (paths[kink_idx_j].next==-1){
+            last_kinks[paths[kink_idx_j].src]=kink_idx_j;
+        }
+        
+        if (next_j!=-1)
+            paths[next_j].prev = head_idx;
+        paths[head_idx].next = next_j;
+        
+        if (next_j==-1){last_kinks[j]=head_idx;}
+        
+        // Stage 3: Delete worm head on j
+        if (paths[num_kinks-3].next!=-1)
+            paths[paths[num_kinks-3].next].prev = head_idx;
+        paths[paths[num_kinks-3].prev].next = head_idx;
+        
+        swap(paths[head_idx],paths[num_kinks-3]);
+        
+        if (prev_i==num_kinks-3){prev_i=head_idx;}
+        else if (next_i==num_kinks-3){next_i=head_idx;}
+        else if (prev_j==num_kinks-3){prev_j=head_idx;}
+        else if (next_j==num_kinks-3){next_j=head_idx;}
+        else {;}
+        
+        if (tail_idx==num_kinks-3){tail_idx=head_idx;}
+        
+        if (paths[head_idx].next==-1){
+            last_kinks[paths[head_idx].src]=head_idx;
+        }
+        
+        if (next_j!=-1)
+            paths[next_j].prev = prev_j;
+        paths[prev_j].next = next_j;
+        
+        if (next_j==-1){last_kinks[j]=prev_j;}
+        
+        // Stage 4: Insert worm head on i
+        paths[num_kinks-3]=Kink(tau_h,n_i,i,i,prev_i,next_i,
+                                src_replica,dest_replica);
+        
+        head_idx = num_kinks-3;
+        
+        paths[prev_i].next = head_idx;
+        if(next_i!=-1){paths[next_i].prev = head_idx;}
+        
+        if (next_i==-1){last_kinks[i]=head_idx;}
+        
+        // Update number of kinks tracker
+        num_kinks -= 2;
+
+        return;
+
+    }
+    else // Reject
+        return;
+    }
+
+/*--------------------------------------------------------------------*/
+
+void delete_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
+                int &head_idx,int &tail_idx,
+                int M, int N, double U, double mu, double t,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &dkah_attempts,
+                unsigned long long int &dkah_accepts,
+                RNG &rng){
+    
+    // Variable declarations
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    kink_idx_i,kink_idx_j,src_replica,dest_replica;
+    double tau,tau_h,p_site,R,p_dkah,p_ikah,tau_prev_i,tau_prev_j,
+    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,dV;
+    
+    // Update only possible if worm head present
+    if (head_idx==-1){return;}
+    
+    // There has to be a regular kink after the worm head
+    if (paths[head_idx].next==tail_idx ||
+        paths[head_idx].next==-1){return;}
+
+    // Need at least two sites to perform a spaceshift
+    if (M<2){return;}
+
+    // Indices of: upper bound kink, kink before head, lower bound kink ; site j
+    kink_idx_j = paths[head_idx].next;
+    next_j = paths[kink_idx_j].next;
+    prev_j = paths[head_idx].prev;
+
+    // Times of: worm head, kink before head, lower bound kink; site j
+    if (next_j!=-1)
+        tau_next_j = paths[next_j].tau;
+    else
+        tau_next_j = beta;
+    tau_kink = paths[kink_idx_j].tau;
+    tau_h = paths[head_idx].tau;
+    tau_prev_j = paths[prev_j].tau;
+    
+    // Only kinks in which the particle hops from i TO j can be deleted
+    if (paths[kink_idx_j].n-paths[head_idx].n<0){return;}
+    
+    // Retrieve worm head site (j) and connecting site (i)
+    j = paths[head_idx].src;
+    i = paths[kink_idx_j].dest;
+    src_replica = paths[kink_idx_j].src_replica;
+    dest_replica = paths[kink_idx_j].dest_replica;
+
+    // Determine index of lower/upper bounds of flat where kink connects to (i)
+    tau = 0.0;            // tau_prev_i candidate
+    prev = i;           // prev_i candidate
+    prev_i = i;         // this avoids "variable maybe not initialized" warning
+    while (tau<tau_kink){
+        // Set the lower bound index
+        prev_i = prev;
+
+        // Update lower bound index and tau candidates for next iteration
+        prev = paths[prev].next;
+        if (prev==-1){break;}
+        tau = paths[prev].tau;
+    }
+    kink_idx_i = prev;
+    next_i=paths[kink_idx_i].next;
+
+    // Retrieve time of lower,upper bounds on connecting site (i)
+    tau_prev_i = paths[prev_i].tau;
+    if (next_i!=-1){tau_next_i = paths[next_i].tau;}
+    else{tau_next_i=beta;}
+    
+    // Deletion cannot interfere w/ kinks on other site
+    if (tau_h <= tau_prev_i){return;}
+
+    // Add to proposal counter
+    dkah_attempts += 1;
+
+    // Determine highest time at which kink could've been inserted
+    if (tau_next_i<tau_next_j){tau_max=tau_next_i;}
+    else {tau_max=tau_next_j;}
+
+    // Probability of inverse move (ikah) choosing site where worm end is
+    p_site = 1.0/total_nn;
+
+    // Extract no. of particles in the flats adjacent to the new kink
+    n_wi = paths[prev_i].n;
+    n_i = n_wi-1;
+    n_wj = paths[prev_j].n;
+    n_j = n_wj-1;                   // "w": segment with the extra particle
+
+    // Calculate the diagonal energy difference on both sites
+    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
+    dV = dV_i - dV_j;
+    if (dV == 0){dV = 1e-20;}
+
+    // Calculate the weight ratio W'/W
+    // W = t * n_wj * exp((-dV_i+dV_j)*(tau_kink-tau_h));
+
+    // inverse move (insert kink after head) tuncated sampling
+    double Z,a,b,c;
+    a = tau_h;
+    b = tau_max;
+    c = dV;
+    Z = 1.0 - exp(-c*(b-a)); 
+
+    // Build the Metropolis ratio (R)
+    p_dkah = 0.5;
+    p_ikah = 0.5;
+    R = t * n_wj * (p_dkah/p_ikah) * (Z/dV) / p_site;
+    // R = W * (p_dkah/p_ikah) * (tau_max-tau_h)/p_site;
     R = 1.0/R;
 
     // Metropolis Sampling
@@ -4451,6 +5203,170 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
 
 /*--------------------------------------------------------------------*/
 
+void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
+                int &head_idx,int &tail_idx,
+                int M, int N, double U, double mu, double t,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &ikbt_attempts,
+                unsigned long long int &ikbt_accepts,
+                RNG &rng){
+    
+    // Variable declarations
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    src_replica,dest_replica;
+    double tau,tau_t,p_site,R,p_dkbt,p_ikbt,tau_prev_i,tau_prev_j,
+    tau_kink,tau_min,dV_i,dV_j,tau_next_i,tau_next_j,dV;
+    
+    // Update only possible if worm tail present
+    if (tail_idx==-1){return;}
+    
+    // Need at least two sites to perform a spaceshift
+    if (M<2){return;}
+    
+    // Extract the worm tail site
+    i = paths[tail_idx].src;
+    src_replica = paths[tail_idx].src_replica;
+    dest_replica = paths[tail_idx].dest_replica;
+    
+    // Randomly choose a nearest neighbor site
+    //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
+    j = adjacency_matrix[i][rng.randInt(total_nn-1)];
+    p_site = 1.0/total_nn;
+    
+    // Retrieve the time of the worm tail
+    tau_t = paths[tail_idx].tau;
+    
+    // Determine index of lower/upper kinks of flat where tail is (site i)
+    prev_i = paths[tail_idx].prev;
+    next_i = paths[tail_idx].next;
+    
+    // Determine index of lower/upper kinks of flat where tail jumps to (site j)
+    tau = 0.0;            // tau_prev_j candidate
+    prev = j;           // prev_j candidate
+    prev_j = j;         // this avoids "variable maybe not initialized" warning
+    while (tau<tau_t){
+        // Set the lower bound index
+        prev_j = prev;
+        
+        // Update lower bound index and tau candidates for next iteration
+        prev = paths[prev].next;
+        if (prev==-1){break;}
+        tau = paths[prev].tau;
+    }
+    next_j=prev;
+    
+    // Determine upper,lower bound times on both sites
+    tau_prev_i = paths[prev_i].tau;
+    tau_prev_j = paths[prev_j].tau;
+    if (next_i!=-1)
+        tau_next_i = paths[next_i].tau;
+    else
+        tau_next_i = beta;
+    if (next_j!=-1)
+        tau_next_j = paths[next_j].tau;
+    else
+        tau_next_j = beta;
+    
+    // Determine lowest time at which kink could've been inserted
+    if (tau_prev_i>tau_prev_j){tau_min=tau_prev_i;}
+    else {tau_min=tau_prev_j;}
+    
+    // Randomly choose the time of the kink
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    // tau_kink = tau_min + rng.rand()*(tau_t-tau_min);
+    // if (tau_kink == tau_min){return;}
+    
+     // Extract no. of particles in the flats adjacent to the new kink
+     n_i = paths[prev_i].n;
+     n_wi = n_i+1;
+     n_wj = paths[prev_j].n;
+     n_j = n_wj-1;                   // "w": segment with the extra particle
+    
+    // Update not possible if no particles on destinaton site (j)
+    if (n_wj == 0){return;}
+    
+    // Add to proposal counter
+    ikbt_attempts += 1;
+    
+    // Calculate the diagonal energy difference on both sites
+    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
+    dV = dV_i - dV_j;
+    if (dV == 0){dV = 1e-20;}
+
+    /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
+    // Sample time on flat interval from truncated exponential for insertion
+    double x,Z,a,b,c;
+
+    a = tau_min;
+    b = tau_t;
+
+    c = dV; 
+
+    x = rng.rand();
+    Z = 1.0 - exp(-c*(b-a)); //
+    tau_kink = b + log(1.0-Z*x)  / c;
+    // if (!is_worm){cout << tau_new << endl;}
+    /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+    
+    // Calculate the weight ratio W'/W
+    // W = t * n_wj * exp((-dV_i+dV_j)*(tau_t-tau_kink));
+
+    // Build the Metropolis ratio (R)
+    p_dkbt = 0.5;
+    p_ikbt = 0.5;
+    R = t * n_wj * (p_dkbt/p_ikbt) * (Z/dV) /p_site;
+    // R = W * (p_dkbt/p_ikbt) * (tau_t-tau_min)/p_site;
+
+    // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
+
+    
+    // Metropolis Sampling
+    if (rng.rand() < R){ // Accept
+        
+        // Add to acceptance counter
+        ikbt_accepts += 1;
+                
+        // Change kink that stored tail information to a regular kink
+        paths[tail_idx].tau = tau_kink;
+        paths[tail_idx].n = n_wi;
+        paths[tail_idx].src = i;
+        paths[tail_idx].dest = j;
+        paths[tail_idx].prev = prev_i;
+        paths[tail_idx].next = next_i;
+        
+        // Create the kinks on the destination site
+        paths[num_kinks]=Kink(tau_kink,n_j,j,i,prev_j,num_kinks+1,
+                              src_replica,dest_replica);
+        paths[num_kinks+1]=Kink(tau_t,n_wj,j,j,num_kinks,next_j,
+                              src_replica,dest_replica);
+        
+        // Set new worm tail index
+        tail_idx = num_kinks+1;
+                
+        // "Connect" next of lower bound kink to new kink
+        paths[prev_j].next = num_kinks;
+        
+        // "Connect" prev of next kink to worm tail
+        if(next_j!=-1){paths[next_j].prev = tail_idx;}
+                
+        // Update number of kinks tracker
+        num_kinks += 2;
+        
+        // If worm tail is last kink on site j, update last kinks tracker vector
+        if (next_j==-1){last_kinks[j]=tail_idx;}
+        
+        return;
+            
+        }
+        else // Reject
+            return;
+        }
+
+/*--------------------------------------------------------------------*/
+
 void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
@@ -4547,6 +5463,222 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
     p_dkbt = 0.5;
     p_ikbt = 0.5;
     R = W * (p_dkbt/p_ikbt) * (tau_t-tau_min)/p_site;
+    R = 1.0/R;
+    
+    // Metropolis Sampling
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rng.rand() < R){ // Accept
+
+        // Add to acceptance counter
+        dkbt_accepts += 1;
+        
+        // Stage 1: Delete kink on i
+        if (paths[num_kinks-1].next!=-1)
+            paths[paths[num_kinks-1].next].prev = kink_idx_i;
+        paths[paths[num_kinks-1].prev].next = kink_idx_i;
+        
+        swap(paths[kink_idx_i],paths[num_kinks-1]);
+        
+        if (prev_i==num_kinks-1){prev_i=kink_idx_i;}
+        else if (next_i==num_kinks-1){next_i=kink_idx_i;}
+        else if (prev_j==num_kinks-1){prev_j=kink_idx_i;}
+        else if (next_j==num_kinks-1){next_j=kink_idx_i;}
+        else if (kink_idx_j==num_kinks-1){kink_idx_j=kink_idx_i;}
+        else if (tail_idx==num_kinks-1){tail_idx=kink_idx_i;}
+        else {;}
+        
+        if (head_idx==num_kinks-1){head_idx=kink_idx_i;}
+        
+        if (paths[kink_idx_i].next==-1){
+            last_kinks[paths[kink_idx_i].src]=kink_idx_i;
+        }
+        
+        if (next_i!=-1)
+            paths[next_i].prev = prev_i;
+        paths[prev_i].next = next_i;
+        
+        if (next_i==-1){last_kinks[i]=prev_i;}
+
+        // Stage 2: Delete worm tail on j
+        if (paths[num_kinks-2].next!=-1)
+            paths[paths[num_kinks-2].next].prev = tail_idx;
+        paths[paths[num_kinks-2].prev].next = tail_idx;
+        
+        swap(paths[tail_idx],paths[num_kinks-2]);
+        
+        if (prev_i==num_kinks-2){prev_i=tail_idx;}
+        else if (next_i==num_kinks-2){next_i=tail_idx;}
+        else if (prev_j==num_kinks-2){prev_j=tail_idx;}
+        else if (next_j==num_kinks-2){next_j=tail_idx;}
+        else if (kink_idx_j==num_kinks-2){kink_idx_j=tail_idx;}
+        else {;}
+        
+        if (head_idx==num_kinks-2){head_idx=tail_idx;}
+        
+        if (paths[tail_idx].next==-1){
+            last_kinks[paths[tail_idx].src]=tail_idx;
+        }
+        
+        if (next_j!=-1)
+            paths[next_j].prev = kink_idx_j;
+        paths[kink_idx_j].next = next_j;
+        
+        if (next_j==-1){last_kinks[j]=kink_idx_j;}
+                
+        // Stage 3: Delete kink on j
+        if (paths[num_kinks-3].next!=-1)
+            paths[paths[num_kinks-3].next].prev = kink_idx_j;
+        paths[paths[num_kinks-3].prev].next = kink_idx_j;
+        
+        swap(paths[kink_idx_j],paths[num_kinks-3]);
+        
+        if (prev_i==num_kinks-3){prev_i=kink_idx_j;}
+        else if (next_i==num_kinks-3){next_i=kink_idx_j;}
+        else if (prev_j==num_kinks-3){prev_j=kink_idx_j;}
+        else if (next_j==num_kinks-3){next_j=kink_idx_j;}
+        else {;}
+        
+        if (head_idx==num_kinks-3){head_idx=kink_idx_j;}
+        
+        if (paths[kink_idx_j].next==-1){
+            last_kinks[paths[kink_idx_j].src]=kink_idx_j;
+        }
+        
+        if (next_j!=-1)
+            paths[next_j].prev = prev_j;
+        paths[prev_j].next = next_j;
+        
+        if (next_j==-1){last_kinks[j]=prev_j;}
+
+        // Stage 4: Insert worm tail on i
+        paths[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i,
+                                src_replica,dest_replica);
+
+        tail_idx = num_kinks-3;
+
+        paths[prev_i].next = tail_idx;
+        if(next_i!=-1){paths[next_i].prev = tail_idx;}
+
+        if (next_i==-1){last_kinks[i]=tail_idx;}
+
+        // Update number of kinks tracker
+        num_kinks -= 2;
+        
+        return;
+
+    }
+    else // Reject
+        return;
+    }
+
+/*--------------------------------------------------------------------*/
+
+void delete_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
+                int &head_idx,int &tail_idx,
+                int M, int N, double U, double mu, double t,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &dkbt_attempts,
+                unsigned long long int &dkbt_accepts,
+                RNG &rng){
+    
+    // Variable declarations
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    kink_idx_i,kink_idx_j,src_replica,dest_replica;
+    double tau,tau_t,p_site,R,p_dkbt,p_ikbt,tau_prev_i,tau_prev_j,
+    tau_kink,tau_min,dV_i,dV_j,tau_next_i,dV;
+    
+    // Update only possible if worm tail present
+    if (tail_idx==-1){return;}
+    
+    // There has to be a regular kink after the worm tail
+    if (paths[tail_idx].prev==head_idx ||
+        paths[paths[tail_idx].prev].tau==0){return;}
+
+    // Need at least two sites to perform a spaceshift
+    if (M<2){return;}
+    
+    // Indices of: upper bound kink, kink before tail, lower bound kink ; site j
+    next_j = paths[tail_idx].next;
+    kink_idx_j = paths[tail_idx].prev;
+    prev_j = paths[kink_idx_j].prev;
+
+    // Times of: worm tail, kink before tail, lower bound kink; site j
+    tau_t = paths[tail_idx].tau;
+    tau_kink = paths[kink_idx_j].tau;
+    tau_prev_j = paths[prev_j].tau;
+    
+    // Only kinks in which the particle hops from j TO i can be deleted
+    if (paths[kink_idx_j].n-paths[prev_j].n>0){return;}
+    
+    // Retrieve worm tail site (j) and connecting site (i)
+    j = paths[kink_idx_j].src;
+    i = paths[kink_idx_j].dest;
+    src_replica = paths[kink_idx_j].src_replica;
+    dest_replica = paths[kink_idx_j].dest_replica;
+    
+    // Determine index of lower/upper bounds of flat where kink connects to (i)
+    tau = 0.0;            // tau_prev_i candidate
+    prev = i;           // prev_i candidate
+    prev_i = i;         // this avoids "variable maybe not initialized" warning
+    while (tau<tau_kink){
+        // Set the lower bound index
+        prev_i = prev;
+
+        // Update lower bound index and tau candidates for next iteration
+        prev = paths[prev].next;
+        if (prev==-1){break;}
+        tau = paths[prev].tau;
+    }
+    kink_idx_i = prev;
+    next_i=paths[kink_idx_i].next;
+
+    // Retrieve time of lower,upper bounds on connecting site (i)
+    tau_prev_i = paths[prev_i].tau;
+    if (next_i==-1){tau_next_i=beta;}
+    else {tau_next_i=paths[next_i].tau;};
+    
+    // Deletion cannot interfere w/ kinks on other site
+    if (tau_t>=tau_next_i){return;}
+
+    // Add to proposal counter
+    dkbt_attempts += 1;
+
+    // Determine lowest time at which kink could've been inserted
+    if (tau_prev_i>tau_prev_j){tau_min=tau_prev_i;}
+    else {tau_min=tau_prev_j;}
+    
+    // Probability of inverse move (ikbt) choosing site where worm end is
+    p_site = 1.0/total_nn;
+
+    // Extract no. of particles in the flats adjacent to the new kink
+    n_i = paths[prev_i].n;
+    n_wi = n_i+1;
+    n_wj = paths[prev_j].n;
+    n_j = n_wj-1;                   // "w": segment with the extra particle
+
+    // Calculate the diagonal energy difference on both sites
+    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
+    dV = dV_i - dV_j;
+    if (dV == 0){dV = 1e-20;}
+
+    // Calculate the weight ratio W'/W
+    // W = t * n_wj * exp((-dV_i+dV_j)*(tau_t-tau_kink));
+
+    // inverse move (insert kink before tail) truncated exponential sampling
+    double Z,a,b,c;
+    a = tau_min;
+    b = tau_t;
+    c = dV;
+    Z = 1.0 - exp(-c*(b-a));
+
+    // Build the Metropolis ratio (R)
+    p_dkbt = 0.5;
+    p_ikbt = 0.5;
+    R = t * n_wj * (p_dkbt/p_ikbt) * (Z/c) /p_site;
+    // R = W * (p_dkbt/p_ikbt) * (tau_t-tau_min)/p_site;
     R = 1.0/R;
     
     // Metropolis Sampling
@@ -4797,6 +5929,166 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
 
 /*--------------------------------------------------------------------*/
 
+void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
+                int &head_idx,int &tail_idx,
+                int M, int N, double U, double mu, double t,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &ikat_attempts,
+                unsigned long long int &ikat_accepts,
+                RNG &rng){
+    
+    // Variable declarations
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    src_replica,dest_replica;
+    double tau,tau_t,p_site,R,p_dkat,p_ikat,tau_prev_i,tau_prev_j,
+    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,dV;
+    
+    // Update only possible if worm tail present
+    if (tail_idx==-1){return;}
+    
+    // Need at least two sites to perform a spaceshift
+    if (M<2){return;}
+    
+    // Add to proposal counter
+    ikat_attempts += 1;
+    
+    // Extract the worm tail site
+    i = paths[tail_idx].src;
+    src_replica = paths[tail_idx].src_replica;
+    dest_replica = paths[tail_idx].dest_replica;
+    
+    // Randomly choose a nearest neighbor site
+    //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
+    j = adjacency_matrix[i][rng.randInt(total_nn-1)];
+    p_site = 1.0/total_nn;
+    
+    // Retrieve the time of the worm tail
+    tau_t = paths[tail_idx].tau;
+    
+    // Determine index of lower/upper kinks of flat where tail is (site i)
+    prev_i = paths[tail_idx].prev;
+    next_i = paths[tail_idx].next;
+    
+    // Determine index of lower/upper kinks of flat where tail jumps to (site j)
+    tau = 0.0;            // tau_prev_j candidate
+    prev = j;           // prev_j candidate
+    prev_j = j;         // this avoids "variable maybe not initialized" warning
+    while (tau<tau_t){
+        // Set the lower bound index
+        prev_j = prev;
+        
+        // Update lower bound index and tau candidates for next iteration
+        prev = paths[prev].next;
+        if (prev==-1){break;}
+        tau = paths[prev].tau;
+    }
+    next_j=prev;
+    
+    // Determine upper,lower bound times on both sites
+    tau_prev_i = paths[prev_i].tau;
+    tau_prev_j = paths[prev_j].tau;
+    if (next_i!=-1)
+        tau_next_i = paths[next_i].tau;
+    else
+        tau_next_i = beta;
+    if (next_j!=-1)
+        tau_next_j = paths[next_j].tau;
+    else
+        tau_next_j = beta;
+    
+    // Determine highest time at which kink could've been inserted
+    if (tau_next_i<tau_next_j){tau_max=tau_next_i;}
+    else {tau_max=tau_next_j;}
+    
+    // Randomly choose the time of the kink
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    // tau_kink = tau_t + rng.rand()*(tau_max-tau_t);
+    // if (tau_kink==tau_t){return;}
+    
+     // Extract no. of particles in the flats adjacent to the new kink
+     n_i = paths[prev_i].n;
+     n_wi = n_i+1;
+     n_j = paths[prev_j].n;
+     n_wj = n_j+1;                   // "w": segment with the extra particle
+    
+    // Calculate the diagonal energy difference on both sites
+    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
+    dV = dV_j - dV_i;
+    if (dV == 0){dV = 1e-20;}
+
+    /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
+    // Sample time on flat interval from truncated exponential for insertion
+    double x,Z,a,b,c;
+
+    a = tau_t;
+    b = tau_max;
+    c = dV; 
+
+    x = rng.rand();
+    Z = 1.0 - exp(-c*(b-a));
+    tau_kink = a - log(1.0-Z*x)  / c;
+
+    // if (!is_worm){cout << tau_new << endl;}
+    /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+    
+    // Calculate the weight ratio W'/W
+    // W = t * n_wj * exp((dV_i-dV_j)*(tau_kink-tau_t));
+
+    // Build the Metropolis ratio (R)
+    p_dkat = 0.5;
+    p_ikat = 0.5;
+    R = t * n_wj * (p_dkat/p_ikat) * (Z/dV) / p_site;
+    // R = W * (p_dkat/p_ikat) * (tau_max-tau_t)/p_site;
+
+    // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
+
+    // Metropolis Sampling
+    if (rng.rand() < R){ // Accept
+        
+        // Add to acceptance counter
+        ikat_accepts += 1;
+                
+        // Change kink that stored tail information to a regular kink
+        paths[tail_idx].tau = tau_kink;
+        paths[tail_idx].n = n_wi;
+        paths[tail_idx].src = i;
+        paths[tail_idx].dest = j;
+        paths[tail_idx].prev = prev_i;
+        paths[tail_idx].next = next_i;
+        
+        // Create the kinks on the destination site
+        paths[num_kinks]=Kink(tau_t,n_wj,j,j,prev_j,num_kinks+1,
+                              src_replica,dest_replica);
+        paths[num_kinks+1]=Kink(tau_kink,n_j,j,i,num_kinks,next_j,
+                              src_replica,dest_replica);
+        
+        // Set new worm tail index
+        tail_idx = num_kinks;
+                
+        // "Connect" next of lower bound kink to worm tail
+        paths[prev_j].next = num_kinks;
+        
+        // "Connect" prev of next kink to new kink
+        if(next_j!=-1){paths[next_j].prev = num_kinks+1;}
+        
+        // If new kink is last kink on site j, update last kinks tracker vector
+        if (next_j==-1){last_kinks[j]=num_kinks+1;}
+        
+        // Update number of kinks tracker
+        num_kinks += 2;
+        
+        return;
+            
+        }
+        else // Reject
+            return;
+        }
+
+/*--------------------------------------------------------------------*/
+
 void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 int &head_idx,int &tail_idx,
                 int M, int N, double U, double mu, double t,
@@ -4897,6 +6189,226 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
     p_dkat = 0.5;
     p_ikat = 0.5;
     R = W * (p_dkat/p_ikat) * (tau_max-tau_t)/p_site;
+    R = 1.0/R;
+
+    // Metropolis Sampling
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rng.rand() < R){ // Accept
+
+        // Add to acceptance counter
+        dkat_accepts += 1;
+        
+        // Stage 1: Delete kink on i
+        if (paths[num_kinks-1].next!=-1)
+            paths[paths[num_kinks-1].next].prev = kink_idx_i;
+        paths[paths[num_kinks-1].prev].next = kink_idx_i;
+        
+        swap(paths[kink_idx_i],paths[num_kinks-1]);
+        
+        if (prev_i==num_kinks-1){prev_i=kink_idx_i;}
+        else if (next_i==num_kinks-1){next_i=kink_idx_i;}
+        else if (prev_j==num_kinks-1){prev_j=kink_idx_i;}
+        else if (next_j==num_kinks-1){next_j=kink_idx_i;}
+        else if (kink_idx_j==num_kinks-1){kink_idx_j=kink_idx_i;}
+        else if (tail_idx==num_kinks-1){tail_idx=kink_idx_i;}
+        else {;}
+        
+        if (head_idx==num_kinks-1){head_idx=kink_idx_i;}
+        
+        if (paths[kink_idx_i].next==-1){
+            last_kinks[paths[kink_idx_i].src]=kink_idx_i;
+        }
+        
+        if (next_i!=-1)
+            paths[next_i].prev = prev_i;
+        paths[prev_i].next = next_i;
+        
+        if (next_i==-1){last_kinks[i]=prev_i;}
+
+        // Stage 2: Delete kink on j
+        if (paths[num_kinks-2].next!=-1)
+            paths[paths[num_kinks-2].next].prev = kink_idx_j;
+        paths[paths[num_kinks-2].prev].next = kink_idx_j;
+        
+        swap(paths[kink_idx_j],paths[num_kinks-2]);
+        
+        if (prev_i==num_kinks-2){prev_i=kink_idx_j;}
+        else if (next_i==num_kinks-2){next_i=kink_idx_j;}
+        else if (prev_j==num_kinks-2){prev_j=kink_idx_j;}
+        else if (next_j==num_kinks-2){next_j=kink_idx_j;}
+        else if (tail_idx==num_kinks-2){tail_idx=kink_idx_j;}
+        else {;}
+        
+        if (head_idx==num_kinks-2){head_idx=kink_idx_j;}
+        
+        if (paths[kink_idx_j].next==-1){
+            last_kinks[paths[kink_idx_j].src]=kink_idx_j;
+        }
+        
+        if (next_j!=-1)
+            paths[next_j].prev = tail_idx;
+        paths[tail_idx].next = next_j;
+        
+        if (next_j==-1){last_kinks[j]=tail_idx;}
+        
+        // Stage 3: Delete worm head on j
+        if (paths[num_kinks-3].next!=-1)
+            paths[paths[num_kinks-3].next].prev = tail_idx;
+        paths[paths[num_kinks-3].prev].next = tail_idx;
+        
+        swap(paths[tail_idx],paths[num_kinks-3]);
+        
+        if (prev_i==num_kinks-3){prev_i=tail_idx;}
+        else if (next_i==num_kinks-3){next_i=tail_idx;}
+        else if (prev_j==num_kinks-3){prev_j=tail_idx;}
+        else if (next_j==num_kinks-3){next_j=tail_idx;}
+        else {;}
+        
+        if (head_idx==num_kinks-3){head_idx=tail_idx;}
+        
+        if (paths[tail_idx].next==-1){
+            last_kinks[paths[tail_idx].src]=tail_idx;
+        }
+        
+        if (next_j!=-1)
+            paths[next_j].prev = prev_j;
+        paths[prev_j].next = next_j;
+        
+        if (next_j==-1){last_kinks[j]=prev_j;}
+        
+        // Stage 4: Insert worm tail on i
+        paths[num_kinks-3]=Kink(tau_t,n_wi,i,i,prev_i,next_i,
+                                src_replica,dest_replica);
+        
+        tail_idx = num_kinks-3;
+        
+        paths[prev_i].next = tail_idx;
+        if(next_i!=-1){paths[next_i].prev = tail_idx;}
+        
+        if (next_i==-1){last_kinks[i]=tail_idx;}
+        
+        // Update number of kinks tracker
+        num_kinks -= 2;
+        
+        return;
+
+    }
+    else // Reject
+        return;
+    }
+
+/*--------------------------------------------------------------------*/
+
+void delete_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
+                int &head_idx,int &tail_idx,
+                int M, int N, double U, double mu, double t,
+                vector<vector<int> > &adjacency_matrix, int total_nn,
+                double beta, double eta, bool canonical, double &N_tracker,
+                int &N_zero, int &N_beta, vector<int> &last_kinks,
+                unsigned long long int &dkat_attempts,
+                unsigned long long int &dkat_accepts,
+                RNG &rng){
+    
+    // Variable declarations
+    int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
+    kink_idx_i,kink_idx_j,src_replica,dest_replica;
+    double tau,tau_t,p_site,R,p_dkat,p_ikat,tau_prev_i,tau_prev_j,
+    tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,dV;
+    
+    // Update only possible if worm tail present
+    if (tail_idx==-1){return;}
+    
+    // There has to be a regular kink after the worm tail
+    if (paths[tail_idx].next==head_idx ||
+        paths[tail_idx].next==-1){return;}
+
+    // Need at least two sites to perform a spaceshift
+    if (M<2){return;}
+
+    // Indices of: upper bound kink, kink before tail, lower bound kink ; site j
+    kink_idx_j = paths[tail_idx].next;
+    next_j = paths[kink_idx_j].next;
+    prev_j = paths[tail_idx].prev;
+
+    // Times of: worm tail, kink before tail, lower bound kink; site j
+    if (next_j!=-1)
+        tau_next_j = paths[next_j].tau;
+    else
+        tau_next_j = beta;
+    tau_kink = paths[kink_idx_j].tau;
+    tau_t = paths[tail_idx].tau;
+    tau_prev_j = paths[prev_j].tau;
+    
+    // Only kinks in which the particle hops from j TO i can be deleted
+    if ((paths[kink_idx_j].n-paths[tail_idx].n)>0){return;}
+    
+    // Retrieve worm tail site (j) and connecting site (i)
+    j = paths[kink_idx_j].src;
+    i = paths[kink_idx_j].dest;
+    src_replica = paths[kink_idx_j].src_replica;
+    dest_replica = paths[kink_idx_j].dest_replica;
+
+    // Determine index of lower/upper bounds of flat where kink connects to (i)
+    tau = 0.0;            // tau_prev_i candidate
+    prev = i;           // prev_i candidate
+    prev_i = i;         // this avoids "variable maybe not initialized" warning
+    while (tau<tau_kink){
+        // Set the lower bound index
+        prev_i = prev;
+
+        // Update lower bound index and tau candidates for next iteration
+        prev = paths[prev].next;
+        if (prev==-1){break;}
+        tau = paths[prev].tau;
+    }
+    kink_idx_i = prev;
+    next_i=paths[kink_idx_i].next;
+
+    // Retrieve time of lower,upper bounds on connecting site (i)
+    tau_prev_i = paths[prev_i].tau;
+    if (next_i==-1){tau_next_i=beta;}
+    else {tau_next_i = paths[next_i].tau;};
+    
+    // Deletion cannot interfere w/ kinks on other site
+    if (tau_t <= tau_prev_i){return;}
+
+    // Add to proposal counter
+    dkat_attempts += 1;
+
+    // Determine highest time at which kink could've been inserted
+    if (tau_next_i<tau_next_j){tau_max=tau_next_i;}
+    else {tau_max=tau_next_j;}
+
+    // Probability of inverse move (ikah) choosing site where worm end is
+    p_site = 1.0/total_nn;
+
+    // Extract no. of particles in the flats adjacent to the new kink
+    n_i = paths[prev_i].n;
+    n_wi = n_i+1;
+    n_j = paths[prev_j].n;
+    n_wj = n_j+1;                   // "w": segment with the extra particle
+
+    // Calculate the diagonal energy difference on both sites
+    dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
+    dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
+    dV = dV_j - dV_i;
+    if (dV == 0){dV = 1e-20;}
+
+    // Calculate the weight ratio W'/W
+    // W = t * n_wj * exp((dV_i-dV_j)*(tau_kink-tau_t));
+
+    // inverse move (insert kink after tail) truncated sampling
+    double Z,a,b,c;
+    a = tau_t;
+    b = tau_max;
+    c = dV; 
+    Z = 1.0 - exp(-c*(b-a));
+
+    // Build the Metropolis ratio (R)
+    p_dkat = 0.5;
+    p_ikat = 0.5;
+    R = t * n_wj * (p_dkat/p_ikat) * (Z/dV) / p_site;
+    // R = W * (p_dkat/p_ikat) * (tau_max-tau_t)/p_site;
     R = 1.0/R;
 
     // Metropolis Sampling

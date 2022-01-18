@@ -516,7 +516,7 @@ cout << "U: " << U << endl;
                             dummy_counter,dummy_counter,*rng_ptr);
             }
             else if (label==7){ // insert kink before head
-                insert_kink_before_head(paths[0],num_kinks[0],
+                insert_kink_before_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
                             beta,eta,canonical,N_tracker[0],
@@ -524,7 +524,7 @@ cout << "U: " << U << endl;
                             dummy_counter,dummy_counter,*rng_ptr);
             }
             else if (label==8){ // delete kink before head
-                delete_kink_before_head(paths[0],num_kinks[0],
+                delete_kink_before_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
                             beta,eta,canonical,N_tracker[0],
@@ -532,7 +532,7 @@ cout << "U: " << U << endl;
                             dummy_counter,dummy_counter,*rng_ptr);
             }
             else if (label==9){ // insert kink after head
-                insert_kink_after_head(paths[0],num_kinks[0],
+                insert_kink_after_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
                             beta,eta,canonical,N_tracker[0],
@@ -540,7 +540,7 @@ cout << "U: " << U << endl;
                             dummy_counter,dummy_counter,*rng_ptr);
             }
             else if (label==10){ // delete kink after head
-                delete_kink_after_head(paths[0],num_kinks[0],
+                delete_kink_after_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
                             beta,eta,canonical,N_tracker[0],
@@ -548,7 +548,7 @@ cout << "U: " << U << endl;
                             dummy_counter,dummy_counter,*rng_ptr);
                     }
             else if (label==11){ // insert kink before tail
-                insert_kink_before_tail(paths[0],num_kinks[0],
+                insert_kink_before_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
                             beta,eta,canonical,N_tracker[0],
@@ -556,7 +556,7 @@ cout << "U: " << U << endl;
                             dummy_counter,dummy_counter,*rng_ptr);
             }
             else if (label==12){ // delete kink before tail
-                delete_kink_before_tail(paths[0],num_kinks[0],
+                delete_kink_before_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
                             beta,eta,canonical,N_tracker[0],
@@ -564,7 +564,7 @@ cout << "U: " << U << endl;
                             dummy_counter,dummy_counter,*rng_ptr);
             }
             else if (label==13){ // insert kink after tail
-                insert_kink_after_tail(paths[0],num_kinks[0],
+                insert_kink_after_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
                             beta,eta,canonical,N_tracker[0],
@@ -572,7 +572,7 @@ cout << "U: " << U << endl;
                             dummy_counter,dummy_counter,*rng_ptr);
             }
             else if (label==14){ // delete kink after tail
-                delete_kink_after_tail(paths[0],num_kinks[0],
+                delete_kink_after_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
                             beta,eta,canonical,N_tracker[0],
@@ -1096,56 +1096,56 @@ cout << "U: " << U << endl;
                        recede_tail_attempts,recede_tail_accepts,*rng_ptr);
         }
         else if (label==7){ // insert kink before head
-            insert_kink_before_head(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+            insert_kink_before_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        ikbh_attempts,ikbh_accepts,*rng_ptr);
         }
         else if (label==8){ // delete kink before head
-            delete_kink_before_head(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+            delete_kink_before_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        dkbh_attempts,dkbh_accepts,*rng_ptr);
         }
         else if (label==9){ // insert kink after head
-            insert_kink_after_head(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+            insert_kink_after_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        ikah_attempts,ikah_accepts,*rng_ptr);
         }
         else if (label==10){ // delete kink after head
-            delete_kink_after_head(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+            delete_kink_after_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        dkah_attempts,dkah_accepts,*rng_ptr);
-                }
+        }
         else if (label==11){ // insert kink before tail
-            insert_kink_before_tail(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+            insert_kink_before_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        ikbt_attempts,ikbt_accepts,*rng_ptr);
         }
         else if (label==12){ // delete kink before tail
-            delete_kink_before_tail(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+            delete_kink_before_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        dkbt_attempts,dkbt_accepts,*rng_ptr);
         }
         else if (label==13){ // insert kink after tail
-             insert_kink_after_tail(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+             insert_kink_after_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,adjacency_matrix,total_nn,
                         beta,eta,canonical,N_tracker[r],
                         N_zero[r],N_beta[r],last_kinks[r],
                         ikat_attempts,ikat_accepts,*rng_ptr);
          }
          else if (label==14){ // delete kink after tail
-             delete_kink_after_tail(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+             delete_kink_after_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,adjacency_matrix,total_nn,
                         beta,eta,canonical,N_tracker[r],
                         N_zero[r],N_beta[r],last_kinks[r],
