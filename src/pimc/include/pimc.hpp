@@ -1203,6 +1203,7 @@ void insert_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
     // Compute normalization of truncated exponential dist.
     double Z_1, Z_2, Z;
+    // if (dV == 0){cout << "NOOOOOO" << endl;}
 
     Z = (exp(c*(b-a)) + a*c - b*c - 1)/(c*c); // joint
 
@@ -3823,7 +3824,7 @@ void insert_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     dV = dV_j - dV_i;
-    if (dV == 0){dV = 1e-20;}
+    if (dV == 0){dV = 0.0;}
 
     /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
     // Sample time on flat interval from truncated exponential for insertion
@@ -3835,8 +3836,11 @@ void insert_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     c = dV; 
 
     x = rng.rand();
-    Z = 1.0 - exp(-c*(b-a)); //
-    tau_kink = b + log(1.0-Z*x)  / c;
+    Z = 1.0 - exp(-c*(b-a));
+    if (dV != 0)
+        tau_kink = b + log(1.0-Z*x)  / c;
+    else // dV == 0
+        tau_kink = b + x*(a-b); // L'hopitale was used
     // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
@@ -3847,7 +3851,10 @@ void insert_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     p_dkbh = 0.5;
     p_ikbh = 0.5;
     // R = W * (p_dkbh/p_ikbh) * (tau_h-tau_min)/p_site;
-    R = t * n_wj * (p_dkbh/p_ikbh) * (Z/dV) / p_site;
+    if (dV != 0)
+        R = t * n_wj * (p_dkbh/p_ikbh) * (Z/dV) / p_site;
+    else
+        R = t * n_wj * (p_dkbh/p_ikbh) * (b-a) / p_site; // L'hopitale
 
     // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
     
@@ -4194,7 +4201,7 @@ void delete_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     dV = dV_j - dV_i;
-    if (dV == 0){dV = 1e-20;}
+    // if (dV == 0){cout << "NOOOO" << endl;}
 
     // Calculate the weight ratio W'/W
     // W = t * n_wj * exp((dV_i-dV_j)*(tau_h-tau_kink));
@@ -4209,8 +4216,11 @@ void delete_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     // Build the Metropolis ratio (R)
     p_dkbh = 0.5;
     p_ikbh = 0.5;
+    if (dV != 0)
+        R = t * n_wj * (p_dkbh/p_ikbh) * (Z/dV) / p_site;
+    else
+        R = t * n_wj * (p_dkbh/p_ikbh) * (b-a) / p_site;
     // R = W * (p_dkbh/p_ikbh) * (tau_h-tau_min)/p_site;
-    R = t * n_wj * (p_dkbh/p_ikbh) * (Z/dV) / p_site;
     R = 1.0/R;
 
     // Metropolis Sampling
@@ -4560,7 +4570,7 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     dV = dV_i - dV_j;
-    if (dV == 0){dV = 1e-20;}
+    if (dV == 0){dV = 0.0;}
 
     /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
     // Sample time on flat interval from truncated exponential for insertion
@@ -4573,7 +4583,10 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
 
     x = rng.rand();
     Z = 1.0 - exp(-c*(b-a));
-    tau_kink = a - log(1.0-Z*x)  / c;
+    if (dV != 0)
+        tau_kink = a - log(1.0-Z*x)  / c;
+    else // dV == 0
+        tau_kink = a - x*(a-b); // L'Hopitale
     // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
@@ -4583,7 +4596,11 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     // Build the Metropolis ratio (R)
     p_dkah = 0.5;
     p_ikah = 0.5;
-    R = t * n_wj * (p_dkah/p_ikah) * (Z/dV) / p_site;
+    if (dV != 0)
+        R = t * n_wj * (p_dkah/p_ikah) * (Z/dV) / p_site;
+    else
+        R = t * n_wj * (p_dkah/p_ikah) * (b-a) / p_site; // L'Hopitale
+
 
     // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
     
@@ -4933,7 +4950,7 @@ void delete_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     dV = dV_i - dV_j;
-    if (dV == 0){dV = 1e-20;}
+    // if (dV == 0){cout << "NOOOO" << endl;}
 
     // Calculate the weight ratio W'/W
     // W = t * n_wj * exp((-dV_i+dV_j)*(tau_kink-tau_h));
@@ -4948,7 +4965,10 @@ void delete_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     // Build the Metropolis ratio (R)
     p_dkah = 0.5;
     p_ikah = 0.5;
-    R = t * n_wj * (p_dkah/p_ikah) * (Z/dV) / p_site;
+    if (dV != 0)
+        R = t * n_wj * (p_dkah/p_ikah) * (Z/dV) / p_site;
+    else
+        R = t * n_wj * (p_dkah/p_ikah) * (b-a) / p_site;
     // R = W * (p_dkah/p_ikah) * (tau_max-tau_h)/p_site;
     R = 1.0/R;
 
@@ -5294,7 +5314,7 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     dV = dV_i - dV_j;
-    if (dV == 0){dV = 1e-20;}
+    if (dV == 0){dV = 0.0;}
 
     /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
     // Sample time on flat interval from truncated exponential for insertion
@@ -5307,8 +5327,10 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
 
     x = rng.rand();
     Z = 1.0 - exp(-c*(b-a)); //
-    tau_kink = b + log(1.0-Z*x)  / c;
-    // if (!is_worm){cout << tau_new << endl;}
+    if (dV != 0)
+        tau_kink = b + log(1.0-Z*x)  / c;
+    else // dV == 0
+        tau_kink = b + x*(a-b); // L'hopitale was used
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
     // Calculate the weight ratio W'/W
@@ -5317,7 +5339,10 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     // Build the Metropolis ratio (R)
     p_dkbt = 0.5;
     p_ikbt = 0.5;
-    R = t * n_wj * (p_dkbt/p_ikbt) * (Z/dV) /p_site;
+    if (dV != 0)
+        R = t * n_wj * (p_dkbt/p_ikbt) * (Z/dV) /p_site;
+    else
+        R = t * n_wj * (p_dkbt/p_ikbt) * (b-a) /p_site;
     // R = W * (p_dkbt/p_ikbt) * (tau_t-tau_min)/p_site;
 
     // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
@@ -5662,7 +5687,7 @@ void delete_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     dV = dV_i - dV_j;
-    if (dV == 0){dV = 1e-20;}
+    // if (dV == 0){cout << "NOOOO" << endl;}
 
     // Calculate the weight ratio W'/W
     // W = t * n_wj * exp((-dV_i+dV_j)*(tau_t-tau_kink));
@@ -5677,7 +5702,10 @@ void delete_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     // Build the Metropolis ratio (R)
     p_dkbt = 0.5;
     p_ikbt = 0.5;
-    R = t * n_wj * (p_dkbt/p_ikbt) * (Z/c) /p_site;
+    if (dV != 0)
+        R = t * n_wj * (p_dkbt/p_ikbt) * (Z/c) /p_site;
+    else
+        R = t * n_wj * (p_dkbt/p_ikbt) * (b-a) /p_site;
     // R = W * (p_dkbt/p_ikbt) * (tau_t-tau_min)/p_site;
     R = 1.0/R;
     
@@ -6017,7 +6045,7 @@ void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     dV = dV_j - dV_i;
-    if (dV == 0){dV = 1e-20;}
+    if (dV == 0){dV = 0.0;}
 
     /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
     // Sample time on flat interval from truncated exponential for insertion
@@ -6029,7 +6057,10 @@ void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
 
     x = rng.rand();
     Z = 1.0 - exp(-c*(b-a));
-    tau_kink = a - log(1.0-Z*x)  / c;
+    if (dV !=0)
+        tau_kink = a - log(1.0-Z*x)  / c;
+    else // dV == 0
+        tau_kink = a - x*(a-b); // L'Hopitale
 
     // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
@@ -6040,7 +6071,11 @@ void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     // Build the Metropolis ratio (R)
     p_dkat = 0.5;
     p_ikat = 0.5;
-    R = t * n_wj * (p_dkat/p_ikat) * (Z/dV) / p_site;
+    if (dV != 0)
+        R = t * n_wj * (p_dkat/p_ikat) * (Z/dV) / p_site;
+    else
+        R = t * n_wj * (p_dkat/p_ikat) * (b-a) / p_site;
+
     // R = W * (p_dkat/p_ikat) * (tau_max-tau_t)/p_site;
 
     // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
@@ -6392,7 +6427,7 @@ void delete_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     dV = dV_j - dV_i;
-    if (dV == 0){dV = 1e-20;}
+    // if (dV == 0){cout << "NOOOO" << endl;}
 
     // Calculate the weight ratio W'/W
     // W = t * n_wj * exp((dV_i-dV_j)*(tau_kink-tau_t));
@@ -6407,7 +6442,10 @@ void delete_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     // Build the Metropolis ratio (R)
     p_dkat = 0.5;
     p_ikat = 0.5;
-    R = t * n_wj * (p_dkat/p_ikat) * (Z/dV) / p_site;
+    if (dV != 0)
+        R = t * n_wj * (p_dkat/p_ikat) * (Z/dV) / p_site;
+    else
+        R = t * n_wj * (p_dkat/p_ikat) * (b-a) / p_site;
     // R = W * (p_dkat/p_ikat) * (tau_max-tau_t)/p_site;
     R = 1.0/R;
 
