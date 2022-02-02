@@ -7665,7 +7665,7 @@ double pimc_kinetic_energy(vector<Kink> &paths, int num_kinks,
         }
     }
     
-    return (-t*kinks_in_window/2.0)/(2.0*measurement_plus_minus);
+    return (-*kinks_in_window/2.0)/(2.0*measurement_plus_minus);
 }
 
 /*--------------------------------------------------------------------*/
