@@ -74,6 +74,8 @@ directory (issue `make clean` or `rm -rf ./*` inside the build directory).
 
 FIXME!!!!!
 
+NOTE: NEED TO ADD EXAMPLE OF COMPILATION
+
 In order to get a quick idea of the options which the code accepts type:
 ```bash
 pigsl.e --help
