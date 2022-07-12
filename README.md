@@ -22,7 +22,7 @@ This program has been successfully compiled and runs on Intel systems using clan
 
 ```
 git clone https://github.com/ecasiano/pigsfli.git
-cd pimc
+cd pigsfli
 mkdir build
 cd build
 cmake ../src
@@ -37,8 +37,8 @@ The code is written in c++ and makes use of <a href="http://www.boost.org/">boos
 ## Path Integral Monte Carlo
 
 After dependencies are satisfied, you are now ready to compile the
-main pimc program on your system.
-PIMC uses CMake for build, test and installation automation. For details on using CMake consult https://cmake.org/documentation/. In short, the following steps should work on UNIX-like systems:
+main pigsfli program on your system.
+pigsfli uses CMake for build, test and installation automation. For details on using CMake consult https://cmake.org/documentation/. In short, the following steps should work on UNIX-like systems:
 
   ```
   mkdir build
@@ -54,17 +54,18 @@ As above, and with further details below, but you should consider using the foll
 - `-D CMAKE_C_COMPILER=xxx` equal to the name of the C99 Compiler you wish to use (or the environment variable `CC`)
 - `-D CMAKE_CXX_COMPILER=xxx` equal to the name of the C++17 compiler you wish to use (or the environment variable `CXX`)
 - `-D CMAKE_PREFIX_PATH=xxx` to add a non-standard location for CMake to search for libraries, headers or programs
-- `-D CMAKE_INSTALL_PREFIX=xxx` to install pimc to a non-standard location
+- `-D CMAKE_INSTALL_PREFIX=xxx` to install pigsfli to a non-standard location
 - `-D BOOST_ROOT=xxx` to add non-standard location for Boost install
 - `-D STATIC=1` to enable a static build
 - `-D CMAKE_BUILD_TYPE=Debug` to build pigsl in debug mode
-- `-D CMAKE_BUILD_TYPE=PIMC` to build pimcl
-- `-D CMAKE_BUILD_TYPE=PIMCDebug` to build pimcl in debug mode
+- `-D CMAKE_BUILD_TYPE=PIMC` to build pigsfli
+- `-D CMAKE_BUILD_TYPE=PIMCDebug` to build pigsfli in debug mode
 - `-E env CXXFLAGS="xxx"` add additional compiler flags
 - `-E env LDFLAGS="xxx"` add additional linker flags
 
-Executables will be installed to `CMAKE_INSTALL_PREFIX` location or if the install is skiped will be located in `build/pimc`.
+Executables will be installed to `CMAKE_INSTALL_PREFIX` location or if the install is skiped will be located in `build/pigsfli`.
 Executables produced are `pigsl.e`, `pigsld.e`, `pimcl.e`, and `pimcld.e` for `CMAKE_BUILD_TYPE=Release|Debug|PIMC|PIMCDebug` respectively.
+^ FIX ME. What executables will be produced now?
 
 If you run into problems, failures with linking etc., common errors may include
 not properly setting your `LD_LIBRARY_PATH` or not starting from a clean build
