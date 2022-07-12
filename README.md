@@ -21,7 +21,7 @@ The development and maintenance of this code base has been supported in part by 
 This program has been successfully compiled and runs on Intel systems using clang and g++. Before installing, one needs to ensure that all dependencies are met.  We recommend that the required libraries (boost) are installed in a `local` folder inside your home directory: `$HOME/local`.
 
 ```
-git clone https://github.com/ecasiano/pimc.git
+git clone https://github.com/ecasiano/pigsfli.git
 cd pimc
 mkdir build
 cd build
