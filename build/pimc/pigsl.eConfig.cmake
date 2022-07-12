@@ -45,13 +45,13 @@ unset(_expectedTargets)
 add_executable(pigsl.e IMPORTED)
 
 set_target_properties(pigsl.e PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "/Users/ecasiano/Desktop/pimc/src/pimc/include"
+  INTERFACE_INCLUDE_DIRECTORIES "/Users/ecasiano/Desktop/pigsfli/src/pimc/include"
 )
 
 # Import target "pigsl.e" for configuration "None"
 set_property(TARGET pigsl.e APPEND PROPERTY IMPORTED_CONFIGURATIONS NONE)
 set_target_properties(pigsl.e PROPERTIES
-  IMPORTED_LOCATION_NONE "/Users/ecasiano/Desktop/pimc/build/pimc/pigsl.e"
+  IMPORTED_LOCATION_NONE "/Users/ecasiano/Desktop/pigsfli/build/pimc/pigsl.e"
   )
 
 # This file does not depend on other imported targets which have
