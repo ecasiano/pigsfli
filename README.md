@@ -58,8 +58,6 @@ As above, and with further details below, but you should consider using the foll
 - `-D BOOST_ROOT=xxx` to add non-standard location for Boost install
 - `-D STATIC=1` to enable a static build
 - `-D CMAKE_BUILD_TYPE=Debug` to build pigsfli in debug mode
-- `-D CMAKE_BUILD_TYPE=PIMC` to build pigsfli
-- `-D CMAKE_BUILD_TYPE=PIMCDebug` to build pigsfli in debug mode
 - `-E env CXXFLAGS="xxx"` add additional compiler flags
 - `-E env LDFLAGS="xxx"` add additional linker flags
 
@@ -72,10 +70,6 @@ not properly setting your `LD_LIBRARY_PATH` or not starting from a clean build
 directory (issue `make clean` or `rm -rf ./*` inside the build directory).
 
 ## Usage
-
-FIXME!!!!!
-
-NOTE: NEED TO ADD EXAMPLE OF COMPILATION
 
 In order to get a quick idea of the options which the code accepts type:
 ```bash
@@ -101,13 +95,13 @@ In order for this to work, you will need a folder named `OUTPUT` in the director
 |`N`     |  Total number of particles |
 |`U`     |  Interaction potential |
 |`l`     |  Linear size of hypercubic subregion |
-|`sweeps`     |  Number of Monte Carlo sweeps |
+|`sweeps`     |  Number of sweeps before attempting measurements |
 |`beta`     |  Set length of imaginary time |
 |`mu`     |  Chemical potential |
 |`t`     |  Tunneling parameter |
 |`canonical`     |  set to false for grand canonical simulation |
 |`seed`     |  Random seed value |
-|`sweeps-pre` |  sweeps-pre |
+|`sweeps-pre` |  Number sweeps for each pre-equilibration step |
 |`bin-size`     |  Number of measurements per bin|
 |`bins-wanted`     |  Number of bins desired in data file|
 |`subgeometry`     |  Shape of subregion: square OR strip|
