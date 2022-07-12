@@ -1,0 +1,12 @@
+/usr/local/bin/pigsl.e
+/usr/local/include/pcg_extras.hpp
+/usr/local/include/span.hpp
+/usr/local/include/cxxopts.hpp
+/usr/local/include/uuid.hpp
+/usr/local/include/RNG.h
+/usr/local/include/pimc.hpp
+/usr/local/include/pcg_uint128.hpp
+/usr/local/include/MersenneTwister.h
+/usr/local/include/pcg_random.hpp
+/usr/local/share/pigsl.e/cmake/pigsl.eConfig.cmake
+/usr/local/share/pigsl.e/cmake/pigsl.eConfig-none.cmake
