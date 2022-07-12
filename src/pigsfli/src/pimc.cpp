@@ -343,12 +343,12 @@ int main(int argc, char** argv){
         
 /*------------------- Try drawing a pretty welcome message -------------------*/
 
-cout << "sub-sites: ";
-for (int i=0; i<sub_sites.size(); i++){
-    cout << sub_sites[i] << " ";
-}
-cout << endl;
-cout << "U: " << U << endl;
+// cout << "sub-sites: ";
+// for (int i=0; i<sub_sites.size(); i++){
+//     cout << sub_sites[i] << " ";
+// }
+// cout << endl;
+// cout << "U: " << U << endl;
 
     cout << R"(
         
@@ -359,9 +359,10 @@ cout << "U: " << U << endl;
  | |_) | | (_| \__ \ | | | |
  | .__/|_|\__, |___/_| |_|_|
  | |       __/ |            
- |_|      |___/             
-
-    )";
+ |_|      |___/        
+ 
+ Path-Integral Ground State (Monte Carlo) For Lattice Implementations
+     )";
     
 //    cout << R"(
 //                                 _
@@ -1633,21 +1634,21 @@ cout << "U: " << U << endl;
     auto elapsed_time = duration_cast<nanoseconds>(end - start);
     double duration = elapsed_time.count() * 1e-9;
     
-    cout << endl << "beta: " << beta << endl;
-    cout << endl << "sweeps: " << sweeps/(beta*M) << endl;
+    // cout << endl << "beta: " << beta << endl;
+    // cout << endl << "sweeps: " << sweeps/(beta*M) << endl;
     
-    if (num_replicas<2){
-    cout << "Z_ctr: " << Z_ctr[0] << endl;
-    cout<<"Z_frac: "<<Z_ctr[0]*100.0/measurement_attempts[0]<<"% ("<<Z_ctr[0]
-    <<"/"<< measurement_attempts[0]<<")"<<endl;
+    // if (num_replicas<2){
+    // cout << "Z_ctr: " << Z_ctr[0] << endl;
+    // cout<<"Z_frac: "<<Z_ctr[0]*100.0/measurement_attempts[0]<<"% ("<<Z_ctr[0]
+    // <<"/"<< measurement_attempts[0]<<")"<<endl;
     
-    cout << endl << "<N>: " << (N_sum[0])/Z_ctr[0] << endl;
-    }
+    // cout << endl << "<N>: " << (N_sum[0])/Z_ctr[0] << endl;
+    // }
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
     
-    if (!restart && num_replicas==2)
-        cout << N_tracker[0] << "  " << N_tracker[1] << endl;
+    // if (!restart && num_replicas==2)
+    //     cout << N_tracker[0] << "  " << N_tracker[1] << endl;
     
 //    if (bins_written==bins_wanted){
 //

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19.1)
-project(pigsl.e LANGUAGES CXX)
+project(pigsfli.e LANGUAGES CXX)
 
 # Must use GNUInstallDirs to install libraries into correct
 # locations on all platforms.
@@ -10,4 +10,4 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 # Targets to develop
 enable_testing()
-add_subdirectory(pimc)
+add_subdirectory(pigsfli)
