@@ -56,8 +56,7 @@ As above, and with further details below, but you should consider using the foll
 - `-E env LDFLAGS="xxx"` add additional linker flags
 
 Executables will be installed to `CMAKE_INSTALL_PREFIX` location or if the install is skiped will be located in `build/pigsfli`.
-Executables produced are `pigsl.e`, `pigsld.e`, `pimcl.e`, and `pimcld.e` for `CMAKE_BUILD_TYPE=Release|Debug|PIMC|PIMCDebug` respectively.
-^ FIX ME. What executables will be produced now?
+Executables produced are `pigsfli.e`, `pigsflid.e` for `CMAKE_BUILD_TYPE=Release|Debug` respectively.
 
 If you run into problems, failures with linking etc., common errors may include
 not properly setting your `LD_LIBRARY_PATH` or not starting from a clean build
