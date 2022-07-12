@@ -79,7 +79,7 @@ NOTE: NEED TO ADD EXAMPLE OF COMPILATION
 
 In order to get a quick idea of the options which the code accepts type:
 ```bash
-pigsl.e --help
+pigsfli.e --help
 ```
 
 The code requires various combinations of these options to run, and the help message should give
@@ -89,7 +89,7 @@ you an idea about which ones are mandatory.
 
 If you want to perform a quick test-run for a small one-dimensional Bose-Hubbard lattice you could try something like:
 ```bash
-./pigsl.e -D 1 -L 4 -N 4 -l 2 -U 100.0 --mu 6.0 --subgeometry square --measurement-frequency 1 --beta 2.0 --rng boost_mt19937 --num-replicas 1 --seed 17 --bin-size 2 --bins-wanted 5
+./pigsfli.e -D 1 -L 4 -N 4 -l 2 -U 100.0 --mu 6.0 --subgeometry square --measurement-frequency 1 --beta 2.0 --rng boost_mt19937 --num-replicas 1 --seed 17 --bin-size 2 --bins-wanted 5
 ```
 
 In order for this to work, you will need a folder named `OUTPUT` in the directory where you type the command as it will produce output files in `OUTPUT` that contain all the results of the code.  Each run of the code is associated with a unique identifying integer: the `PIMCID`.  The options used in this demo include a subset of all the possible options:
@@ -233,4 +233,4 @@ Z_frac: 83.3333% (10/12)
 Elapsed time: 6.75028 seconds
 ```
 
-After this has been completed, you can analyze the results of your run using the scripts in the https://github.com/DelMaestroGroup/papers-code-latticepigs.
+After this has been completed, you can analyze the results of your run using the scripts in the https://github.com/DelMaestroGroup/papers-code-pigsfli.
