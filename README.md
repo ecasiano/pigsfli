@@ -83,7 +83,7 @@ you an idea about which ones are mandatory.
 
 If you want to perform a quick test-run for a small one-dimensional Bose-Hubbard lattice you could try something like:
 ```bash
-./pigsfli.e -D 1 -L 4 -N 4 -l 2 -U 100.0 --mu 6.0 --subgeometry square --measurement-frequency 1 --beta 2.0 --rng boost_mt19937 --num-replicas 1 --seed 17 --bin-size 2 --bins-wanted 5
+./pigsfli.e -D 1 -L 4 -N 4 -l 2 -U 1.995 --mu 1.998 --sweeps 2001 --seed 1968 --measurement-frequency 1 --rng boost_mt19937 --bin-size 10 --bins-wanted 1000 --num-replicas 2 --beta 1.2
 ```
 
 In order for this to work, you will need a folder named `OUTPUT` in the directory where you type the command as it will produce output files in `OUTPUT` that contain all the results of the code.  Each run of the code is associated with a unique identifying integer: the `PIMCID`.  The options used in this demo include a subset of all the possible options:
@@ -116,54 +116,66 @@ by using the `--help flag`.
 
 The output of the above command should yield something like:
 ```bash
-sub-sites: 0 1
-U: 100
+        _            __ _ _
+       (_)          / _| (_)
+  _ __  _  __ _ ___| |_| |_
+ | '_ \| |/ _` / __|  _| | |
+ | |_) | | (_| \__ \ | | | |
+ | .__/|_|\__, |___/_| |_|_|
+ | |       __/ |
+ |_|      |___/
 
-  _           _   _   _           ______ _____ _____  _____
- | |         | | | | (_)          | ___ \_   _|  __ \/  ___|
- | |     __ _| |_| |_ _  ___ ___  | |_/ / | | | |  \/\ `--.
- | |    / _` | __| __| |/ __/ _ \ |  __/  | | | | __  `--. \
- | |___| (_| | |_| |_| | (_|  __/ | |    _| |_| |_\ \/\__/ /
- \_____/\__,_|\__|\__|_|\___\___| \_|    \___/ \____/\____/
+ Path-Integral Ground State (Monte Carlo) For Lattice Implementations
 
 
 Stage (1/3): Determining mu and eta...
 
-mu: 6 eta: 0.5 Z-frac: 35.9215%
+mu: 1.998 eta: 0.5 Z-frac: 1.285%
 N     P(N)
-4     *****************************************************************************************************
-<N>: 4
+3     ***
+4     **************************************************************************************************
+<N>: 3.97285
 
-mu: 6 eta: 0.373263 Z-frac: 45.8905%
+mu: -0.984349 eta: 0.190673 Z-frac: 27.9514%
 N     P(N)
-3     *
-4     ****************************************************************************************************
-<N>: 3.99975
+3     **********************************************
+4     *******************************************************
+<N>: 3.54578
+
+mu: -1.13738 eta: 0.208524 Z-frac: 21.5446%
+N     P(N)
+4     *******************************************************************
+5     **********************************
+<N>: 4.33464
+
+mu: -0.564649 eta: 0.205204 Z-frac: 21.4041%
+N     P(N)
+3     **********************************
+4     *******************************************************************
+<N>: 3.66301
+
+mu: -1.12861 eta: 0.204957 Z-frac: 24.5636%
+N     P(N)
+3     ***********************
+4     ***********************************************************
+5     ********************
+<N>: 3.97396
 
 Fine tuning eta... (Want: 10% < Z-frac < 15%)
 
-mu: 6 eta: 0.376703 Z-frac: 45.1917%
+mu: -1.12861 eta: 0.206175 Z-frac: 24.4551%
 N     P(N)
-3     *
-4     ****************************************************************************************************
-<N>: 3.99886
+3     **************************************
+4     ******************************************************
+5     **********
+<N>: 3.72151
 
-mu: 6 eta: 0.546219 Z-frac: 32.8821%
+mu: -1.12861 eta: 0.103088 Z-frac: 40.3038%
 N     P(N)
-3     *
-4     ****************************************************************************************************
-<N>: 3.99916
-
-mu: 6 eta: 0.273109 Z-frac: 55.6037%
-N     P(N)
-4     *****************************************************************************************************
-<N>: 4
-
-mu: 6 eta: 0.396009 Z-frac: 43.3001%
-N     P(N)
-3     *
-4     ****************************************************************************************************
-<N>: 3.99993
+3     *******
+4     **********************************************************************
+5     ************************
+<N>: 4.17121
 
 Stage (2/3): Equilibrating...
 
@@ -171,60 +183,52 @@ Stage (3/3): Main Monte Carlo loop...
 
 -------- Detailed Balance --------
 
-Insert Worm: 29800/1160621
-Delete Worm: 29469/116950
+Insert Worm: 3721/163694
+Delete Worm: 3438/3994
 
-Insert Anti: 301805/1084255
-Delete Anti: 288628/418619
+Insert Anti: 3525/123099
+Delete Anti: 3232/3604
 
-InsertZero Worm: 100333/2156306
-DeleteZero Worm: 106928/1447180
+InsertZero Worm: 38086/378100
+DeleteZero Worm: 38496/45527
 
-InsertZero Anti: 405936/2101899
-DeleteZero Anti: 412531/885665
+InsertZero Anti: 40086/265865
+DeleteZero Anti: 40496/52085
 
-InsertBeta Worm: 100714/2162849
-DeleteBeta Worm: 107627/1444361
+InsertBeta Worm: 37640/375699
+DeleteBeta Worm: 37806/45155
 
-InsertBeta Anti: 404204/2092847
-DeleteBeta Anti: 411117/887977
+InsertBeta Anti: 39576/269448
+DeleteBeta Anti: 39742/50686
 
-Advance Head: 754399/754399
-Recede  Head: 754909/755013
+Advance Head: 96559/97385
+Recede  Head: 96107/98277
 
-Advance Tail: 751144/751287
-Recede  Tail: 750145/750145
+Advance Tail: 98285/100513
+Recede  Tail: 98454/99213
 
-IKBH: 51408/2053874
-DKBH: 51350/217882
+IKBH: 87069/234971
+DKBH: 87130/95065
 
-IKAH: 558472/2049219
-DKAH: 558245/593583
+IKAH: 53877/234475
+DKAH: 53999/61909
 
-IKBT: 555257/1997134
-DKBT: 555590/590990
+IKBT: 54638/165410
+DKBT: 54503/62090
 
-IKAT: 51200/2043258
-DKAT: 51152/215920
+IKAT: 88504/238488
+DKAT: 88439/96651
 
-SWAP: 0/0
-UNSWAP: 0/0
+SWAP: 347255/861002
+UNSWAP: 347253/934478
 
-SWAP Advance Head: 0/0
-SWAP Recede Head: 0/0
+SWAP Advance Head: 28600/29543
+SWAP Recede Head: 29080/31833
 
-SWAP Advance Tail: 0/0
-SWAP Recede Tail: 0/0
+SWAP Advance Tail: 28552/31357
+SWAP Recede Tail: 28457/29492
 
-beta: 2
-
-sweeps: 1e+07
-Z_ctr: 10
-Z_frac: 83.3333% (10/12)
-
-<N>: 4
-
-Elapsed time: 6.75028 seconds
+Elapsed time: 1.74691 seconds
 ```
 
 After this has been completed, you can analyze the results of your run using the scripts in the https://github.com/DelMaestroGroup/papers-code-pigsfli.
