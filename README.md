@@ -2,7 +2,7 @@
 
 ## Introduction 
 
-This webpage contains the details of a ground state (i.e, zero-temperature) lattice worm algorithm path-integral quantum Monte Carlo (WA-PIMC) code actively developed in c++ since 2019 based on:
+This webpage contains the details of a ground state (i.e, zero-temperature) lattice worm algorithm path-integral quantum Monte Carlo (WA-PIMC) code actively developed in c++ since 2020 based on:
 
 - [N.V. Prokof'ev, B.V. Svistunov, I.S. Tupitsyn: Exact, Complete, and Universal Continuous-Time Worldline Monte Carlo Approach to the Statistics of Discrete Quantum Systems](https://arxiv.org/abs/cond-mat/9703200)
 - [N. Prokof'ev Lattice Path-Integral Monte Carlo Lecture Notes](http://mcwa.csi.cuny.edu/umass/lectures/part5.pdf)
@@ -11,7 +11,7 @@ In it's current version, it can be used to simulate indistinguishable bosons in 
 
 If you have questions on code usage or bug reports, please contact me at ecasiano@vols.utk.edu.
 
-The development and maintenance of this code base has been supported in part by the National Science Foundation under Award No. [DMR-1553991](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991)
+The development and maintenance of this code base has been supported in part by the National Science Foundation under Award No. [DMR-2041995](https://www.nsf.gov/awardsearch/showAward?AWD_ID=2041995&HistoricalAwards=false) and Award No. [DMR-1553991](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991)
 
 [<img width="100" src="https://www.nsf.gov/images/logos/NSF_4-Color_bitmap_Logo.png">](http://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991)
 
@@ -73,6 +73,8 @@ directory (issue `make clean` or `rm -rf ./*` inside the build directory).
 ## Usage
 
 FIXME!!!!!
+
+NOTE: NEED TO ADD EXAMPLE OF COMPILATION
 
 In order to get a quick idea of the options which the code accepts type:
 ```bash
