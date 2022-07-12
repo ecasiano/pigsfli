@@ -76,7 +76,7 @@ int main(int argc, char** argv){
         ("N","Total number of particles",cxxopts::value<int>())
         ("U","Interaction potential",cxxopts::value<double>())
         ("l","Linear size of hypercubic subregion",cxxopts::value<int>())
-        ("sweeps","Number of Monte Carlo sweeps",
+        ("sweeps","Number of sweeps before attempting measurements",
             cxxopts::value<unsigned long long int>()->default_value("10000000"))
         ("beta","Set length of imaginary time",cxxopts::value<double>())
 
@@ -85,7 +85,7 @@ int main(int argc, char** argv){
         ("canonical", "set to false for grand canonical simulation",
             cxxopts::value<bool>()->default_value("true"))
         ("seed","Random seed value",cxxopts::value<int>()->default_value("0"))
-        ("sweeps-pre","Number pre-equilibration sweeps",
+        ("sweeps-pre","Number sweeps for each pre-equilibration step",
             cxxopts::value<unsigned long long int>()->default_value("1000000"))
         ("bin-size","Number of measurements per bin",cxxopts::value<int>())
         ("bins-wanted","Number of bins desired in data file",cxxopts::value<int>())
