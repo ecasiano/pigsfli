@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19.1)
 
-project(pigsl.e)
+project(pigsfli.e)
 
 # Set c++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -31,9 +31,9 @@ if (USE_TCB_SPAN)
 endif()
 
 # Determine executable name
-set(exe pigsl.e)
+set(exe pigsfli.e)
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-    set(exe pigsld.e)
+    set(exe pigsflid.e)
 elseif(CMAKE_BUILD_TYPE MATCHES PIMC)
     set(exe pimcl.e)
 elseif(CMAKE_BUILD_TYPE MATCHES PIMCDebug)
