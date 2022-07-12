@@ -57,7 +57,7 @@ As above, and with further details below, but you should consider using the foll
 - `-D CMAKE_INSTALL_PREFIX=xxx` to install pigsfli to a non-standard location
 - `-D BOOST_ROOT=xxx` to add non-standard location for Boost install
 - `-D STATIC=1` to enable a static build
-- `-D CMAKE_BUILD_TYPE=Debug` to build pigsl in debug mode
+- `-D CMAKE_BUILD_TYPE=Debug` to build pigsfli in debug mode
 - `-D CMAKE_BUILD_TYPE=PIMC` to build pigsfli
 - `-D CMAKE_BUILD_TYPE=PIMCDebug` to build pigsfli in debug mode
 - `-E env CXXFLAGS="xxx"` add additional compiler flags
