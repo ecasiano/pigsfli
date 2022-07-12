@@ -11,7 +11,7 @@ In it's current version, it can be used to simulate indistinguishable bosons in 
 
 If you have questions on code usage or bug reports, please contact me at ecasiano@vols.utk.edu.
 
-The development and maintenance of this code base has been supported in part by the National Science Foundation under Award No. [DMR-1553991](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991)
+The development and maintenance of this code base has been supported in part by the National Science Foundation under Award No. [DMR-2041995](https://www.nsf.gov/awardsearch/showAward?AWD_ID=2041995&HistoricalAwards=false) and Award No. [DMR-1553991](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991)
 
 [<img width="100" src="https://www.nsf.gov/images/logos/NSF_4-Color_bitmap_Logo.png">](http://www.nsf.gov/awardsearch/showAward?AWD_ID=1553991)
 
