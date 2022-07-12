@@ -1,8 +1,0 @@
-# Auto detect text files and perform LF normalization
-* text=auto
-
-# Ignore Python language and LaTeX for repo preview (only used for post-processing)
-# The source code language was julia
-*.py linguist-detectable=false
-*.tex linguist-detectable=false
-*.ipynb linguist-detectable=false
