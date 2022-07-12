@@ -22,30 +22,25 @@ This program has been successfully compiled and runs on Intel systems using clan
 
 ```
 git clone https://github.com/ecasiano/pigsfli.git
-cd pigsfli
-mkdir build
-cd build
-cmake ../src
-make
-sudo make install
 ```
 
 ## Dependencies 
 
 The code is written in c++ and makes use of <a href="http://www.boost.org/">boost</a> libraries and, for handling of command-line arguments, the <a href="https://github.com/jarro2783/cxxopts">cxxopts</a> header-only library. For generation of random numbers and the ability to save the state of an RNG for simulation restarts, we use <a href="https://github.com/ajibadeshd/RNG_CLASS">RNG_CLASS</a>.
 
-## Path Integral Monte Carlo
+## Compilation
 
 After dependencies are satisfied, you are now ready to compile the
 main pigsfli program on your system.
 pigsfli uses CMake for build, test and installation automation. For details on using CMake consult https://cmake.org/documentation/. In short, the following steps should work on UNIX-like systems:
 
-  ```
-  mkdir build
-  cd build
-  cmake ../src
-  make
-  sudo make install
+```
+cd pigsfli
+mkdir build
+cd build
+cmake ../src
+make
+sudo make install
   ```
 
 As above, and with further details below, but you should consider using the following CMake options with the appropriate value instead of xxx :
