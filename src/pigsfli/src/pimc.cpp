@@ -98,6 +98,8 @@ int main(int argc, char** argv){
         cxxopts::value<bool>()->default_value("false"))
         ("no-accessible", "do not calculate accessible entanglement entropies",
         cxxopts::value<bool>()->default_value("false"))
+        ("sample-directly", "sample imaginary times directly by inverting probability distributions",
+        cxxopts::value<bool>()->default_value("true"))
     ;
 
     auto result = options.parse(argc, argv);
@@ -113,6 +115,9 @@ int main(int argc, char** argv){
     bool restart=result["restart"].as<bool>();
     
     bool no_accessible=result["no-accessible"].as<bool>();
+
+    bool sample_directly=result["sample-directly"].as<bool>();
+
 
     /* Define the allowed random number generator names */
     vector<string> randomGeneratorName = {"boost_mt19937", "std_mt19937", "pimc_mt19937", "PCG"};
@@ -1039,14 +1044,9 @@ int main(int argc, char** argv){
     for (int r=0;r<num_replicas;r++){
         
         label = rng_ptr->randInt(14);
-                
-        // if (label==0){     // worm_insert
-        //     insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
-        //                 M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
-        //                 N_zero[r],N_beta[r],last_kinks[r],
-        //                 insert_worm_attempts,insert_worm_accepts,
-        //                 insert_anti_attempts,insert_anti_accepts,*rng_ptr);
-        // }
+
+        // These versions of the updates sample taus randomly
+        if (!sample_directly){     
         if (label==0){     // worm_insert
             insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
@@ -1054,13 +1054,6 @@ int main(int argc, char** argv){
                         insert_worm_attempts,insert_worm_accepts,
                         insert_anti_attempts,insert_anti_accepts,*rng_ptr);
         }
-        // else if (label==1){ // worm_delete
-        //     delete_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
-        //                 M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
-        //                 N_zero[r],N_beta[r],last_kinks[r],
-        //                 delete_worm_attempts,delete_worm_accepts,
-        //                 delete_anti_attempts,delete_anti_accepts,*rng_ptr);
-        // }
         else if (label==1){ // worm_delete
             delete_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
@@ -1098,7 +1091,7 @@ int main(int argc, char** argv){
                        deleteBeta_anti_attempts,deleteBeta_anti_accepts,*rng_ptr);
         }
         else if (label==6){ // timeshift
-            timeshift(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+            timeshift_uniform(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        advance_head_attempts,advance_head_accepts,
@@ -1162,6 +1155,120 @@ int main(int argc, char** argv){
                         N_zero[r],N_beta[r],last_kinks[r],
                         dkat_attempts,dkat_accepts,*rng_ptr);
          }
+        }
+        else{ // sample directly
+
+        // These versions of the updates sample taus directly
+         if (label==0){     // worm_insert
+            insert_worm_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
+                        N_zero[r],N_beta[r],last_kinks[r],
+                        insert_worm_attempts,insert_worm_accepts,
+                        insert_anti_attempts,insert_anti_accepts,*rng_ptr);
+        }
+        else if (label==1){ // worm_delete
+            delete_worm_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
+                        N_zero[r],N_beta[r],last_kinks[r],
+                        delete_worm_attempts,delete_worm_accepts,
+                        delete_anti_attempts,delete_anti_accepts,*rng_ptr);
+        }
+        else if (label==2){ // insertZero
+            insertZero_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                       M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
+                       N_zero[r],N_beta[r],last_kinks[r],
+                       insertZero_worm_attempts,insertZero_worm_accepts,
+                       insertZero_anti_attempts,insertZero_anti_accepts,*rng_ptr);
+            
+        }
+        else if (label==3){ // deleteZero
+            deleteZero_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                       M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
+                       N_zero[r],N_beta[r],last_kinks[r],
+                       deleteZero_worm_attempts,deleteZero_worm_accepts,
+                       deleteZero_anti_attempts,deleteZero_anti_accepts,*rng_ptr);
+        }
+        else if (label==4){ // insertBeta
+            insertBeta_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                       M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
+                       N_zero[r],N_beta[r],last_kinks[r],
+                       insertBeta_worm_attempts,insertBeta_worm_accepts,
+                       insertBeta_anti_attempts,insertBeta_anti_accepts,*rng_ptr);
+        }
+        else if (label==5){ // deleteBeta
+            deleteBeta_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                       M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
+                       N_zero[r],N_beta[r],last_kinks[r],
+                       deleteBeta_worm_attempts,deleteBeta_worm_accepts,
+                       deleteBeta_anti_attempts,deleteBeta_anti_accepts,*rng_ptr);
+        }
+        else if (label==6){ // timeshift
+            timeshift(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                       M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
+                       N_zero[r],N_beta[r],last_kinks[r],
+                       advance_head_attempts,advance_head_accepts,
+                       recede_head_attempts,recede_head_accepts,
+                       advance_tail_attempts,advance_tail_accepts,
+                       recede_tail_attempts,recede_tail_accepts,*rng_ptr);
+        }
+        else if (label==7){ // insert kink before head
+            insert_kink_before_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker[r],
+                       N_zero[r],N_beta[r],last_kinks[r],
+                       ikbh_attempts,ikbh_accepts,*rng_ptr);
+        }
+        else if (label==8){ // delete kink before head
+            delete_kink_before_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker[r],
+                       N_zero[r],N_beta[r],last_kinks[r],
+                       dkbh_attempts,dkbh_accepts,*rng_ptr);
+        }
+        else if (label==9){ // insert kink after head
+            insert_kink_after_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker[r],
+                       N_zero[r],N_beta[r],last_kinks[r],
+                       ikah_attempts,ikah_accepts,*rng_ptr);
+        }
+        else if (label==10){ // delete kink after head
+            delete_kink_after_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker[r],
+                       N_zero[r],N_beta[r],last_kinks[r],
+                       dkah_attempts,dkah_accepts,*rng_ptr);
+        }
+        else if (label==11){ // insert kink before tail
+            insert_kink_before_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker[r],
+                       N_zero[r],N_beta[r],last_kinks[r],
+                       ikbt_attempts,ikbt_accepts,*rng_ptr);
+        }
+        else if (label==12){ // delete kink before tail
+            delete_kink_before_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                       M,N,U,mu,t,adjacency_matrix,total_nn,
+                       beta,eta,canonical,N_tracker[r],
+                       N_zero[r],N_beta[r],last_kinks[r],
+                       dkbt_attempts,dkbt_accepts,*rng_ptr);
+        }
+        else if (label==13){ // insert kink after tail
+             insert_kink_after_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                        M,N,U,mu,t,adjacency_matrix,total_nn,
+                        beta,eta,canonical,N_tracker[r],
+                        N_zero[r],N_beta[r],last_kinks[r],
+                        ikat_attempts,ikat_accepts,*rng_ptr);
+         }
+         else if (label==14){ // delete kink after tail
+             delete_kink_after_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                        M,N,U,mu,t,adjacency_matrix,total_nn,
+                        beta,eta,canonical,N_tracker[r],
+                        N_zero[r],N_beta[r],last_kinks[r],
+                        dkat_attempts,dkat_accepts,*rng_ptr);
+         }
+        }
+
     } // end of replica loop
 
         
