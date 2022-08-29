@@ -87,11 +87,11 @@ int main(int argc, char** argv){
         ("seed","Random seed value",cxxopts::value<int>()->default_value("0"))
         ("sweeps-pre","Number sweeps for each pre-equilibration step",
             cxxopts::value<unsigned long long int>()->default_value("1000000"))
-        ("bin-size","Number of measurements per bin",cxxopts::value<int>())
-        ("bins-wanted","Number of bins desired in data file",cxxopts::value<int>())
+        ("bin-size","Number of measurements per bin",cxxopts::value<int>()->default_value("10"))
+        ("bins-wanted","Number of bins desired in data file",cxxopts::value<int>()->default_value("1000"))
         ("subgeometry","Shape of subregion: square OR strip",
             cxxopts::value<string>()->default_value("square"))
-        ("num-replicas","Number of replicas",cxxopts::value<int>())
+        ("num-replicas","Number of replicas",cxxopts::value<int>()->default_value("2"))
         ("measurement-frequency","Measurements will be performed every other this amount",cxxopts::value<int>()->default_value("1"))
         ("rng","Random Number Generator type",cxxopts::value<string>()->default_value("pimc_mt19937"))
         ("restart", "continue simulation from a loaded rng state",
@@ -101,6 +101,12 @@ int main(int argc, char** argv){
     ;
 
     auto result = options.parse(argc, argv);
+
+    if (result.count("help"))
+        {
+        std::cout << options.help() << std::endl;
+        exit(0);
+        }
 
   /*-----------------------------------------------------------------------------*/
 
