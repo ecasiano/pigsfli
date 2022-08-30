@@ -466,7 +466,6 @@ int main(int argc, char** argv){
             label = rng_ptr->randInt(14);
 
         if (no_sample_directly){
-            cout << "LOL" << endl;
           if (label==0){     // worm_insert
               insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                           M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
