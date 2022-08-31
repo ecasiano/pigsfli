@@ -96,7 +96,11 @@ int main(int argc, char** argv){
         ("rng","Random Number Generator type",cxxopts::value<string>()->default_value("pimc_mt19937"))
         ("restart", "continue simulation from a loaded rng state",
         cxxopts::value<bool>()->default_value("false"))
-        ("no-accessible", "do not calculate accessible entanglement entropies",
+        ("get-s2n", "compute symmetry-resolved Rényi enropies",
+        cxxopts::value<bool>()->default_value("false"))
+        ("get-Pn", "compute local particle number probability distribution of partition A (will be computed if get-s2n is on)",
+        cxxopts::value<bool>()->default_value("false"))
+        ("get-PN", "compute total particle number distribution",
         cxxopts::value<bool>()->default_value("false"))
         ("no-sample-directly", "sample imaginary times directly by inverting probability distributions",
         cxxopts::value<bool>()->default_value("false"))
@@ -113,8 +117,10 @@ int main(int argc, char** argv){
   /*-----------------------------------------------------------------------------*/
 
     bool restart=result["restart"].as<bool>();
-    
-    bool no_accessible=result["no-accessible"].as<bool>();
+
+    bool get_s2n=result["get-s2n"].as<bool>();
+    bool get_Pn=result["get-Pn"].as<bool>();
+    bool get_PN=result["get-PN"].as<bool>();
 
     bool no_sample_directly=result["no-sample-directly"].as<bool>();
 
@@ -329,12 +335,13 @@ int main(int argc, char** argv){
         fock_state_at_half_plus.push_back(vector<int> (M,0));
     }
     
-    // just initializing
+    // Initialize vector that stores SWAP kinks in subregion
     for (int i=0; i<m_A; i++){
         swap_kinks.push_back(0);
     }
 
-    // initializing n_A
+    // Initialize vector that stores local particle number in A
+    // subregions of various sizes
     for (int i=0; i<num_replicas; i++){
         n_A.push_back(vector<int> (m_A,0));
     }
@@ -349,6 +356,7 @@ int main(int argc, char** argv){
     }
     writing_ctr = 0;
     
+    // Initialize accumulator of number of flat regions
     N_flats_mean=0.0;
     N_flats_samples=0;
         
@@ -912,7 +920,7 @@ int main(int argc, char** argv){
             to_string(beta)+"_"+to_string(bin_size)+"_"+
             "SWAP_"+to_string(seed)+"_"+subgeometry+".dat";
             
-            if (!no_accessible){
+            if (get_s2n){
                 // Create filenames of SWAP histograms for each partition size mA
                 for (int i=1; i<=m_A; i++){
                     SWAPn_histogram_names.push_back(
@@ -956,7 +964,7 @@ int main(int argc, char** argv){
             to_string(seed)+"_"+
             "grandcan_"+"SWAP.dat";
             
-            if (!no_accessible){
+            if (get_s2n){
                 // Create filenames of SWAP histograms for each n-Sector
                 for (int i=0; i<=N; i++){
                     SWAPn_histogram_names.push_back(
@@ -974,7 +982,7 @@ int main(int argc, char** argv){
             // Open SWAP histograms file
             SWAP_histogram_file.open(SWAP_histogram_name);
 
-            if (!no_accessible){
+            if (get_s2n){
                 // Open mA-sector resolved local particle number distribution files
                 for (int i=1; i<=m_A; i++){
                     Pn_file.open(Pn_names[i-1]);
@@ -1005,7 +1013,7 @@ int main(int argc, char** argv){
             SWAP_histogram_file.open(SWAP_histogram_name,
                                      ios::out | ios::app);
 
-            if (!no_accessible){
+            if (get_s2n){
                 // Open mA-sector resolved local particle number distribution files
                 for (int i=1; i<=m_A; i++){
                     Pn_file.open(Pn_names[i-1],
@@ -1123,7 +1131,7 @@ int main(int argc, char** argv){
         for (int i=0; i<=m_A; i++){
             SWAP_histogram.push_back(0); // just initializing
         }
-        if (!no_accessible){
+        if (get_s2n){
             for (int i=1; i<=m_A; i++){
                 SWAPn_histograms.push_back(vector<int> (N+1,0));
             }
@@ -1584,9 +1592,9 @@ int main(int argc, char** argv){
                         // Add count to histogram of number of swapped sites
                         SWAP_histogram[num_swaps]+=1;
                         
-                        if (no_accessible){writing_ctr++;}
+                        if (!get_s2n){writing_ctr++;}
                         
-                        if (!no_accessible){
+                        if (get_s2n){
                         // Build subsystem particle number distribution P(n)
                         if (num_swaps==0){
                             for (int REP=0; REP<num_replicas; REP++){
@@ -1671,7 +1679,7 @@ int main(int argc, char** argv){
                     std::fill(SWAP_histogram.begin(),
                               SWAP_histogram.end(),0);
                     
-                    if (!no_accessible){
+                    if (get_s2n){
                          // Save current swapped-resolved Pn to file
                          for (int i=1; i<=m_A; i++){
                              for (int j=0; j<=N; j++){
@@ -1764,7 +1772,7 @@ int main(int argc, char** argv){
     }
     else {
         SWAP_histogram_file.close();
-        if (!no_accessible){
+        if (get_s2n){
             for (int i=1; i<=m_A; i++){
                 Pn_files[i-1].close();
                 Pn_squared_files[i-1].close();
@@ -1919,7 +1927,6 @@ int main(int argc, char** argv){
     return 0;
     
 }
-
 
 //                    cout << "num_replicas: " << num_replicas << endl;
 //                    cout << "num_kinks after restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
