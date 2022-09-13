@@ -1,0 +1,15 @@
+/Users/ecasiano/Desktop/pigsfli/build/CMakeFiles/install/strip.dir
+/Users/ecasiano/Desktop/pigsfli/build/CMakeFiles/install.dir
+/Users/ecasiano/Desktop/pigsfli/build/CMakeFiles/list_install_components.dir
+/Users/ecasiano/Desktop/pigsfli/build/CMakeFiles/rebuild_cache.dir
+/Users/ecasiano/Desktop/pigsfli/build/CMakeFiles/edit_cache.dir
+/Users/ecasiano/Desktop/pigsfli/build/CMakeFiles/install/local.dir
+/Users/ecasiano/Desktop/pigsfli/build/CMakeFiles/test.dir
+/Users/ecasiano/Desktop/pigsfli/build/pigsfli/CMakeFiles/install/strip.dir
+/Users/ecasiano/Desktop/pigsfli/build/pigsfli/CMakeFiles/install.dir
+/Users/ecasiano/Desktop/pigsfli/build/pigsfli/CMakeFiles/list_install_components.dir
+/Users/ecasiano/Desktop/pigsfli/build/pigsfli/CMakeFiles/rebuild_cache.dir
+/Users/ecasiano/Desktop/pigsfli/build/pigsfli/CMakeFiles/edit_cache.dir
+/Users/ecasiano/Desktop/pigsfli/build/pigsfli/CMakeFiles/install/local.dir
+/Users/ecasiano/Desktop/pigsfli/build/pigsfli/CMakeFiles/test.dir
+/Users/ecasiano/Desktop/pigsfli/build/pigsfli/CMakeFiles/pigsfli.e.dir

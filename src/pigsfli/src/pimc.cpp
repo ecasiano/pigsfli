@@ -83,7 +83,7 @@ int main(int argc, char** argv){
         ("mu","Chemical potential",cxxopts::value<double>()->default_value("-3.0"))
         ("t","Tunneling parameter",cxxopts::value<double>()->default_value("1.0"))
         ("canonical", "set to false for grand canonical simulation",
-            cxxopts::value<bool>()->default_value("true"))
+            cxxopts::value<bool>()->default_value("false"))
         ("seed","Random seed value",cxxopts::value<int>()->default_value("0"))
         ("sweeps-pre","Number sweeps for each pre-equilibration step",
             cxxopts::value<unsigned long long int>()->default_value("1000000"))
@@ -200,7 +200,7 @@ int main(int argc, char** argv){
     vector<ofstream> tr_kinetic_energy_file,tr_diagonal_energy_file;
     ofstream SWAP_histogram_file;
     vector<ofstream> SWAPn_histogram_files,Pn_files,Pn_squared_files;
-    ofstream SWAPn_histogram_file,Pn_file,Pn_squared_file;
+    ofstream SWAPn_histogram_file,Pn_file,Pn_squared_file,PN_file;
 
     // mu-calibration variables
     bool not_equilibrated;
@@ -209,7 +209,7 @@ int main(int argc, char** argv){
     bool N_target_in_bins;
     vector<int> N_data,N_hist,N_bins;
     vector<double> P_N;
-    int N_min,N_max,peak_idx,N_idx;
+    int N_min,N_max,peak_idx,N_idx,N_total;
     unsigned long long int  dummy_counter,N_flats_samples;
     
     // Related to accessible entanglement
@@ -306,10 +306,6 @@ int main(int argc, char** argv){
     build_hypercube_adjacency_matrix(L,D,boundary_condition,adjacency_matrix);
     total_nn=0;
     for (int i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
-    
-    // Initialize energies
-    diagonal_energy = 0.0;
-    kinetic_energy = 0.0;
     
     // Replicated trackers
     for (int r=0;r<num_replicas;r++){
@@ -429,7 +425,7 @@ int main(int argc, char** argv){
         
     while (true){
         
-        if (!canonical){break;}
+        // if (!canonical){break;}
 
         // Restart data structure and trackers
         num_kinks.clear();
@@ -852,7 +848,18 @@ int main(int argc, char** argv){
     if (num_replicas<2){
         
         ofstream K_out,V_out,tr_K_out,tr_V_out;
-        string K_name,V_name,tr_K_name,tr_V_name,rep;
+        string K_name,V_name,tr_K_name,tr_V_name,rep,PN_name;
+        vector<string> Pn_names;
+
+        // Create filename of P(N), the total particle distribution
+        if (get_PN){
+            PN_name=to_string(D)+"D_"+to_string(L)+"_"+
+                to_string(N)+"_"+to_string(l_A)+"_"+
+                to_string(U)+"_"+to_string(t)+"_"+
+                to_string(beta)+"_"+to_string(bin_size)+"_"+
+                "PN"+"_"+
+                to_string(seed)+"_"+subgeometry+".dat";
+        }
                     
         // Energies
         K_name=to_string(D)+"D_"+to_string(L)+
@@ -866,6 +873,29 @@ int main(int argc, char** argv){
         to_string(U)+"_"+to_string(t)+"_"+
         to_string(beta)+"_"+to_string(bin_size)+"_"+
         "V_"+to_string(seed)+"_"+subgeometry+".dat";
+
+        // Create filenames of P(n) for each partition size mA
+        if (get_Pn){
+            for (int i=1; i<=m_A; i++){
+                Pn_names.push_back(
+                to_string(D)+"D_"+to_string(L)+"_"+
+                to_string(N)+"_"+to_string(l_A)+"_"+
+                to_string(U)+"_"+to_string(t)+"_"+
+                to_string(beta)+"_"+to_string(bin_size)+"_"+
+                "Pn-mA"+to_string(i)+"_"+
+                to_string(seed)+"_"+subgeometry+".dat");
+            }
+        }
+
+        // Create filename of P(N), the total particle distribution
+        if (get_PN){
+            PN_name=to_string(D)+"D_"+to_string(L)+"_"+
+                to_string(N)+"_"+to_string(l_A)+"_"+
+                to_string(U)+"_"+to_string(t)+"_"+
+                to_string(beta)+"_"+to_string(bin_size)+"_"+
+                "PN"+"_"+
+                to_string(seed)+"_"+subgeometry+".dat";
+        }
         
         tr_K_name=to_string(L)+"_"+to_string(M)+"_"+
         to_string(U)+"_"+to_string(mu)+"_"+
@@ -879,6 +909,7 @@ int main(int argc, char** argv){
         to_string(sweeps)+"_"+"seed_"+to_string(D)+"D_"+
         "can_"+"tauResolvedV_"+"rep"+rep+".dat";
         
+        // open files
         if (!restart){
             kinetic_energy_file.open(K_name);
             diagonal_energy_file.open(V_name);
@@ -893,6 +924,17 @@ int main(int argc, char** argv){
                 tr_kinetic_energy_file.push_back(std::move(tr_K_out));
                 tr_diagonal_energy_file.push_back(std::move(tr_V_out));
             }
+
+            if (get_Pn){
+                for (int i=1; i<=m_A; i++){
+                    Pn_file.open(Pn_names[i-1]);
+                    Pn_files.push_back(std::move(Pn_file));
+                }
+            }
+
+            if (get_PN){
+                PN_file.open(PN_name);
+            }
         }
         
         else{ // restart
@@ -903,6 +945,18 @@ int main(int argc, char** argv){
                 tr_K_out.open(tr_K_name,ios::out | ios::app);
                 tr_V_out.open(tr_V_name,ios::out | ios::app);
             }
+            if (get_Pn){
+                for (int i=1; i<=m_A; i++){
+                    Pn_file.open(Pn_names[i-1],
+                                    ios::out | ios::app);
+                    Pn_files.push_back(std::move(Pn_file));
+                }
+            }
+
+            if (get_PN){
+                PN_file.open(PN_name,ios::out | ios::app);
+            }
+
         }
     }
     
@@ -956,6 +1010,8 @@ int main(int argc, char** argv){
             }
         }
         else { // name of file if grand canonical simulation
+
+
             // NEED TO MODIFY PROBABLY
             SWAP_histogram_name=to_string(L)+"_"+to_string(N)+"_"+
             to_string(l_A)+"_"+to_string(D)+"D_"+
@@ -1118,29 +1174,47 @@ int main(int argc, char** argv){
     if (beta>=1.0){sweeps*=(beta*M);}
     else {sweeps*=M;}
     
-    // Initialize vector estimators (conventional or SWAP)
-    if (num_replicas<2) { // conventional vector estimators
-        for (int r=0;r<num_replicas;r++){
-            tr_kinetic_energy.push_back(vector<double>
-                                        (measurement_centers.size(),0.0));
-            tr_diagonal_energy.push_back(vector<double>
-                                         (measurement_centers.size(),0.0));
-        }
-    }
-    else { // SWAP vector estimators
+    // Initialize estimators
+    diagonal_energy = 0.0;
+    kinetic_energy = 0.0;
+
+    N_total = 0;
+  
+    if (num_replicas>=2){
         for (int i=0; i<=m_A; i++){
             SWAP_histogram.push_back(0); // just initializing
         }
-        if (get_s2n){
-            for (int i=1; i<=m_A; i++){
-                SWAPn_histograms.push_back(vector<int> (N+1,0));
-            }
-            for (int i=1; i<=m_A; i++){
-                Pn.push_back(vector<int> (N+1,0));
-            }
-            for (int i=1; i<=m_A; i++){
-                Pn_squared.push_back(vector<int> (N+1,0));
-            }
+    }
+
+    if (measure_tau_resolved_estimators){
+        tr_kinetic_energy.push_back(vector<double>
+                                        (measurement_centers.size(),0.0));
+        tr_diagonal_energy.push_back(vector<double>
+                                         (measurement_centers.size(),0.0));
+    }
+
+    if (get_s2n){
+        for (int i=1; i<=m_A; i++){
+            SWAPn_histograms.push_back(vector<int> (N+1,0));
+        }
+        for (int i=1; i<=m_A; i++){
+            Pn.push_back(vector<int> (N+1,0));
+        }
+        for (int i=1; i<=m_A; i++){
+            Pn_squared.push_back(vector<int> (N+1,0));
+        }
+    }
+    
+    if (get_Pn && num_replicas==1){
+        for (int i=1; i<=m_A; i++){
+            Pn.push_back(vector<int> (N+1,0));
+        }
+    }
+
+    if (get_PN){
+        N_data.clear();
+        for (int i=0; i<=4*N; i++){
+            N_data.push_back(0);
         }
     }
 
@@ -1162,7 +1236,7 @@ int main(int argc, char** argv){
         
         label = rng_ptr->randInt(14);
 
-        // These versions of the updates sample taus randomly
+        // These sample from uniform distribution
         if (no_sample_directly){     
         if (label==0){     // worm_insert
             insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -1273,7 +1347,7 @@ int main(int argc, char** argv){
                         dkat_attempts,dkat_accepts,*rng_ptr);
          }
         }
-        else{ // sample directly
+        else{ // sample from truncated exponential distributions
 
         // These versions of the updates sample taus directly
          if (label==0){     // worm_insert
@@ -1486,7 +1560,64 @@ int main(int argc, char** argv){
                     N_sum[r] += N_tracker[r];
                     Z_ctr[r] += 1;
                                
-                    if (N_zero[r]==N && N_beta[r]==N){ // canonical measurement
+                    if (!canonical){
+
+                        // Measure grand canonical particle distribution
+                        if (get_PN){
+                            N_total = N_beta[r];
+                            N_data[N_total] +=1;
+                        }
+
+                        writing_ctr+=1;
+
+                        // Save to disk
+                        if (writing_ctr==bin_size){
+                            if (get_PN){
+                            // Save total particle distribution
+                            for (int i=0; i<N_data.size(); i++){
+                                PN_file<<fixed<<setprecision(17)<<N_data[i]<<" ";
+                            }
+                            PN_file<<endl;
+
+                            // Restart P(N)
+                            std::fill(N_data.begin(),N_data.end(),0);
+                            }
+
+                            bins_written+=1;
+
+                            // Reset writing counter
+                            writing_ctr=0;
+
+                        }
+
+                        // Saving last written RNG and system states
+                        string rng_filename;
+                        rng_filename=to_string(D)+"D_"+to_string(L)+
+                        "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+                        to_string(U)+"_"+to_string(t)+"_"+
+                        to_string(beta)+"_"+to_string(bin_size)+"_"+
+                        "rng-state_"+to_string(seed)+"_"+
+                        subgeometry+"_"+
+                        to_string(num_replicas)+".dat";
+                        
+                        std::ofstream ofs(rng_filename.c_str(), std::ios_base::out);
+                        ofs << rng_ptr->save().str() << std::endl;
+                        ofs.close();
+                        
+                        // Saving state when last bin was written
+                        ofstream state_file;
+                        state_file = save_paths(D,L,N,l_A,U,t,
+                                                beta,bin_size,
+                                                bins_wanted,seed
+                                                ,subgeometry,mu,
+                                                eta,num_replicas,
+                                                num_kinks,paths,N_tracker,m+1);
+                        
+                        state_file.close();
+
+                    }
+
+                    if (N_zero[r]==N && N_beta[r]==N && canonical){ // canonical measurement
                         
                     // Get fock state at desired measurement center
                     get_fock_state(measurement_center,M,fock_state_at_slice,
@@ -1508,6 +1639,23 @@ int main(int argc, char** argv){
                                                 measurement_centers,
                                                 tr_diagonal_energy[r]);
                         }
+
+                    if (get_Pn){
+                    for (int REP=0; REP<num_replicas; REP++){
+                                std::fill(n_A[REP].begin(),
+                                          n_A[REP].end(),0);
+                                get_fock_state(beta/2.0,M,
+                                               fock_state_at_half_plus[REP],
+                                               paths[REP]);
+                                n_A_last=0; // tracks subsystem n
+                                for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
+                                    n_A_last+=fock_state_at_half_plus[REP][
+                                        sub_sites[m_A_primed-1]];
+                                    n_A[REP][m_A_primed-1]=n_A_last; // needed to eventually compare if both replicas are on same local particle number sector
+                                    Pn[m_A_primed-1][n_A_last]+=1;
+                                }
+                            }
+                    }
                         
                     writing_ctr+=1;
                         
@@ -1538,10 +1686,29 @@ int main(int argc, char** argv){
                         tr_kinetic_energy_file[r]<<endl;
                         tr_diagonal_energy_file[r]<<endl;
                         }
-                        
+
+                        if (get_Pn){
+                        // Save current swapped-resolved Pn to file
+                         for (int i=1; i<=m_A; i++){
+                             for (int j=0; j<=N; j++){
+                                 Pn_files[i-1]<<
+                                 fixed<<setprecision(17)<<
+                                 Pn[i-1][j]<<" ";
+                             }
+                             Pn_files[i-1]<<endl;
+                            
+                             // Restart histogram
+                             std::fill(Pn[i-1].begin(),
+                                       Pn[i-1].end(),0);
+                         }
+                        }
+
                         writing_ctr=0;
+
+                        // Reset estimators
                         kinetic_energy=0.0;
                         diagonal_energy=0.0;
+
                         bins_written+=1;
                         
                         if (measure_tau_resolved_estimators){
@@ -1767,6 +1934,14 @@ int main(int argc, char** argv){
             if (measure_tau_resolved_estimators){
                 tr_kinetic_energy_file[r].close();
                 tr_diagonal_energy_file[r].close();
+            }
+            if (get_Pn){
+                for (int i=1; i<=m_A; i++){
+                    Pn_files[i-1].close();
+                }
+            }
+            if (get_PN){
+                PN_file.close();
             }
         }
     }
