@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/512860527.svg)](https://zenodo.org/badge/latestdoi/512860527)
+
 # Documentation  
 
 ## Introduction 
@@ -20,12 +22,14 @@ The development and maintenance of this code base has been supported in part by 
 
 This program has been successfully compiled and runs on Intel systems using clang and g++. Before installing, one needs to ensure that all dependencies are met.  We recommend that the required libraries (boost) are installed in a `local` folder inside your home directory: `$HOME/local`.
 
+To clone the repository:
+
 ```
-git clone https://github.com/ecasiano/pigsfli.git
+git clone https://github.com/DelMaestroGroup/pigsfli.git
 ```
 ## Dependencies 
 
-The code is written in c++ and makes use of <a href="http://www.boost.org/">boost</a> libraries and, for handling of command-line arguments, the <a href="https://github.com/jarro2783/cxxopts">cxxopts</a> header-only library. For generation of random numbers and the ability to save the state of an RNG for simulation restarts, we use <a href="https://github.com/ajibadeshd/RNG_CLASS">RNG_CLASS</a>.
+The code is written in c++ and makes use of <a href="http://www.boost.org/">boost</a> libraries and, for handling of command-line arguments, the <a href="https://github.com/jarro2783/cxxopts">cxxopts</a> header-only library. For generation of random numbers and the ability to save the state of an RNG for simulation restarts, we use <a href="https://github.com/ajibadeshd/RNG_CLASS">RNG_CLASS</a>. Both cxxopts and RNG_CLASS are included in the repository when cloning.
 
 ## Compilation
 
@@ -42,7 +46,7 @@ make
 sudo make install
   ```
 
-As above, and with further details below, but you should consider using the following CMake options with the appropriate value instead of xxx :
+The following are some CMake options that can be edited in before compilation, where xxx should be replaced with the appropriate values:
 
 - `-D NDIM=1|2|3` the number of spatial dimensions
 - `-D CMAKE_C_COMPILER=xxx` equal to the name of the C99 Compiler you wish to use (or the environment variable `CC`)
@@ -55,8 +59,8 @@ As above, and with further details below, but you should consider using the foll
 - `-E env CXXFLAGS="xxx"` add additional compiler flags
 - `-E env LDFLAGS="xxx"` add additional linker flags
 
-Executables will be installed to `CMAKE_INSTALL_PREFIX` location or if the install is skiped will be located in `build/pigsfli`.
-Executables produced are `pigsfli.e`, `pigsflid.e` for `CMAKE_BUILD_TYPE=Release|Debug` respectively.
+Executables will be installed to the `CMAKE_INSTALL_PREFIX` location or if the install step is skipped, they will be located in `build/pigsfli`.
+The executable produced will be `pigsfli.e`. Or `pigsflid.e` for `CMAKE_BUILD_TYPE=Release|Debug`.
 
 If you run into problems, failures with linking etc., common errors may include
 not properly setting your `LD_LIBRARY_PATH` or not starting from a clean build
@@ -69,17 +73,12 @@ In order to get a quick idea of the options which the code accepts type:
 pigsfli.e --help
 ```
 
-The code requires various combinations of these options to run, and the help message should give
-you an idea about which ones are mandatory.
-
 ### Quick Start 
 
 If you want to perform a quick test-run for a small one-dimensional Bose-Hubbard lattice you could try something like:
 ```bash
 ./pigsfli.e -D 1 -L 4 -N 4 -l 2 -U 1.995 --mu 1.998 --sweeps 2001 --seed 1968 --measurement-frequency 1 --rng boost_mt19937 --bin-size 10 --bins-wanted 1000 --num-replicas 2 --beta 1.2
 ```
-
-In order for this to work, you will need a folder named `OUTPUT` in the directory where you type the command as it will produce output files in `OUTPUT` that contain all the results of the code.  Each run of the code is associated with a unique identifying integer: the `PIMCID`.  The options used in this demo include a subset of all the possible options:
 
 | Code Option | Description |
 | :-----------: | ----------- |
@@ -223,5 +222,15 @@ SWAP Recede Tail: 28457/29492
 
 Elapsed time: 1.74691 seconds
 ```
+
+### Output explanation
+
+In Stage (1/3), histograms of the total particle number distribution are shown, where each of the asterisks (*) represents a normalized count. For canonical ensemble simulations, like the one shown above, the only particle numbers visited are $N-1$, $N$, and $N+1$, where $N$ is the target number of particles. A grand canonical simulation will show histograms with more particle numbers than these. Once the peak of the distribution is at $N$, and it's at least 33% larger than the next largest sector, we proceed to the "fine tuning eta" stage. Here, eta is either shrunk or augmented until we reach the desired percentage of configurations with no worms present (currently, we set this window between 40 and 45%).
+
+Stage (2/3), the code is ran without taking any measurement as a en equilibration step. The number of equilibration steps are currently determined by the sweeps parameter from the command line.
+
+Finally, Stage (3/3) is where measurements are performed and samples collected. Once the desired number of samples are collected, the simulation stops. Near the bottom of the terminal output above, the number of times that each of the updates is accepted and proposed are shown as a fraction. The number of times that the update is accepted is shown in the numerator, whereas the times that it was proposed is shown in the denominator.
+
+The total run time of equilibration and Main Monte Carlo loops is shown at the bottom of the output, in seconds.
 
 After this has been completed, you can analyze the results of your run using the scripts in the https://github.com/DelMaestroGroup/papers-code-pigsfli.
