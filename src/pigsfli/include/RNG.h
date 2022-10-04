@@ -1,6 +1,7 @@
 #ifndef RNG_H
 #define RNG_H
 #include <random>
+#include <memory>
 #include "MersenneTwister.h"
 #include "pcg_random.hpp"
 #include "boost/random.hpp"
@@ -13,6 +14,8 @@ class RNG
  	{
  	public:
  	
+	virtual ~RNG(){};
+
 	virtual void seed(){};
 	virtual void seed( const uint32 oneSeed ){};
 	virtual uint32 randInt( const uint32 n ){return 0;}

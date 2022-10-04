@@ -78,7 +78,7 @@
 	 void MTFromSTL::seed( const uint32 seed ){generator.seed(seed);};
 
 	 uint32 MTFromSTL::randInt(){
-	    return randInt((2^32)-1);
+	    return generator();
 	};
 	 uint32 MTFromSTL::randInt( const uint32 n ){
 	    using parm_t = decltype(disInt)::param_type;
@@ -159,7 +159,7 @@
 	 void MTFromPCG::seed( const uint32 seed ){generator.seed(seed);};
 
 	 uint32 MTFromPCG::randInt(){
-	    return randInt((2^32)-1);
+	    return generator();
 	};
 	 uint32 MTFromPCG::randInt( const uint32 n ){
 	    using parm_t = decltype(disInt)::param_type;
@@ -240,7 +240,7 @@
 	 void MTFromBOOST::seed( const uint32 seed ){generator.seed(seed);};
 
 	 uint32 MTFromBOOST::randInt(){
-	    return randInt((2^32)-1);
+	    return generator();
 	};
 	 uint32 MTFromBOOST::randInt( const uint32 n ){
 	    using parm_t = decltype(disInt)::param_type;
