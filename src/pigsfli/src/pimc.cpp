@@ -204,7 +204,7 @@ int main(int argc, char** argv){
 
     // mu-calibration variables
     bool not_equilibrated;
-    double mu_initial,N_hist_sum,P_N_peak,mu_right,mu_left,N_flats_mean;
+    double N_hist_sum,P_N_peak,mu_right,mu_left,N_flats_mean;
     double Z_frac,N_mean_pre; // used only in eta-equilibration
     bool N_target_in_bins;
     vector<int> N_data,N_hist,N_bins;
@@ -379,23 +379,23 @@ int main(int argc, char** argv){
  Path-Integral Ground State (Monte Carlo) For Lattice Implementations
      )";
     
-//    cout << R"(
-//                                 _
-//                                ( `.
-//                  _,--------.__  ))\`.
-//              _,-"   ,::::.    `(( (  \___
-//            ,'      .:::::'      \`-\ |   `-.
-//          ,'     ___                         \
-//         /     -'   `-.               .    ;; \
-//        :::          : \    :         ~)       )-._
-//        ;::          :: |   .      .  :       /::._)
-//       ( `:          ;  :  /: .    (  :__ .,~/_.-'
-//       /__ :        .__/_ (:' ,--.  `./o `.|'
-//      ((_\`.    `:.      `-.._    `.__`._o )
-// -hrr- `-'  `""`.____,-.___/`_\______ """"`.
-//                           `-`       `-. ,\_\
-//                                        `-')";
-//
+/*    cout << R"(
+                                 _
+                               ( `.
+                 _,--------.__  ))\`.
+             _,-"   ,::::.    `(( (  \___
+           ,'      .:::::'      \`-\ |   `-.
+         ,'     ___                         \
+        /     -'   `-.               .    ;; \
+       :::          : \    :         ~)       )-._
+       ;::          :: |   .      .  :       /::._)
+      ( `:          ;  :  /: .    (  :__ .,~/_.-'
+      /__ :        .__/_ (:' ,--.  `./o `.|'
+     ((_\`.    `:.      `-.._    `.__`._o )
+-hrr- `-'  `""`.____,-.___/`_\______ """"`.
+                          `-`       `-. ,\_\
+                                       `-')";
+*/
     cout << endl << endl;
 
 /*------------ Pre-equilibration 1: mu,eta calibration --------------*/
@@ -405,7 +405,6 @@ int main(int argc, char** argv){
     bool eta_fine_tuning_complete = false;
     
     not_equilibrated=true;
-    mu_initial=mu;
     dummy_counter=0;
 
     if (beta>=1.0){sweeps_pre*=(beta*M);}
@@ -1676,7 +1675,7 @@ int main(int argc, char** argv){
                         
                         if (measure_tau_resolved_estimators){
                         // Save tau resolved estimators
-                        for (int i=0; i<measurement_centers.size(); i++){
+                        for (size_t i=0; i<measurement_centers.size(); i++){
                             tr_kinetic_energy_file[r]<<fixed<<setprecision(17)<<
                             tr_kinetic_energy[r][i]/bin_size << " ";
                             
