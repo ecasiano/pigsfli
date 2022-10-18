@@ -102,6 +102,8 @@ int main(int argc, char** argv){
         cxxopts::value<bool>()->default_value("false"))
         ("get-PN", "compute total particle number distribution",
         cxxopts::value<bool>()->default_value("false"))
+        ("get-n", "compute subregion-size-resolved local particle number density (and squared)",
+        cxxopts::value<bool>()->default_value("false"))
         ("no-sample-directly", "sample imaginary times directly by inverting probability distributions",
         cxxopts::value<bool>()->default_value("false"))
     ;
@@ -121,6 +123,7 @@ int main(int argc, char** argv){
     bool get_s2n=result["get-s2n"].as<bool>();
     bool get_Pn=result["get-Pn"].as<bool>();
     bool get_PN=result["get-PN"].as<bool>();
+    bool get_n=result["get-n"].as<bool>();
 
     bool no_sample_directly=result["no-sample-directly"].as<bool>();
 
@@ -196,7 +199,8 @@ int main(int argc, char** argv){
     bool measure_tau_resolved_estimators = false;
  
     // Declare data files
-    ofstream kinetic_energy_file,diagonal_energy_file,total_energy_file;
+    ofstream kinetic_energy_file,diagonal_energy_file,total_energy_file,n_file,
+    n_squared_file;
     vector<ofstream> tr_kinetic_energy_file,tr_diagonal_energy_file;
     ofstream SWAP_histogram_file;
     vector<ofstream> SWAPn_histogram_files,Pn_files,Pn_squared_files;
@@ -341,6 +345,10 @@ int main(int argc, char** argv){
     for (int i=0; i<num_replicas; i++){
         n_A.push_back(vector<int> (m_A,0));
     }
+
+    // Initialize vector that accumulates local particle number in A
+    vector<double> n_A_accum(m_A,0);
+    vector<double> n_A_squared_accum(m_A,0);
 
     // Measurement settings
     measurement_center=beta/2.0;
@@ -847,18 +855,9 @@ int main(int argc, char** argv){
     if (num_replicas<2){
         
         ofstream K_out,V_out,tr_K_out,tr_V_out;
-        string K_name,V_name,tr_K_name,tr_V_name,rep,PN_name;
+        string K_name,V_name,tr_K_name,tr_V_name,rep,PN_name,
+        n_name,n_squared_name;
         vector<string> Pn_names;
-
-        // Create filename of P(N), the total particle distribution
-        if (get_PN){
-            PN_name=to_string(D)+"D_"+to_string(L)+"_"+
-                to_string(N)+"_"+to_string(l_A)+"_"+
-                to_string(U)+"_"+to_string(t)+"_"+
-                to_string(beta)+"_"+to_string(bin_size)+"_"+
-                "PN"+"_"+
-                to_string(seed)+"_"+subgeometry+".dat";
-        }
                     
         // Energies
         K_name=to_string(D)+"D_"+to_string(L)+
@@ -895,7 +894,23 @@ int main(int argc, char** argv){
                 "PN"+"_"+
                 to_string(seed)+"_"+subgeometry+".dat";
         }
+
+        // Create filenames for local particle number distribution (and squared)
+        if (get_n){
+            n_name=to_string(D)+"D_"+to_string(L)+
+                    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+                    to_string(U)+"_"+to_string(t)+"_"+
+                    to_string(beta)+"_"+to_string(bin_size)+"_"+
+                    "n_"+to_string(seed)+"_"+subgeometry+".dat";
+
+            n_squared_name=to_string(D)+"D_"+to_string(L)+
+                    "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+                    to_string(U)+"_"+to_string(t)+"_"+
+                    to_string(beta)+"_"+to_string(bin_size)+"_"+
+                    "nSquared_"+to_string(seed)+"_"+subgeometry+".dat";
+        }
         
+        // tau-resolved energies
         tr_K_name=to_string(L)+"_"+to_string(M)+"_"+
         to_string(U)+"_"+to_string(mu)+"_"+
         to_string(t)+"_"+to_string(beta)+"_"+
@@ -912,6 +927,8 @@ int main(int argc, char** argv){
         if (!restart){
             kinetic_energy_file.open(K_name);
             diagonal_energy_file.open(V_name);
+            n_file.open(n_name);
+            n_squared_file.open(n_squared_name);
 
             if (measure_tau_resolved_estimators){
                 tr_K_out.open(tr_K_name);
@@ -934,11 +951,14 @@ int main(int argc, char** argv){
             if (get_PN){
                 PN_file.open(PN_name);
             }
+            
         }
         
         else{ // restart
             kinetic_energy_file.open(K_name,ios::out | ios::app);
             diagonal_energy_file.open(V_name,ios::out | ios::app);
+            n_file.open(n_name,ios::out | ios::app);
+            n_squared_file.open(n_squared_name,ios::out | ios::app);
 
             if (measure_tau_resolved_estimators){
                 tr_K_out.open(tr_K_name,ios::out | ios::app);
@@ -1655,6 +1675,26 @@ int main(int argc, char** argv){
                                 }
                             }
                     }
+
+                    if (get_n){ // this is for num_replicas < 1 for now
+                    for (int REP=0; REP<num_replicas; REP++){
+                                std::fill(n_A[REP].begin(),
+                                          n_A[REP].end(),0);
+                                get_fock_state(beta/2.0,M,
+                                               fock_state_at_half_plus[REP],
+                                               paths[REP]);
+                                n_A_last=0; // tracks subsystem n
+                                for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
+                                    n_A_last+=fock_state_at_half_plus[REP][
+                                        sub_sites[m_A_primed-1]];
+                                    n_A[REP][m_A_primed-1]=n_A_last; // needed to eventually compare if both replicas are on same local particle number sector
+                                }
+                            }
+                        for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
+                            n_A_accum[m_A_primed-1]+=n_A[0][m_A_primed-1];
+                            n_A_squared_accum[m_A_primed-1]+=(n_A[0][m_A_primed-1]*n_A[0][m_A_primed-1]);
+                        }
+                    }
                         
                     writing_ctr+=1;
                         
@@ -1700,6 +1740,25 @@ int main(int argc, char** argv){
                              std::fill(Pn[i-1].begin(),
                                        Pn[i-1].end(),0);
                          }
+                        }
+
+                        if (get_n){
+                        // Save current ell resolved n to file
+                         for (int i=1; i<=m_A; i++){
+                            n_file<<fixed<<setprecision(17)<<
+                            n_A_accum[i-1]/bin_size << " ";
+
+                            n_squared_file<<fixed<<setprecision(17)<<
+                            n_A_squared_accum[i-1]/bin_size << " ";
+                         }
+                            n_file<<endl;
+                            n_squared_file<<endl;
+
+                            // Restart accumulators
+                            std::fill(n_A_accum.begin(),
+                            n_A_accum.end(),0);
+                            std::fill(n_A_squared_accum.begin(),
+                            n_A_squared_accum.end(),0);
                         }
 
                         writing_ctr=0;
@@ -1930,6 +1989,10 @@ int main(int argc, char** argv){
         for (int r=0;r<num_replicas;r++){
             kinetic_energy_file.close();
             diagonal_energy_file.close();
+            if (get_n){
+                n_file.close();
+                n_squared_file.close();
+            }
             if (measure_tau_resolved_estimators){
                 tr_kinetic_energy_file[r].close();
                 tr_diagonal_energy_file[r].close();
@@ -2037,97 +2100,9 @@ int main(int argc, char** argv){
 
     auto elapsed_time = duration_cast<nanoseconds>(end - start);
     double duration = elapsed_time.count() * 1e-9;
-    
-    // cout << endl << "beta: " << beta << endl;
-    // cout << endl << "sweeps: " << sweeps/(beta*M) << endl;
-    
-    // if (num_replicas<2){
-    // cout << "Z_ctr: " << Z_ctr[0] << endl;
-    // cout<<"Z_frac: "<<Z_ctr[0]*100.0/measurement_attempts[0]<<"% ("<<Z_ctr[0]
-    // <<"/"<< measurement_attempts[0]<<")"<<endl;
-    
-    // cout << endl << "<N>: " << (N_sum[0])/Z_ctr[0] << endl;
-    // }
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
-    
-    // if (!restart && num_replicas==2)
-    //     cout << N_tracker[0] << "  " << N_tracker[1] << endl;
-    
-//    if (bins_written==bins_wanted){
-//
-//                            cout << "exit m: " << m << endl;
-//                            cout << "SWAP histogram (exit): ";
-//                            for (int i=0; i<=m_A; i++){
-//                                cout << SWAP_histogram[i] << " ";
-//                            }
-//                            cout << endl;
-//                            cout << "exit paths: " << endl;
-//                            for (int r=0; r<num_replicas; r++){
-//                                for (int k=0; k<num_kinks[r]; k++){
-//                                    cout << k << ": " << paths[r][k] << endl;
-//                                }
-//                                cout << "-----------------------------------------"<< endl;
-//                            }
-//                            cout << "writing_ctr: " << writing_ctr << endl;
-//
-//                            cout << "sweep: " << sweep << endl;
-//
-//                            cout << "sweeps: " << sweeps << endl;
-//
-//                            cout << "num_replicas: " << num_replicas << endl;
-//                            cout << "num_kinks: " << num_kinks[0] << " " << num_kinks[1] << endl;
-//                            cout << "mu,eta(exit): " << setprecision(17) << mu << "," << eta << endl;
-//                            cout << setprecision(17) << "N_tracker(exit): " << N_tracker[0] << " " <<
-//                            N_tracker[1] << endl;
-//                            cout << "Head indices(exit): " << head_idx[0] <<
-//                            " " << head_idx[1] << endl;
-//                            cout << "Tail indices(exit): " << tail_idx[0] <<
-//                            " " << tail_idx[1] << endl;
-//                            cout << "N_zero(exit): " << N_zero[0] <<
-//                            " " << N_zero[1] << endl;
-//                            cout << "N_beta(exit): " << N_beta[0] <<
-//                            " " << N_beta[1] << endl;
-//                            cout << "num_swaps(exit): " << num_swaps << endl;
-//                            cout << "last_kinks(exit): ";
-//                            for (int r=0; r<num_replicas; r++){
-//                                for (int site=0; site<M; site++){
-//                                    cout << last_kinks[r][site] << " ";
-//                                }
-//                            }
-//
-//                        }
     
     return 0;
     
 }
-
-//                    cout << "num_replicas: " << num_replicas << endl;
-//                    cout << "num_kinks after restart: " << num_kinks[0] << " " << num_kinks[1] << endl;
-//                    cout << "mu,eta after restart: " << mu << "," << eta << endl;
-//                    cout << "N_tracker after restart: " << N_tracker[0] << " " <<
-//                    N_tracker[1] << endl;
-//                    cout << "Head indices after restart: " << head_idx[0] <<
-//                    " " << head_idx[1] << endl;
-//                    cout << "Tail indices after restart: " << tail_idx[0] <<
-//                    " " << tail_idx[1] << endl;
-//                    cout << "N_zero after restart: " << N_zero[0] <<
-//                    " " << N_zero[1] << endl;
-//                    cout << "N_beta after restart: " << N_beta[0] <<
-//                    " " << N_beta[1] << endl;
-//                    cout << "num_swaps after restart: " << num_swaps << endl;
-//                    cout << "last_kinks after restart: " << endl;
-//                    for (int r=0; r<num_replicas; r++){
-//                        for (int site=0; site<M; site++){
-//                            cout << last_kinks[r][site] << " ";
-//                        }
-//                        cout << endl << "-----------------------------------------"<< endl;
-//                    }
-//
-//                    cout << "restarted paths: " << endl;
-//                    for (int r=0; r<num_replicas; r++){
-//                        for (int k=0; k<num_kinks[r]; k++){
-//                            cout << k << ": " << paths[r][k] << endl;
-//                        }
-//                        cout << "-----------------------------------------"<< endl;
-//                    }
