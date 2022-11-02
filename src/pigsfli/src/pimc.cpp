@@ -91,6 +91,8 @@ int main(int argc, char** argv){
         ("bins-wanted","Number of bins desired in data file",cxxopts::value<int>()->default_value("1000"))
         ("subgeometry","Shape of subregion: square OR strip",
             cxxopts::value<string>()->default_value("square"))
+        ("trial-state","Trial wavefunction: constant,non-interacting",
+            cxxopts::value<string>()->default_value("constant"))
         ("num-replicas","Number of replicas",cxxopts::value<int>()->default_value("2"))
         ("measurement-frequency","Measurements will be performed every other this amount",cxxopts::value<int>()->default_value("1"))
         ("rng","Random Number Generator type",cxxopts::value<string>()->default_value("pimc_mt19937"))
@@ -127,6 +129,7 @@ int main(int argc, char** argv){
 
     bool no_sample_directly=result["no-sample-directly"].as<bool>();
 
+    string trial_state=result["trial-state"].as<string>();
 
     /* Define the allowed random number generator names */
     vector<string> randomGeneratorName = {"boost_mt19937", "std_mt19937", "pimc_mt19937", "PCG"};
@@ -496,7 +499,7 @@ int main(int argc, char** argv){
                          M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                          N_zero[0],N_beta[0],last_kinks[0],
                          dummy_counter,dummy_counter,
-                         dummy_counter,dummy_counter,*rng_ptr);
+                         dummy_counter,dummy_counter,*rng_ptr,trial_state);
 
               }
             else if (label==3){ // deleteZero
@@ -504,21 +507,23 @@ int main(int argc, char** argv){
                             M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
-                            dummy_counter,dummy_counter,*rng_ptr);
+                            dummy_counter,dummy_counter,*rng_ptr,trial_state);
             }
             else if (label==4){ // insertBeta
                 insertBeta(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                             M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
-                            dummy_counter,dummy_counter,*rng_ptr);
+                            dummy_counter,dummy_counter,*rng_ptr,
+                            trial_state);
             }
             else if (label==5){ // deleteBeta
                 deleteBeta(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                             M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
-                            dummy_counter,dummy_counter,*rng_ptr);
+                            dummy_counter,dummy_counter,*rng_ptr,
+                            trial_state);
             }
             else if (label==6){ // timeshift
                 timeshift_uniform(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -617,7 +622,7 @@ int main(int argc, char** argv){
                          M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                          N_zero[0],N_beta[0],last_kinks[0],
                          dummy_counter,dummy_counter,
-                         dummy_counter,dummy_counter,*rng_ptr);
+                         dummy_counter,dummy_counter,*rng_ptr,trial_state);
 
               }
             else if (label==3){ // deleteZero
@@ -625,21 +630,23 @@ int main(int argc, char** argv){
                             M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
-                            dummy_counter,dummy_counter,*rng_ptr);
+                            dummy_counter,dummy_counter,*rng_ptr,trial_state);
             }
             else if (label==4){ // insertBeta
                 insertBeta_2(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                             M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
-                            dummy_counter,dummy_counter,*rng_ptr);
+                            dummy_counter,dummy_counter,*rng_ptr,
+                            trial_state);
             }
             else if (label==5){ // deleteBeta
                 deleteBeta_2(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                             M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
-                            dummy_counter,dummy_counter,*rng_ptr);
+                            dummy_counter,dummy_counter,*rng_ptr,
+                            trial_state);
             }
             else if (label==6){ // timeshift
                 timeshift(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -1276,7 +1283,8 @@ int main(int argc, char** argv){
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertZero_worm_attempts,insertZero_worm_accepts,
-                       insertZero_anti_attempts,insertZero_anti_accepts,*rng_ptr);
+                       insertZero_anti_attempts,insertZero_anti_accepts,*rng_ptr,
+                       trial_state);
             
         }
         else if (label==3){ // deleteZero
@@ -1284,21 +1292,24 @@ int main(int argc, char** argv){
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteZero_worm_attempts,deleteZero_worm_accepts,
-                       deleteZero_anti_attempts,deleteZero_anti_accepts,*rng_ptr);
+                       deleteZero_anti_attempts,deleteZero_anti_accepts,*rng_ptr,
+                       trial_state);
         }
         else if (label==4){ // insertBeta
             insertBeta(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertBeta_worm_attempts,insertBeta_worm_accepts,
-                       insertBeta_anti_attempts,insertBeta_anti_accepts,*rng_ptr);
+                       insertBeta_anti_attempts,insertBeta_anti_accepts,*rng_ptr,
+                       trial_state);
         }
         else if (label==5){ // deleteBeta
             deleteBeta(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteBeta_worm_attempts,deleteBeta_worm_accepts,
-                       deleteBeta_anti_attempts,deleteBeta_anti_accepts,*rng_ptr);
+                       deleteBeta_anti_attempts,deleteBeta_anti_accepts,*rng_ptr,
+                       trial_state);
         }
         else if (label==6){ // timeshift
             timeshift_uniform(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -1388,7 +1399,8 @@ int main(int argc, char** argv){
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertZero_worm_attempts,insertZero_worm_accepts,
-                       insertZero_anti_attempts,insertZero_anti_accepts,*rng_ptr);
+                       insertZero_anti_attempts,insertZero_anti_accepts,*rng_ptr,
+                       trial_state);
             
         }
         else if (label==3){ // deleteZero
@@ -1396,21 +1408,24 @@ int main(int argc, char** argv){
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteZero_worm_attempts,deleteZero_worm_accepts,
-                       deleteZero_anti_attempts,deleteZero_anti_accepts,*rng_ptr);
+                       deleteZero_anti_attempts,deleteZero_anti_accepts,*rng_ptr,
+                       trial_state);
         }
         else if (label==4){ // insertBeta
             insertBeta_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertBeta_worm_attempts,insertBeta_worm_accepts,
-                       insertBeta_anti_attempts,insertBeta_anti_accepts,*rng_ptr);
+                       insertBeta_anti_attempts,insertBeta_anti_accepts,*rng_ptr,
+                       trial_state);
         }
         else if (label==5){ // deleteBeta
             deleteBeta_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteBeta_worm_attempts,deleteBeta_worm_accepts,
-                       deleteBeta_anti_attempts,deleteBeta_anti_accepts,*rng_ptr);
+                       deleteBeta_anti_attempts,deleteBeta_anti_accepts,*rng_ptr,
+                       trial_state);
         }
         else if (label==6){ // timeshift
             timeshift(paths[r],num_kinks[r],head_idx[r],tail_idx[r],

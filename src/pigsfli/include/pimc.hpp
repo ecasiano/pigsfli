@@ -1683,7 +1683,7 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertZero_worm_accepts,
                 unsigned long long int &insertZero_anti_attempts,
                 unsigned long long int &insertZero_anti_accepts,
-                RNG &rng){
+                RNG &rng, string trial_state){
     
     // Variable declarations
     int n,src,next,n_head,n_tail,i,dest_replica;
@@ -1792,16 +1792,26 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
     if (canonical)
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+
     
+    // Build the trial wavefunction coefficient ratio C'/C
+    if (trial_state=="non-interacting"){
+        if (is_worm){
+            C = sqrt((1.0*N_zero+1)/n_tail);
+        }
+        else {
+            C = sqrt(n_tail*1.0/N_zero);
+        }
+    }
+    else { // trial_state=="constant"
+        C = 1.0;
+    }
 
     // Build the weight ratio W'/W
-     C = 1.0;
     if (is_worm){
-//        C = sqrt(N_b+1)/sqrt(n+1);
         W = eta * sqrt(n_tail) * C * exp(-dV*tau_new);
     }
     else{
-//        C = sqrt(n)/sqrt(N_b);
         W = eta * sqrt(n_tail) * C * exp(dV*tau_new);
     }
     
@@ -1879,7 +1889,7 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertZero_worm_accepts,
                 unsigned long long int &insertZero_anti_attempts,
                 unsigned long long int &insertZero_anti_accepts,
-                RNG &rng){
+                RNG &rng, string trial_state){
     
     // Variable declarations
     int n,src,next,n_head,n_tail,i,dest_replica;
@@ -2005,9 +2015,20 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (canonical)
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
    
+    // Build the trial wavefunction coefficient ratio C'/C
+    if (trial_state=="non-interacting"){
+        if (is_worm){
+            C = sqrt((1.0*N_zero+1)/n_tail);
+        }
+        else {
+            C = sqrt(n_tail*1.0/N_zero);
+        }
+    }
+    else { // trial_state=="constant"
+        C = 1.0;
+    }
 
     // Build the weight ratio W'/W
-    C = 1.0;
 //     if (is_worm){
 // //        C = sqrt(N_b+1)/sqrt(n+1);
 //         W = eta * sqrt(n_tail) * C * exp(-dV*tau_new);
@@ -2092,7 +2113,7 @@ void deleteZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteZero_worm_accepts,
                 unsigned long long int &deleteZero_anti_attempts,
                 unsigned long long int &deleteZero_anti_accepts,
-                RNG &rng){
+                RNG &rng, string trial_state){
     
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx;
@@ -2200,16 +2221,25 @@ void deleteZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
         
     // Calculate diagonal energy difference
     dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
-    
 
+    // Build the trial wavefunction coefficient ratio C'/C
+    if (trial_state=="non-interacting"){
+        if (delete_head){ // delete worm from tau=0
+            C = sqrt((1.0*N_zero-1)/n_tail);
+        }
+        else { // delete antiworm from tau=0
+            C = sqrt(n_tail/(1.0*N_zero+1));
+        }
+    }
+    else { // trial_state=="constant"
+        C = 1.0;
+    }
+    
     // Build the weigh ratio W'/W
-     C = 1.0;
     if (delete_head){ // delete worm
-//        C = sqrt(N_b+1)/sqrt(n+1);
         W = eta * sqrt(n_tail) * C * exp(-dV*tau);
     }
     else{ // delete antiworm
-//        C = sqrt(n)/sqrt(N_b);
         W = eta * sqrt(n_tail) * C * exp(dV*tau);
     }
     
@@ -2295,7 +2325,7 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteZero_worm_accepts,
                 unsigned long long int &deleteZero_anti_attempts,
                 unsigned long long int &deleteZero_anti_accepts,
-                RNG &rng){
+                RNG &rng, string trial_state){
     
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx;
@@ -2404,9 +2434,20 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Calculate diagonal energy difference
     dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
+    // Build the trial wavefunction coefficient ratio C'/C
+    if (trial_state=="non-interacting"){
+        if (delete_head){
+            C = sqrt((1.0*N_zero-1)/n_tail);
+        }
+        else {
+            C = sqrt(n_tail/(1.0*N_zero+1));
+        }
+    }
+    else { // trial_state=="constant"
+        C = 1.0;
+    }
   
 //     // Build the weigh ratio W'/W
-     C = 1.0;
 //     if (delete_head){ // delete worm
 // //        C = sqrt(N_b+1)/sqrt(n+1);
 //         W = eta * sqrt(n_tail) * C * exp(-dV*tau);
@@ -2503,7 +2544,7 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertBeta_worm_accepts,
                 unsigned long long int &insertBeta_anti_attempts,
                 unsigned long long int &insertBeta_anti_accepts,
-                RNG &rng){
+                RNG &rng, string trial_state){
     
     // Variable declarations
     int n,src,next,n_head,n_tail,i,src_replica;
@@ -2609,10 +2650,22 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
     if (canonical)
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
-    
+
+    // Build the trial wavefunction coefficient ratio C'/C
+    if (trial_state=="non-interacting"){
+        if (is_worm){
+            C = sqrt((1.0*N_beta+1)/n_tail);
+        }
+        else {
+            C = sqrt(n_tail/(1.0*N_beta));
+        }
+    }
+    else { // trial_state=="constant"
+        C = 1.0;
+    }
     
     // Build the weight ratio W'/W
-     C = 1.0; // C_pre/C_post
+    //  C = 1.0; // C_pre/C_post
     if (is_worm){
 //        C = sqrt(N_b+1)/sqrt(n+1);
         W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau_new));
@@ -2688,7 +2741,7 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertBeta_worm_accepts,
                 unsigned long long int &insertBeta_anti_attempts,
                 unsigned long long int &insertBeta_anti_accepts,
-                RNG &rng){
+                RNG &rng, string trial_state){
     
     // Variable declarations
     int n,src,next,n_head,n_tail,i,src_replica;
@@ -2809,8 +2862,21 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
     
     
+    // Build the trial wavefunction coefficient ratio C'/C
+    if (trial_state=="non-interacting"){
+        if (is_worm){
+            C = sqrt((1.0*N_beta+1)/n_tail);
+        }
+        else {
+            C = sqrt(n_tail/(1.0*N_beta));
+        }
+    }
+    else { // trial_state=="constant"
+        C = 1.0;
+    }
+
     // Build the weight ratio W'/W
-     C = 1.0; // C_pre/C_post
+    //  C = 1.0; // C_pre/C_post
     if (is_worm){
 //        C = sqrt(N_b+1)/sqrt(n+1);
         // W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau_new));
@@ -2886,7 +2952,7 @@ void deleteBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteBeta_worm_accepts,
                 unsigned long long int &deleteBeta_anti_attempts,
                 unsigned long long int &deleteBeta_anti_accepts,
-                RNG &rng){
+                RNG &rng, string trial_state){
     
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx;
@@ -2992,10 +3058,22 @@ void deleteBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Calculate diagonal energy difference
     dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+
+    // Build the trial wavefunction coefficient ratio C'/C
+    if (trial_state=="non-interacting"){
+        if (!delete_head){ // delete worm
+            C = sqrt((1.0*N_beta-1)/n_tail);
+        }
+        else { // delete antiworm
+            C = sqrt(n_tail/(1.0*N_beta+1));
+        }
+    }
+    else { // trial_state=="constant"
+        C = 1.0;
+    }
     
- 
     // Build the weigh ratio W'/W
-    C = 1.0;
+    // C = 1.0;
     if (!delete_head){ // delete worm
 //        C = sqrt(N_b+1)/sqrt(n);
         W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau));
@@ -3082,7 +3160,7 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteBeta_worm_accepts,
                 unsigned long long int &deleteBeta_anti_attempts,
                 unsigned long long int &deleteBeta_anti_accepts,
-                RNG &rng){
+                RNG &rng, string trial_state){
     
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx;
@@ -3189,8 +3267,21 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     if (delete_head){dV *= -1;}
      
+    // Build the trial wavefunction coefficient ratio C'/C
+    if (trial_state=="non-interacting"){
+        if (!delete_head){ // delete worm
+            C = sqrt((1.0*N_beta-1)/n_tail);
+        }
+        else { // delete antiworm
+            C = sqrt(n_tail/(1.0*N_beta+1));
+        }
+    }
+    else { // trial_state=="constant"
+        C = 1.0;
+    }
+
     // Build the weigh ratio W'/W
-    C = 1.0;
+    // C = 1.0;
     if (!delete_head){ // delete worm
 //        C = sqrt(N_b+1)/sqrt(n);
         // W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau));
