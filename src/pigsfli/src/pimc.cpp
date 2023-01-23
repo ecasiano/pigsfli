@@ -988,7 +988,7 @@ int main(int argc, char** argv){
     
     // Estimators in replicated configuration space (num_replicas>=2)
     else {
-        string SWAP_histogram_name;
+        string SWAP_histogram_name,n_name,n_squared_name;
         vector<string> SWAPn_histogram_names,Pn_names,Pn_squared_names;
         
         if (canonical){ // name of file if canonical simulation
@@ -1034,6 +1034,20 @@ int main(int argc, char** argv){
                     to_string(seed)+"_"+subgeometry+".dat");
                 }
             }
+            // Create filenames for local particle number distribution (and squared)
+            if (get_n){
+                n_name=to_string(D)+"D_"+to_string(L)+
+                        "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+                        to_string(U)+"_"+to_string(t)+"_"+
+                        to_string(beta)+"_"+to_string(bin_size)+"_"+
+                        "n_"+to_string(seed)+"_"+subgeometry+".dat";
+
+                n_squared_name=to_string(D)+"D_"+to_string(L)+
+                        "_"+to_string(N)+"_"+to_string(l_A)+"_"+
+                        to_string(U)+"_"+to_string(t)+"_"+
+                        to_string(beta)+"_"+to_string(bin_size)+"_"+
+                        "nSquared_"+to_string(seed)+"_"+subgeometry+".dat";
+            }
         }
         else { // name of file if grand canonical simulation
 
@@ -1063,6 +1077,8 @@ int main(int argc, char** argv){
         if (!restart){
             // Open SWAP histograms file
             SWAP_histogram_file.open(SWAP_histogram_name);
+            n_file.open(n_name);
+            n_squared_file.open(n_squared_name);
 
             if (get_s2n){
                 // Open mA-sector resolved local particle number distribution files
@@ -1094,6 +1110,8 @@ int main(int argc, char** argv){
             // Open SWAP histograms file
             SWAP_histogram_file.open(SWAP_histogram_name,
                                      ios::out | ios::app);
+            n_file.open(n_name,ios::out | ios::app);
+            n_squared_file.open(n_squared_name,ios::out | ios::app);
 
             if (get_s2n){
                 // Open mA-sector resolved local particle number distribution files
@@ -1867,6 +1885,26 @@ int main(int argc, char** argv){
                                     Pn_squared[m_A_primed-1][n_A[0][m_A_primed-1]]+=1;
                                 }
                             }
+
+                            if (get_n){ 
+                                for (int REP=0; REP<num_replicas; REP++){
+                                            std::fill(n_A[REP].begin(),
+                                                    n_A[REP].end(),0);
+                                            get_fock_state(beta/2.0,M,
+                                                        fock_state_at_half_plus[REP],
+                                                        paths[REP]);
+                                            n_A_last=0; // tracks subsystem n
+                                            for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
+                                                n_A_last+=fock_state_at_half_plus[REP][
+                                                    sub_sites[m_A_primed-1]];
+                                                n_A[REP][m_A_primed-1]=n_A_last; // needed to eventually compare if both replicas are on same local particle number sector
+                                            }
+                                        }
+                                    for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
+                                        n_A_accum[m_A_primed-1]+=n_A[0][m_A_primed-1];
+                                        n_A_squared_accum[m_A_primed-1]+=(n_A[0][m_A_primed-1]*n_A[0][m_A_primed-1]);
+                                    }
+                                }
                             
                         }
                         
@@ -1965,6 +2003,25 @@ int main(int argc, char** argv){
                         }
                     }
                     
+                    if (get_n){
+                        // Save current ell resolved n to file
+                         for (int i=1; i<=m_A; i++){
+                            n_file<<fixed<<setprecision(17)<<
+                            n_A_accum[i-1]/bin_size << " ";
+
+                            n_squared_file<<fixed<<setprecision(17)<<
+                            n_A_squared_accum[i-1]/bin_size << " ";
+                         }
+                            n_file<<endl;
+                            n_squared_file<<endl;
+
+                            // Restart accumulators
+                            std::fill(n_A_accum.begin(),
+                            n_A_accum.end(),0);
+                            std::fill(n_A_squared_accum.begin(),
+                            n_A_squared_accum.end(),0);
+                    }
+
                     // Restart writing counter
                     writing_ctr = 0;
                     
@@ -2030,6 +2087,10 @@ int main(int argc, char** argv){
                 Pn_squared_files[i-1].close();
                 SWAPn_histogram_files[i-1].close();
             }
+        }
+        if (get_n){
+            n_file.close();
+            n_squared_file.close();
         }
     }
 /*----------------------------- FIN ---------------------------------*/
