@@ -741,6 +741,16 @@ void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
     
     top_row_ctr=L;
     bottom_row_ctr=0;
+
+    if (boundary_condition=="obc" && D>1){
+        cout << "ERROR: open boundary condition available only in 1D currently."
+         << endl;
+    }
+        if (boundary_condition!="obc" && boundary_condition!="pbc"){
+        cout << "ERROR: boundary needs to be obc or pbc"
+         << endl;
+    }
+
     
     // Initialize adjacency matrix with placeholder zeroes
     for (int i=0; i<M; i++){adjacency_matrix.push_back(rows);}
@@ -748,11 +758,17 @@ void build_hypercube_adjacency_matrix(int L,int D, string boundary_condition,
     for (int site=0; site<M; site++){
         
         // Left neighbor
-        if (site%L==0){site_left=site+(L-1);}
+        if (site%L==0 && boundary_condition=="pbc"){
+            site_left=site+(L-1);} // wrap around
+        else if (site%L==0 && boundary_condition=="obc"){
+            site_left=site+1;} //can only go right
         else {site_left=site-1;}
         
         // Right neighbor
-        if ((site+1)%L==0){site_right=site-(L-1);}
+        if ((site+1)%L==0 && boundary_condition=="pbc"){
+            site_right=site-(L-1);} // wrap
+        else if ((site+1)%L==0 && boundary_condition=="obc"){
+            site_right=site-1;} // go left
         else {site_right=site+1;}
         
         // Top neighbor
@@ -3626,7 +3642,7 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikbh_attempts,
                 unsigned long long int &ikbh_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
 //    if (t==0.0){return;}
     // Variable declarations
@@ -3652,7 +3668,12 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
     // Randomly choose a nearest neighbor site
     //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
     j = adjacency_matrix[i][rng.randInt(total_nn-1)];
-    p_site = 1.0/total_nn;
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
     
     // Retrieve the time of the worm head
     tau_h = paths[head_idx].tau;
@@ -3759,7 +3780,7 @@ void insert_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikbh_attempts,
                 unsigned long long int &ikbh_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
 //    if (t==0.0){return;}
     // Variable declarations
@@ -3785,7 +3806,12 @@ void insert_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     // Randomly choose a nearest neighbor site
     //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
     j = adjacency_matrix[i][rng.randInt(total_nn-1)];
-    p_site = 1.0/total_nn;
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
     
     // Retrieve the time of the worm head
     tau_h = paths[head_idx].tau;
@@ -3916,7 +3942,7 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkbh_attempts,
                 unsigned long long int &dkbh_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -3985,8 +4011,12 @@ void delete_kink_before_head(vector<Kink> &paths, int &num_kinks,
     else {tau_min=tau_prev_j;}
 
     // Probability of inverse move (ikbh) of choosing site where worm end is
-    p_site = 1.0/total_nn;
-
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
     // Extract no. of particles in the flats adjacent to the new kink
     n_wi = paths[prev_i].n;
     n_i = n_wi-1;
@@ -4126,7 +4156,7 @@ void delete_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkbh_attempts,
                 unsigned long long int &dkbh_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
 
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -4195,8 +4225,12 @@ void delete_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     else {tau_min=tau_prev_j;}
 
     // Probability of inverse move (ikbh) of choosing site where worm end is
-    p_site = 1.0/total_nn;
-
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
     // Extract no. of particles in the flats adjacent to the new kink
     n_wi = paths[prev_i].n;
     n_i = n_wi-1;
@@ -4349,7 +4383,7 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikah_attempts,
                 unsigned long long int &ikah_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -4374,8 +4408,12 @@ void insert_kink_after_head(vector<Kink> &paths, int &num_kinks,
     // Randomly choose a nearest neighbor site
     //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
     j = adjacency_matrix[i][rng.randInt(total_nn-1)];
-    p_site = 1.0/total_nn;
-    
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }    
     // Retrieve the time of the worm head
     tau_h = paths[head_idx].tau;
     
@@ -4490,7 +4528,7 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikah_attempts,
                 unsigned long long int &ikah_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -4515,8 +4553,13 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     // Randomly choose a nearest neighbor site
     //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
     j = adjacency_matrix[i][rng.randInt(total_nn-1)];
-    p_site = 1.0/total_nn;
-    
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
+
     // Retrieve the time of the worm head
     tau_h = paths[head_idx].tau;
     
@@ -4657,7 +4700,7 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkah_attempts,
                 unsigned long long int &dkah_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -4729,8 +4772,12 @@ void delete_kink_after_head(vector<Kink> &paths, int &num_kinks,
     else {tau_max=tau_next_j;}
 
     // Probability of inverse move (ikah) choosing site where worm end is
-    p_site = 1.0/total_nn;
-
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
     // Extract no. of particles in the flats adjacent to the new kink
     n_wi = paths[prev_i].n;
     n_i = n_wi-1;
@@ -4866,7 +4913,7 @@ void delete_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkah_attempts,
                 unsigned long long int &dkah_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -4938,7 +4985,12 @@ void delete_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     else {tau_max=tau_next_j;}
 
     // Probability of inverse move (ikah) choosing site where worm end is
-    p_site = 1.0/total_nn;
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
 
     // Extract no. of particles in the flats adjacent to the new kink
     n_wi = paths[prev_i].n;
@@ -5088,7 +5140,7 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikbt_attempts,
                 unsigned long long int &ikbt_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -5110,8 +5162,13 @@ void insert_kink_before_tail(vector<Kink> &paths, int &num_kinks,
     // Randomly choose a nearest neighbor site
     //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
     j = adjacency_matrix[i][rng.randInt(total_nn-1)];
-    p_site = 1.0/total_nn;
-    
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
+
     // Retrieve the time of the worm tail
     tau_t = paths[tail_idx].tau;
     
@@ -5223,7 +5280,7 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikbt_attempts,
                 unsigned long long int &ikbt_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -5245,8 +5302,13 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     // Randomly choose a nearest neighbor site
     //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
     j = adjacency_matrix[i][rng.randInt(total_nn-1)];
-    p_site = 1.0/total_nn;
-    
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
+
     // Retrieve the time of the worm tail
     tau_t = paths[tail_idx].tau;
     
@@ -5384,7 +5446,7 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkbt_attempts,
                 unsigned long long int &dkbt_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -5453,7 +5515,12 @@ void delete_kink_before_tail(vector<Kink> &paths, int &num_kinks,
     else {tau_min=tau_prev_j;}
     
     // Probability of inverse move (ikbt) choosing site where worm end is
-    p_site = 1.0/total_nn;
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
 
     // Extract no. of particles in the flats adjacent to the new kink
     n_i = paths[prev_i].n;
@@ -5590,7 +5657,7 @@ void delete_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkbt_attempts,
                 unsigned long long int &dkbt_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -5659,7 +5726,12 @@ void delete_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     else {tau_min=tau_prev_j;}
     
     // Probability of inverse move (ikbt) choosing site where worm end is
-    p_site = 1.0/total_nn;
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
 
     // Extract no. of particles in the flats adjacent to the new kink
     n_i = paths[prev_i].n;
@@ -5809,7 +5881,7 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikat_attempts,
                 unsigned long long int &ikat_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -5834,8 +5906,12 @@ void insert_kink_after_tail(vector<Kink> &paths, int &num_kinks,
     // Randomly choose a nearest neighbor site
     //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
     j = adjacency_matrix[i][rng.randInt(total_nn-1)];
-    p_site = 1.0/total_nn;
-    
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }    
     // Retrieve the time of the worm tail
     tau_t = paths[tail_idx].tau;
     
@@ -5947,7 +6023,7 @@ void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &ikat_attempts,
                 unsigned long long int &ikat_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -5972,8 +6048,13 @@ void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     // Randomly choose a nearest neighbor site
     //boost::random::uniform_int_distribution<> random_nn(0, total_nn-1);
     j = adjacency_matrix[i][rng.randInt(total_nn-1)];
-    p_site = 1.0/total_nn;
-    
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
+
     // Retrieve the time of the worm tail
     tau_t = paths[tail_idx].tau;
     
@@ -6112,7 +6193,7 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkat_attempts,
                 unsigned long long int &dkat_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -6184,7 +6265,12 @@ void delete_kink_after_tail(vector<Kink> &paths, int &num_kinks,
     else {tau_max=tau_next_j;}
 
     // Probability of inverse move (ikah) choosing site where worm end is
-    p_site = 1.0/total_nn;
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
 
     // Extract no. of particles in the flats adjacent to the new kink
     n_i = paths[prev_i].n;
@@ -6321,7 +6407,7 @@ void delete_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
                 int &N_zero, int &N_beta, vector<int> &last_kinks,
                 unsigned long long int &dkat_attempts,
                 unsigned long long int &dkat_accepts,
-                RNG &rng){
+                RNG &rng, string boundary){
     
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
@@ -6393,7 +6479,12 @@ void delete_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     else {tau_max=tau_next_j;}
 
     // Probability of inverse move (ikah) choosing site where worm end is
-    p_site = 1.0/total_nn;
+    if (boundary=="pbc")
+        p_site = 1.0/total_nn;
+    else{ // obc,1d
+        if (i==0 or i==M-1){p_site=1.0;} // edges ; can only hop in 1 direction
+        else {p_site=1.0/total_nn;}
+    }
 
     // Extract no. of particles in the flats adjacent to the new kink
     n_i = paths[prev_i].n;
