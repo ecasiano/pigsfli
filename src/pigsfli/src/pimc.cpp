@@ -1186,16 +1186,16 @@ int main(int argc, char** argv){
 
         // Initialize trackers from restarted system state
         paths = load_paths(D,L,N,l_A,U,t,beta,bin_size,
-                           bins_wanted,seed,subgeometry,num_replicas);
+                           bins_wanted,seed,subgeometry,num_replicas,boundary);
         num_kinks = get_num_kinks(D,L,N,l_A,U,t,beta,bin_size,
                                   bins_wanted,seed,subgeometry,
-                                  num_replicas);
+                                  num_replicas,boundary);
         mu = get_mu(D,L,N,l_A,U,t,beta,bin_size,
                     bins_wanted,seed,subgeometry,
-                    num_replicas);
+                    num_replicas,boundary);
         eta = get_eta(D,L,N,l_A,U,t,beta,bin_size,
                       bins_wanted,seed,subgeometry,
-                      num_replicas);
+                      num_replicas,boundary);
         N_tracker = get_N_tracker(paths,num_replicas,M,beta);
         head_idx = get_head_idx(paths,num_replicas,M);
         tail_idx = get_tail_idx(paths,num_replicas,M);
@@ -1263,7 +1263,7 @@ int main(int argc, char** argv){
     m=0; //iteration counter
     if (restart){
         m = get_iteration_idx(D,L,N,l_A,U,t,beta,bin_size,bins_wanted,
-                          seed,subgeometry,num_replicas);
+                          seed,subgeometry,num_replicas,boundary);
     }
     bins_written=0; // tracks how many beens have been written
     
@@ -1656,7 +1656,8 @@ int main(int argc, char** argv){
                                                 bins_wanted,seed
                                                 ,subgeometry,mu,
                                                 eta,num_replicas,
-                                                num_kinks,paths,N_tracker,m+1);
+                                                num_kinks,paths,N_tracker,
+                                                m+1,boundary);
                         
                         state_file.close();
 
@@ -1823,7 +1824,8 @@ int main(int argc, char** argv){
                                                 bins_wanted,seed
                                                 ,subgeometry,mu,
                                                 eta,num_replicas,
-                                                num_kinks,paths,N_tracker,m+1);
+                                                num_kinks,paths,N_tracker,
+                                                m+1,boundary);
                         
                         state_file.close();
                         
@@ -1999,7 +2001,8 @@ int main(int argc, char** argv){
                                             bins_wanted,seed
                                             ,subgeometry,mu,
                                             eta,num_replicas,
-                                            num_kinks,paths,N_tracker,m+1);
+                                            num_kinks,paths,N_tracker,
+                                            m+1,boundary);
                     
                     state_file.close();
                     
