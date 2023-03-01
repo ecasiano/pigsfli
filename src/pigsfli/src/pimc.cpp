@@ -881,13 +881,13 @@ int main(int argc, char** argv){
         K_name=to_string(D)+"D_"+to_string(L)+
         "_"+to_string(N)+"_"+to_string(l_A)+"_"+
         to_string(U)+"_"+to_string(t)+"_"+
-        to_string(beta)+"_"+to_string(bin_size)+"_"+
+        to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
         "K_"+to_string(seed)+"_"+subgeometry+".dat";
         
         V_name=to_string(D)+"D_"+to_string(L)+
         "_"+to_string(N)+"_"+to_string(l_A)+"_"+
         to_string(U)+"_"+to_string(t)+"_"+
-        to_string(beta)+"_"+to_string(bin_size)+"_"+
+        to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
         "V_"+to_string(seed)+"_"+subgeometry+".dat";
 
         // Create filenames of P(n) for each partition size mA
@@ -897,7 +897,7 @@ int main(int argc, char** argv){
                 to_string(D)+"D_"+to_string(L)+"_"+
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
-                to_string(beta)+"_"+to_string(bin_size)+"_"+
+                to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
                 "Pn-mA"+to_string(i)+"_"+
                 to_string(seed)+"_"+subgeometry+".dat");
             }
@@ -908,7 +908,7 @@ int main(int argc, char** argv){
             PN_name=to_string(D)+"D_"+to_string(L)+"_"+
                 to_string(N)+"_"+to_string(l_A)+"_"+
                 to_string(U)+"_"+to_string(t)+"_"+
-                to_string(beta)+"_"+to_string(bin_size)+"_"+
+                to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
                 "PN"+"_"+
                 to_string(seed)+"_"+subgeometry+".dat";
         }
@@ -918,13 +918,13 @@ int main(int argc, char** argv){
             n_name=to_string(D)+"D_"+to_string(L)+
                     "_"+to_string(N)+"_"+to_string(l_A)+"_"+
                     to_string(U)+"_"+to_string(t)+"_"+
-                    to_string(beta)+"_"+to_string(bin_size)+"_"+
+                    to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
                     "n_"+to_string(seed)+"_"+subgeometry+".dat";
 
             n_squared_name=to_string(D)+"D_"+to_string(L)+
                     "_"+to_string(N)+"_"+to_string(l_A)+"_"+
                     to_string(U)+"_"+to_string(t)+"_"+
-                    to_string(beta)+"_"+to_string(bin_size)+"_"+
+                    to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
                     "nSquared_"+to_string(seed)+"_"+subgeometry+".dat";
         }
         
@@ -1008,7 +1008,7 @@ int main(int argc, char** argv){
             SWAP_histogram_name=to_string(D)+"D_"+to_string(L)+
             "_"+to_string(N)+"_"+to_string(l_A)+"_"+
             to_string(U)+"_"+to_string(t)+"_"+
-            to_string(beta)+"_"+to_string(bin_size)+"_"+
+            to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
             "SWAP_"+to_string(seed)+"_"+subgeometry+".dat";
             
             if (get_s2n){
@@ -1018,7 +1018,7 @@ int main(int argc, char** argv){
                     to_string(D)+"D_"+to_string(L)+"_"+
                     to_string(N)+"_"+to_string(l_A)+"_"+
                     to_string(U)+"_"+to_string(t)+"_"+
-                    to_string(beta)+"_"+to_string(bin_size)+"_"+
+                    to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
                     "SWAPn-mA"+to_string(i)+"_"+
                     to_string(seed)+"_"+subgeometry+".dat");
                 }
@@ -1029,7 +1029,7 @@ int main(int argc, char** argv){
                     to_string(D)+"D_"+to_string(L)+"_"+
                     to_string(N)+"_"+to_string(l_A)+"_"+
                     to_string(U)+"_"+to_string(t)+"_"+
-                    to_string(beta)+"_"+to_string(bin_size)+"_"+
+                    to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
                     "Pn-mA"+to_string(i)+"_"+
                     to_string(seed)+"_"+subgeometry+".dat");
                 }
@@ -1040,7 +1040,7 @@ int main(int argc, char** argv){
                     to_string(D)+"D_"+to_string(L)+"_"+
                     to_string(N)+"_"+to_string(l_A)+"_"+
                     to_string(U)+"_"+to_string(t)+"_"+
-                    to_string(beta)+"_"+to_string(bin_size)+"_"+
+                    to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
                     "PnSquared-mA"+to_string(i)+"_"+
                     to_string(seed)+"_"+subgeometry+".dat");
                 }
@@ -1174,7 +1174,7 @@ int main(int argc, char** argv){
         rng_filename=to_string(D)+"D_"+to_string(L)+
         "_"+to_string(N)+"_"+to_string(l_A)+"_"+
         to_string(U)+"_"+to_string(t)+"_"+
-        to_string(beta)+"_"+to_string(bin_size)+"_"+
+        to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
         "rng-state_"+to_string(seed)+"_"+subgeometry+"_"+
         to_string(num_replicas)+".dat";
         
@@ -1640,7 +1640,7 @@ int main(int argc, char** argv){
                         rng_filename=to_string(D)+"D_"+to_string(L)+
                         "_"+to_string(N)+"_"+to_string(l_A)+"_"+
                         to_string(U)+"_"+to_string(t)+"_"+
-                        to_string(beta)+"_"+to_string(bin_size)+"_"+
+                        to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
                         "rng-state_"+to_string(seed)+"_"+
                         subgeometry+"_"+
                         to_string(num_replicas)+".dat";
@@ -1807,7 +1807,7 @@ int main(int argc, char** argv){
                         rng_filename=to_string(D)+"D_"+to_string(L)+
                         "_"+to_string(N)+"_"+to_string(l_A)+"_"+
                         to_string(U)+"_"+to_string(t)+"_"+
-                        to_string(beta)+"_"+to_string(bin_size)+"_"+
+                        to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
                         "rng-state_"+to_string(seed)+"_"+
                         subgeometry+"_"+
                         to_string(num_replicas)+".dat";
@@ -1984,7 +1984,7 @@ int main(int argc, char** argv){
                     rng_filename=to_string(D)+"D_"+to_string(L)+
                     "_"+to_string(N)+"_"+to_string(l_A)+"_"+
                     to_string(U)+"_"+to_string(t)+"_"+
-                    to_string(beta)+"_"+to_string(bin_size)+"_"+
+                    to_string(beta)+"_"+to_string(bin_size)+"_"+boundary+"_"+
                     "rng-state_"+to_string(seed)+"_"+subgeometry+"_"+
                     to_string(num_replicas)+".dat";
                     
