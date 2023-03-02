@@ -317,14 +317,6 @@ int main(int argc, char** argv){
     total_nn=0;
     for (size_t i=0;i<adjacency_matrix[0].size();i++){total_nn+=1;}
 
-    for (size_t site=0;site<M;site++){
-        for (size_t i=0;i<total_nn;i++){
-            cout << adjacency_matrix[site][i] << " ";
-        }
-        cout << endl;
-        }
-
-
     // Replicated trackers
     for (int r=0;r<num_replicas;r++){
         num_kinks.push_back(M);

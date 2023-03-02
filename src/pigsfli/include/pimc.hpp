@@ -143,7 +143,7 @@ vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
     int num_empty_kinks;
 
     // Set the number of kinks to pre-allocate based on lattice size
-    num_empty_kinks = M*1000;
+    num_empty_kinks = 10'000'000;
 
     // Pre-allocate kinks. Recall: (tau,n,src,dest,prev,next)
     vector<Kink> paths(num_empty_kinks,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1));
@@ -1979,6 +1979,7 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
         n_tail = n;
         n_head = n - 1;
     }
+    if (n_tail==0){return;} // R will be zero
     
     // Calculate the diagonal energy difference dV = \epsilon_w - \epsilon
     dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
@@ -2825,6 +2826,7 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
         n_tail = n;
         n_head = n - 1;
     }
+    if (n_tail==0){return;} // R will be zero
     
     // Calculate the diagonal energy difference dV = \epsilon_w - \epsilon
     dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
@@ -3852,6 +3854,7 @@ void insert_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     n_i = n_wi-1;
     n_j = paths[prev_j].n;
     n_wj = n_j+1;                   // "w": segment with the extra particle
+    if (n_wj==0){return;} // R will be zero
         
     // Calculate the diagonal energy difference on both sites
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
@@ -4608,7 +4611,8 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
      n_i = n_wi-1;
      n_wj = paths[prev_j].n;
      n_j = n_wj-1;                   // "w": segment with the extra particle
-    
+     if (n_wj==0){return;} // R will be zero
+
     // Update not possible if no particles on destinaton site (j)
     if (n_wj==0){return;}
 
@@ -5350,9 +5354,7 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
      n_wi = n_i+1;
      n_wj = paths[prev_j].n;
      n_j = n_wj-1;                   // "w": segment with the extra particle
-    
-    // Update not possible if no particles on destinaton site (j)
-    if (n_wj == 0){return;}
+     if (n_wj==0){return;} // R will be zero
     
     // Add to proposal counter
     ikbt_attempts += 1;
@@ -6102,7 +6104,8 @@ void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
      n_wi = n_i+1;
      n_j = paths[prev_j].n;
      n_wj = n_j+1;                   // "w": segment with the extra particle
-    
+     if (n_wj==0){return;} // R will be zero
+ 
     // Calculate the diagonal energy difference on both sites
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
@@ -6137,10 +6140,6 @@ void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
         R = t * n_wj * (p_dkat/p_ikat) * (Z/dV) / p_site;
     else
         R = t * n_wj * (p_dkat/p_ikat) * (b-a) / p_site;
-
-    // R = W * (p_dkat/p_ikat) * (tau_max-tau_t)/p_site;
-
-    // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
 
     // Metropolis Sampling
     if (rng.rand() < R){ // Accept
