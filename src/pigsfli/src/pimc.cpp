@@ -298,8 +298,6 @@ int main(int argc, char** argv){
     
     // Initialize Fock State
     initial_fock_state = random_boson_config(M,N,*rng_ptr,restart);
-
-    // This funtion above calls a random number.
     
     // Simulation parameters
     eta=1/sqrt(M);
@@ -604,6 +602,9 @@ int main(int argc, char** argv){
                   // lol
               }   
 
+        //    cout << label << " " << paths[0][num_kinks[0]-1].tau << endl;
+
+
             // Measure the total number of particles
             if (m_pre%(sweep*measurement_frequency)==0 && m_pre>=0.25*sweeps_pre){
                 measurement_attempts[0]+=1;
@@ -721,12 +722,12 @@ int main(int argc, char** argv){
             if (N_bins[peak_idx]>N){
                 if (mu>1){mu*=0.5;}
                 else if (mu<=-1){mu*=1.1;}
-                else {mu-=1;}
+                else {mu-=(mu*0.5);}
             }
             else{
                 if (mu>1){mu*=1.1;}
                 else if (mu<=-1){mu*=0.5;}
-                else {mu+=1;}
+                else {mu+=(mu*0.3);}
             }
         }
         at_least_one_iteration=true;
@@ -1353,7 +1354,7 @@ int main(int argc, char** argv){
                 if (head_idx[r]==-1 and tail_idx[r]==-1){
                     N_sum[r] += N_tracker[r];
                     Z_ctr[r] += 1;
-                               
+
                     if (!canonical){
 
                         // Measure grand canonical particle distribution
@@ -1881,6 +1882,8 @@ int main(int argc, char** argv){
 
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
     
+    cout << "num_kinks: " << num_kinks[0] << endl;
+
     return 0;
     
 }

@@ -61,7 +61,7 @@ Kink::Kink (double time,int particles,int source_site,int destination_site,
     // int replica_idx
 }
 
-// Overload "<<" operator
+// Overload "<<" operator (so we can print it)
 ostream& operator<<(ostream& os, const Kink& dt)
 {
 //    os << '<' << dt.tau << ',' << dt.n << ',' << dt.src << ','
@@ -143,7 +143,7 @@ vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
     int num_empty_kinks;
 
     // Set the number of kinks to pre-allocate based on lattice size
-    num_empty_kinks = 10'000'000;
+    num_empty_kinks = 1'000'000;
 
     // Pre-allocate kinks. Recall: (tau,n,src,dest,prev,next)
     vector<Kink> paths(num_empty_kinks,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1));
@@ -232,7 +232,7 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
                                  int seed, string subgeometry,
                                  int num_replicas,string boundary){
 
-    int M = pow(L,D);
+   // int M = pow(L,D);
     string state_name;
 
     // Name of system state file
@@ -252,7 +252,7 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
         }
 
     // For each replica, initialize vector containinig all kinks
-    vector<vector<Kink> > paths(num_replicas,vector<Kink> (M*1000,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1)));
+    vector<vector<Kink> > paths(num_replicas,vector<Kink> (1'000'000,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1)));
     
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
@@ -3579,6 +3579,9 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
     /*:::::::::::::::::::: Truncated Exponential RVS :::::::::::::::::::::::::*/
     Z = 1.0 - exp(-dV*(tau_next-tau_prev));
     tau_new = tau_prev - log(1.0-Z*rng.rand())  / dV;
+    // Z = 1.0 - expl(-dV*(tau_next-tau_prev));
+    // tau_new = tau_prev - log(1.0-(1.0 - expl(-dV*(tau_next-tau_prev)))*rng.rand()) / dV;
+    // cout<<Z<<"::"<<-dV*(tau_next-tau_prev)<<"::"<<tau_new<<"::"<<tau_next<<"::"<<tau_prev<<endl;
     /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     
 //    cout << tau << " " << tau_new << endl;
