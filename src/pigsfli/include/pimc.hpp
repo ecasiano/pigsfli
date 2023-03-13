@@ -1003,8 +1003,9 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Variable declarations
     int k,n,src,next,n_head,n_tail,src_replica;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R;
+    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw;
     bool is_worm;
+    long double R;
     
     // Can only perform update if there are no worm ends
     if (head_idx != -1 || tail_idx != -1){return;}
@@ -1057,6 +1058,7 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (n == 0 && !(is_worm)){insert_anti_attempts-=1;return;}
     if (tau_h == tau_prev || tau_t == tau_prev){return;}
     if (tau_h == tau_t){return;}
+    if (tau_h == 0 || tau_t == 0){return;}
     
     // Determine length of modified path and particle change
     l_path = tau_h - tau_t;
@@ -1072,7 +1074,7 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Build the Metropolis ratio (R)
     p_dw = 0.5;
     p_iw = 0.5;
-    R = eta * eta * n_tail * exp(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
+    R = eta * eta * n_tail * expl(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
     num_kinks * tau_flat * tau_flat;
 
     // Metropolis sampling
@@ -1350,8 +1352,9 @@ void delete_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Variable declarations
     int src,prev,next,n_head,n_tail;
     int prev_h,next_h,prev_t,next_t,high_end,low_end;
-    double tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,R;
+    double tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw;
     bool is_worm;
+    long double R;
     
     // Can only propose worm deletion if both worm ends are present
     if (head_idx == -1 || tail_idx == -1){return;}
@@ -1429,7 +1432,7 @@ void delete_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Build the Metropolis ratio (R)
     p_dw = 1.0;
     p_iw = 1.0;
-    R = (eta*eta) * n_tail * exp(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
+    R = (eta*eta) * n_tail * expl(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
     (num_kinks-2) * (tau_flat*tau_flat);
     R = 1.0/R;
     
@@ -1910,9 +1913,10 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Variable declarations
     int n,src,next,n_head,n_tail,i,dest_replica;
-    double tau_flat,l_path,dN,dV,R,p_type,tau_new,p_wormend,C,
+    double tau_flat,l_path,dN,dV,p_type,tau_new,p_wormend,C,
     p_dz,p_iz;
     bool is_worm;
+    long double R;
 
     // Cannot insert if there's two worm ends present
     if (head_idx != -1 and tail_idx != -1){return;}
@@ -1987,7 +1991,8 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
     /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
     // Sample time on flat interval from truncated exponential for insertion
-    double x,Z,a,b,c;
+    double x,a,b,c;
+    long double Z;
 
     a = 0.0;
     b = tau_flat;
@@ -1995,8 +2000,9 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     c = dV; 
 
     x = rng.rand();
-    Z = 1.0 - exp(-c*(b-a)); //
-    tau_new = a - log(1.0-Z*x)  / c;
+    Z = 1.0 - expl(-c*(b-a)); //
+    tau_new = a - logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
+    if (tau_new==a){return;}
     // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
@@ -2347,9 +2353,10 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx;
-    double tau,tau_next,l_path,dN,dV,R,p_type,p_wormend,
-    C,p_dz,p_iz,Z;
+    double tau,tau_next,l_path,dN,dV,p_type,p_wormend,
+    C,p_dz,p_iz;
     bool delete_head;
+    long double R,Z;
 
     // Cannot delete if there are no worm ends present
     if (head_idx==-1 && tail_idx==-1){return;}
@@ -2477,7 +2484,7 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
     // Inverse move (insertZero) truncated sampling
     if (!delete_head){dV *= -1;}
-    Z = 1.0 - exp(-dV*(tau_next));
+    Z = 1.0 - expl(-dV*(tau_next));
     
     // Build the Metropolis Ratio  (R)
     p_dz = 0.5;
@@ -2764,8 +2771,9 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Variable declarations
     int n,src,next,n_head,n_tail,i,src_replica;
     double tau_prev,
-    l_path,dN,dV,R,p_type,tau_new,p_wormend,C,p_db,p_ib;
+    l_path,dN,dV,p_type,tau_new,p_wormend,C,p_db,p_ib;
     bool is_worm; 
+    long double R;
 
     // Cannot insert if there's two worm ends present
     if (head_idx != -1 and tail_idx != -1){return;}
@@ -2834,7 +2842,8 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
     /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
     // Sample time on flat interval from truncated exponential for insertion
-    double x,Z,a,b,c;
+    double x,a,b,c;
+    long double Z;
 
     a = tau_prev;
     b = beta;
@@ -2842,8 +2851,9 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     c = dV; 
 
     x = rng.rand();
-    Z = 1.0 - exp(-c*(b-a)); //
-    tau_new = b + log(1.0-Z*x)  / c;
+    Z = 1.0 - expl(-c*(b-a)); //
+    tau_new = b + logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
+    if (tau_new==b){return;}
     // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
@@ -3183,8 +3193,9 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx;
-    double tau,tau_prev,l_path,dN,dV,R,p_type,p_wormend,C,p_db,p_ib;
+    double tau,tau_prev,l_path,dN,dV,p_type,p_wormend,C,p_db,p_ib;
     bool delete_head;
+    long double R;
 
     // Cannot delete if there are no worm ends present
     if (head_idx==-1 && tail_idx==-1){return;}
@@ -3311,11 +3322,12 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     
     // inverse move (insertBeta) truncated exponential sampling
-    double Z,a,b,c;
+    double a,b,c;
+    long double Z;
     a = tau_prev;
     b = beta;
     c = dV; 
-    Z = 1.0 - exp(-c*(b-a));
+    Z = 1.0 - expl(-c*(b-a));
 
     // Build the Metropolis Ratio  (R)
     p_db = 0.5;
@@ -3529,8 +3541,9 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Variable declarations
     int n,prev,next,worm_end_idx;
-    double tau,tau_prev,tau_next,l_path,dN,dV,R,tau_new,Z;
+    double tau,tau_prev,tau_next,l_path,dN,dV,tau_new,R;
     bool shift_head;
+    long double Z;
     
     // Reject update if there is no worm end present
     if (head_idx==-1 && tail_idx==-1){return;}
@@ -3578,15 +3591,14 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Sample the new time of the worm end from truncated exponential dist.
     /*:::::::::::::::::::: Truncated Exponential RVS :::::::::::::::::::::::::*/
     Z = 1.0 - exp(-dV*(tau_next-tau_prev));
-    tau_new = tau_prev - log(1.0-Z*rng.rand())  / dV;
-    // Z = 1.0 - expl(-dV*(tau_next-tau_prev));
-    // tau_new = tau_prev - log(1.0-(1.0 - expl(-dV*(tau_next-tau_prev)))*rng.rand()) / dV;
+    // tau_new = tau_prev - log(1.0-Z*rng.rand())  / dV;
+    tau_new = tau_prev - logl(1.0-(1.0 - expl(-dV*(tau_next-tau_prev)))*rng.rand()) / dV;
+    if (tau_new==tau_prev){return;}
     // cout<<Z<<"::"<<-dV*(tau_next-tau_prev)<<"::"<<tau_new<<"::"<<tau_next<<"::"<<tau_prev<<endl;
     /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     
 //    cout << tau << " " << tau_new << endl;
 
-    
     // Add to PROPOSAL counter
     if (shift_head){
         if (tau_new > tau){advance_head_attempts+=1;}
@@ -3715,7 +3727,7 @@ void insert_kink_before_head(vector<Kink> &paths, int &num_kinks,
     //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
     tau_kink = tau_min + rng.rand()*(tau_h-tau_min);
     if (tau_kink == tau_min){return;}
-    
+
     // Extract no. of particles in the flats adjacent to the new kink
     n_wi = paths[prev_i].n;
     n_i = n_wi-1;
@@ -3792,8 +3804,9 @@ void insert_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     src_replica,dest_replica;
-    double tau,tau_h,p_site,R,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,
+    double tau,tau_h,p_site,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,
     tau_kink,tau_min,dV_i,dV_j,dV;
+    long double R;
         
     // Update only possible if worm head present
     if (head_idx==-1){return;}
@@ -3867,19 +3880,21 @@ void insert_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
 
     /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
     // Sample time on flat interval from truncated exponential for insertion
-    double x,Z,a,b,c;
-
+    double x,a,b,c;
+    long double Z;
+    
     a = tau_min;
     b = tau_h;
 
     c = dV; 
 
     x = rng.rand();
-    Z = 1.0 - exp(-c*(b-a));
+    Z = 1.0 - expl(-c*(b-a));
     if (dV != 0)
-        tau_kink = b + log(1.0-Z*x)  / c;
+        tau_kink = b + logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
     else // dV == 0
         tau_kink = b + x*(a-b); // L'hopitale was used
+    if (tau_kink==b){return;}
     // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
@@ -4168,8 +4183,9 @@ void delete_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     kink_idx_i,kink_idx_j,src_replica,dest_replica;
-    double tau,tau_h,p_site,R,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,
+    double tau,tau_h,p_site,p_dkbh,p_ikbh,tau_prev_i,tau_prev_j,
     tau_kink,tau_min,dV_i,dV_j,tau_next_i,dV;
+    long double R;
 
     // Update only possible if worm head present
     if (head_idx==-1){return;}
@@ -4254,11 +4270,12 @@ void delete_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     // W = t * n_wj * exp((dV_i-dV_j)*(tau_h-tau_kink));
 
     // inverse move (insert kink before head) truncated sampling
-    double Z,a,b,c;
+    double a,b,c;
+    long double Z;
     a = tau_min;
     b = tau_h;
     c = dV;
-    Z = 1.0 - exp(-c*(b-a)); //
+    Z = 1.0 - expl(-c*(b-a)); //
 
     // Build the Metropolis ratio (R)
     p_dkbh = 0.5;
@@ -4540,8 +4557,9 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     src_replica,dest_replica;
-    double tau,tau_h,p_site,R,p_dkah,p_ikah,
+    double tau,tau_h,p_site,p_dkah,p_ikah,
     tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,dV;
+    long double R;
     
     // Update only possible if worm head present
     if (head_idx==-1){return;}
@@ -4627,7 +4645,8 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
 
     /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
     // Sample time on flat interval from truncated exponential for insertion
-    double x,Z,a,b,c;
+    double x,a,b,c;
+    long double Z;
 
     a = tau_h;
     b = tau_max;
@@ -4635,11 +4654,12 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     c = dV; 
 
     x = rng.rand();
-    Z = 1.0 - exp(-c*(b-a));
+    Z = 1.0 - expl(-c*(b-a));
     if (dV != 0)
-        tau_kink = a - log(1.0-Z*x)  / c;
+        tau_kink = a - logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
     else // dV == 0
         tau_kink = a - x*(a-b); // L'Hopitale
+    if (tau_kink==a){return;}
     // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
@@ -4926,8 +4946,9 @@ void delete_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     kink_idx_i,kink_idx_j,src_replica,dest_replica;
-    double tau,tau_h,p_site,R,p_dkah,p_ikah,tau_prev_i,
+    double tau,tau_h,p_site,p_dkah,p_ikah,tau_prev_i,
     tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,dV;
+    long double R;
     
     // Update only possible if worm head present
     if (head_idx==-1){return;}
@@ -5016,11 +5037,12 @@ void delete_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     // W = t * n_wj * exp((-dV_i+dV_j)*(tau_kink-tau_h));
 
     // inverse move (insert kink after head) tuncated sampling
-    double Z,a,b,c;
+    double a,b,c;
+    long double Z;
     a = tau_h;
     b = tau_max;
     c = dV;
-    Z = 1.0 - exp(-c*(b-a)); 
+    Z = 1.0 - expl(-c*(b-a)); 
 
     // Build the Metropolis ratio (R)
     p_dkah = 0.5;
@@ -5293,8 +5315,9 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     src_replica,dest_replica;
-    double tau,tau_t,p_site,R,p_dkbt,p_ikbt,tau_prev_i,tau_prev_j,
+    double tau,tau_t,p_site,p_dkbt,p_ikbt,tau_prev_i,tau_prev_j,
     tau_kink,tau_min,dV_i,dV_j,dV;
+    long double R;
     
     // Update only possible if worm tail present
     if (tail_idx==-1){return;}
@@ -5370,7 +5393,8 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
 
     /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
     // Sample time on flat interval from truncated exponential for insertion
-    double x,Z,a,b,c;
+    double x,a,b,c;
+    long double Z;
 
     a = tau_min;
     b = tau_t;
@@ -5378,11 +5402,12 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     c = dV; 
 
     x = rng.rand();
-    Z = 1.0 - exp(-c*(b-a)); //
+    Z = 1.0 - expl(-c*(b-a)); //
     if (dV != 0)
-        tau_kink = b + log(1.0-Z*x)  / c;
+        tau_kink = b + logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
     else // dV == 0
         tau_kink = b + x*(a-b); // L'hopitale was used
+    if (tau_kink==b){return;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
     // Calculate the weight ratio W'/W
@@ -5668,8 +5693,9 @@ void delete_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     kink_idx_i,kink_idx_j,src_replica,dest_replica;
-    double tau,tau_t,p_site,R,p_dkbt,p_ikbt,tau_prev_i,tau_prev_j,
+    double tau,tau_t,p_site,p_dkbt,p_ikbt,tau_prev_i,tau_prev_j,
     tau_kink,tau_min,dV_i,dV_j,tau_next_i,dV;
+    long double R;
     
     // Update only possible if worm tail present
     if (tail_idx==-1){return;}
@@ -5755,11 +5781,12 @@ void delete_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     // W = t * n_wj * exp((-dV_i+dV_j)*(tau_t-tau_kink));
 
     // inverse move (insert kink before tail) truncated exponential sampling
-    double Z,a,b,c;
+    double a,b,c;
+    long double Z;
     a = tau_min;
     b = tau_t;
     c = dV;
-    Z = 1.0 - exp(-c*(b-a));
+    Z = 1.0 - expl(-c*(b-a));
 
     // Build the Metropolis ratio (R)
     p_dkbt = 0.5;
@@ -6034,8 +6061,9 @@ void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     src_replica,dest_replica;
-    double tau,tau_t,p_site,R,p_dkat,p_ikat,
+    double tau,tau_t,p_site,p_dkat,p_ikat,
     tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,dV;
+    long double R;
     
     // Update only possible if worm tail present
     if (tail_idx==-1){return;}
@@ -6117,19 +6145,20 @@ void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
 
     /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
     // Sample time on flat interval from truncated exponential for insertion
-    double x,Z,a,b,c;
+    double x,a,b,c;
+    long double Z;
 
     a = tau_t;
     b = tau_max;
     c = dV; 
 
     x = rng.rand();
-    Z = 1.0 - exp(-c*(b-a));
+    Z = 1.0 - expl(-c*(b-a));
     if (dV !=0)
-        tau_kink = a - log(1.0-Z*x)  / c;
+        tau_kink = a - logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
     else // dV == 0
         tau_kink = a - x*(a-b); // L'Hopitale
-
+    if (tau_kink==a){return;}
     // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
@@ -6415,8 +6444,9 @@ void delete_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     // Variable declarations
     int prev,i,j,n_i,n_wi,n_j,n_wj,prev_i,prev_j,next_i,next_j,
     kink_idx_i,kink_idx_j,src_replica,dest_replica;
-    double tau,tau_t,p_site,R,p_dkat,p_ikat,tau_prev_i,
+    double tau,tau_t,p_site,p_dkat,p_ikat,tau_prev_i,
     tau_kink,tau_max,dV_i,dV_j,tau_next_i,tau_next_j,dV;
+    long double R;
     
     // Update only possible if worm tail present
     if (tail_idx==-1){return;}
@@ -6505,11 +6535,12 @@ void delete_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     // W = t * n_wj * exp((dV_i-dV_j)*(tau_kink-tau_t));
 
     // inverse move (insert kink after tail) truncated sampling
-    double Z,a,b,c;
+    double a,b,c;
+    long double Z;
     a = tau_t;
     b = tau_max;
     c = dV; 
-    Z = 1.0 - exp(-c*(b-a));
+    Z = 1.0 - expl(-c*(b-a));
 
     // Build the Metropolis ratio (R)
     p_dkat = 0.5;
