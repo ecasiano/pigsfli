@@ -709,26 +709,32 @@ int main(int argc, char** argv){
                 }
             }
 
-            else{
+            else{ // target N measured but is not peak
                 // Estimate mu via Eq. 15 in:https://arxiv.org/pdf/1312.6177.pdf
-                if (std::count(N_bins.begin(),N_bins.end(),N-1) &&
-                    std::count(N_bins.begin(),N_bins.end(),N)   &&
-                    std::count(N_bins.begin(),N_bins.end(),N+1)){
+                if (P_N[N_idx-1] &&
+                    P_N[N_idx]   &&
+                    P_N[N_idx+1]){
+                    cout << std::count(N_bins.begin(),N_bins.end(),N) << endl;
+                    cout << "sp " << 1 << endl;
+                    cout<<P_N[N_idx-1]<<":"<<P_N[N_idx]<<":"<<P_N[N_idx+1]<<endl;
                     mu_right=mu-(1/beta)*log(P_N[N_idx+1]/P_N[N_idx]);
                     mu_left=mu-(1/beta)*log(P_N[N_idx]/P_N[N_idx-1]);
                     mu=0.5*(mu_left+mu_right);
                 }
-                else if (std::count(N_bins.begin(),N_bins.end(),N+1) &&
-                         std::count(N_bins.begin(),N_bins.end(),N)){
+                else if (P_N[N_idx+1] &&
+                         P_N[N_idx]){
+                    cout << "sp " << 2 << endl;
                     mu_right=mu-(1/beta)*log(P_N[N_idx+1]/P_N[N_idx]);
                     mu=mu_right;
                 }
-                else if (std::count(N_bins.begin(),N_bins.end(),N-1) &&
-                         std::count(N_bins.begin(),N_bins.end(),N)){
+                else if (P_N[N_idx-1] &&
+                         P_N[N_idx]){
+                    cout << "sp " << 3 << endl;
                     mu_left=mu-(1/beta)*log(P_N[N_idx]/P_N[N_idx-1]);
                     mu=mu_left;
                 }
                 else { // Peak is 100% at N... Yes. It can happen.
+                    cout << "sp " << 4 << endl;
                     // We might've entered here b.c need at least 2 iterations
                 }
             }
