@@ -176,7 +176,6 @@ int main(int argc, char** argv){
     vector<double> N_tracker;
     vector<vector<int> > last_kinks;
     vector<unsigned long long int> Z_ctr,measurement_attempts;
-    unsigned long long int Z_ctr_pre = 0;
     
     // Replicated observables
     double diagonal_energy,kinetic_energy;
@@ -302,6 +301,7 @@ int main(int argc, char** argv){
     
     // Simulation parameters
     eta=1/sqrt(M);
+    eta=1E-06;
     beta=result["beta"].as<double>();
     canonical=result["canonical"].as<bool>();
     sweeps=result["sweeps"].as<unsigned long long int>();
@@ -420,8 +420,8 @@ int main(int argc, char** argv){
     not_equilibrated=true;
     dummy_counter=0;
 
-    // if (beta>=1.0){sweeps_pre*=(beta*M);}
-    // else {sweeps_pre*=M;}
+    if (beta>=1.0){sweeps_pre*=(beta*M);}
+    else {sweeps_pre*=M;}
 
     if (!restart)
     cout << "Stage (1/3): Determining mu and eta..." << endl << endl;
@@ -474,13 +474,10 @@ int main(int argc, char** argv){
         N_flats_mean=0.0;
         N_flats_samples=0;
         
-        Z_ctr_pre=0; // think about making this a vector too
+        Z_frac=0.0; // think about making this a vector too
         std::fill(measurement_attempts.begin(),measurement_attempts.end(),0);
         
-        unsigned long long int m_pre = 0;
-        // for (unsigned long long int m_pre=0;m_pre<sweeps_pre;m_pre++){
-        while(N_data.size() <= sweeps_pre){
-        m_pre += 1;
+        for (unsigned long long int m_pre=0;m_pre<sweeps_pre;m_pre++){
             
         label = rng_ptr->randInt(14);
 
@@ -606,22 +603,15 @@ int main(int argc, char** argv){
                   // lol
               }   
 
+        //    cout << label << " " << paths[0][num_kinks[0]-1].tau << endl;
 
-            // Measure total no. of particles & if diagonal config.
-            if (m_pre%(sweep*measurement_frequency)==0 &&
-            m_pre>=0.25*sweeps_pre){
-            measurement_attempts[0]+=1;
-            if (head_idx[0]==-1 && tail_idx[0]==-1){
-                N_data.push_back(N_beta[0]);
-                Z_ctr_pre+=1;
+            // Measure the total number of particles
+            if (m_pre%(sweep*measurement_frequency)==0 && m_pre>=0.25*sweeps_pre){
+                measurement_attempts[0]+=1;
+                if (head_idx[0]==-1 && tail_idx[0]==-1){
+                    N_data.push_back(N_beta[0]);
+                    Z_frac+=1.0;
                 }
-
-            if (m_pre%1000==0){
-                if (Z_ctr_pre*1.0/measurement_attempts[0]<0.20)
-                    eta *= 0.50;
-                if (Z_ctr_pre*1.0/measurement_attempts[0]>0.80)
-                    eta *= 1.45;
-             }
             }
 
             // Measure the number of flats
@@ -630,12 +620,16 @@ int main(int argc, char** argv){
         }
 
         // Calculate diagonal fraction of Monte Carlo just exited
-        if(Z_frac==0 && measurement_attempts[0]==0)
-            Z_frac = 0.0;
-        else
-            Z_frac=Z_ctr_pre*1.0/measurement_attempts[0];
+        Z_frac/=measurement_attempts[0];
 
-        // if (N_data.size()==0){eta*;continue;}
+        // Not enough N samples collecte;decrease eta and try again.
+        // if (N_data.size()<sweeps_pre/(beta*M)/10){eta*=0.5;continue;}
+        if (!eta_fine_tuning_stage){
+            if (N_data.size()<5){eta*=0.5;continue;}
+        }
+        else{
+            if (N_data.size()<100){eta*=0.5;continue;}
+        }
 
         // Find the minimum and maximum number of particles measured
         N_min=*min_element(N_data.begin(),N_data.end());
@@ -682,16 +676,18 @@ int main(int argc, char** argv){
             cout<<endl;
             N_mean_pre+=N_bins[i]*P_N[i];
         }
-        cout << "<N>: " << N_mean_pre << endl << endl;
+        cout << "<N>: " << N_mean_pre << " ; N samples: " <<
+        N_data.size() << endl << endl;
         
         // Eta equilibration
-        if (!eta_fine_tuning_stage){ // Course calibration
+        // if (!eta_fine_tuning_stage){ // Coarse calibration
+        if (0){ // Coarse calibration. Off for now. Slow.
             N_flats_mean/=N_flats_samples;
             eta=1/sqrt(N_flats_mean);
         }
         else{ // Fine tuning (want 0.10 < Z-frac < 0.15 to get more data quick)
-            if (Z_frac>=0.30 && Z_frac<=0.60){eta_fine_tuning_complete=true;}
-            else if (Z_frac>0.60){eta*=1.45;eta_fine_tuning_complete=false;}
+            if (Z_frac>=0.5 && Z_frac<=0.6){eta_fine_tuning_complete=true;}
+            else if (Z_frac>0.6){eta*=1.45;eta_fine_tuning_complete=false;}
             else {eta*=0.5;eta_fine_tuning_complete=false;} // if Z_frac<0.10
         }
 
@@ -709,32 +705,26 @@ int main(int argc, char** argv){
                 }
             }
 
-            else{ // target N measured but is not peak
+            else{
                 // Estimate mu via Eq. 15 in:https://arxiv.org/pdf/1312.6177.pdf
-                if (P_N[N_idx-1] &&
-                    P_N[N_idx]   &&
-                    P_N[N_idx+1]){
-                    cout << std::count(N_bins.begin(),N_bins.end(),N) << endl;
-                    cout << "sp " << 1 << endl;
-                    cout<<P_N[N_idx-1]<<":"<<P_N[N_idx]<<":"<<P_N[N_idx+1]<<endl;
+                if (P_N[N_idx-1]>1E-12 &&
+                    P_N[N_idx]>1E-12 &&
+                    P_N[N_idx+1]>1E-12){
                     mu_right=mu-(1/beta)*log(P_N[N_idx+1]/P_N[N_idx]);
                     mu_left=mu-(1/beta)*log(P_N[N_idx]/P_N[N_idx-1]);
                     mu=0.5*(mu_left+mu_right);
                 }
-                else if (P_N[N_idx+1] &&
-                         P_N[N_idx]){
-                    cout << "sp " << 2 << endl;
+                else if (P_N[N_idx]>1E-12 &&
+                         P_N[N_idx+1]>1E-12){
                     mu_right=mu-(1/beta)*log(P_N[N_idx+1]/P_N[N_idx]);
                     mu=mu_right;
                 }
-                else if (P_N[N_idx-1] &&
-                         P_N[N_idx]){
-                    cout << "sp " << 3 << endl;
+                else if (P_N[N_idx]>1E-12 &&
+                         P_N[N_idx-1]>1E-12){
                     mu_left=mu-(1/beta)*log(P_N[N_idx]/P_N[N_idx-1]);
                     mu=mu_left;
                 }
                 else { // Peak is 100% at N... Yes. It can happen.
-                    cout << "sp " << 4 << endl;
                     // We might've entered here b.c need at least 2 iterations
                 }
             }
