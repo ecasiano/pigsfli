@@ -91,7 +91,7 @@ int main(int argc, char** argv){
         ("bins-wanted","Number of bins desired in data file",cxxopts::value<int>()->default_value("1000"))
         ("subgeometry","Shape of subregion: square OR strip",
             cxxopts::value<string>()->default_value("square"))
-        ("trial-state","Trial wavefunction: constant,non-interacting",
+        ("trial-state","Trial wavefunction: constant,non-interacting,gutzwiller",
             cxxopts::value<string>()->default_value("constant"))
         ("num-replicas","Number of replicas",cxxopts::value<int>()->default_value("2"))
         ("measurement-frequency","Measurements will be performed every other this amount",cxxopts::value<int>()->default_value("1"))

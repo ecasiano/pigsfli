@@ -1913,8 +1913,9 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Variable declarations
     int n,src,next,n_head,n_tail,i,dest_replica;
-    double tau_flat,l_path,dN,dV,p_type,tau_new,p_wormend,C,
+    double tau_flat,l_path,dN,dV,p_type,tau_new,p_wormend,
     p_dz,p_iz;
+    long double C;
     bool is_worm;
     long double R;
 
@@ -2040,12 +2041,21 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
    
     // Build the trial wavefunction coefficient ratio C'/C
+    double kappa = 1.40;
     if (trial_state=="non-interacting"){
         if (is_worm){
             C = sqrt((1.0*N_zero+1)/n_tail);
         }
         else {
             C = sqrt(n_tail*1.0/N_zero);
+        }
+    }
+    else if (trial_state=="gutzwiller"){
+        if (is_worm){
+            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))/sqrt(1.0*n_tail);
+        }
+        else {
+            C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
         }
     }
     else { // trial_state=="constant"
@@ -2354,7 +2364,8 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx;
     double tau,tau_next,l_path,dN,dV,p_type,p_wormend,
-    C,p_dz,p_iz;
+    p_dz,p_iz;
+    long double C;
     bool delete_head;
     long double R,Z;
 
@@ -2460,12 +2471,21 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
     // Build the trial wavefunction coefficient ratio C'/C
+    double kappa = 1.40;
     if (trial_state=="non-interacting"){
-        if (delete_head){
+        if (delete_head){ // delete worm from tau=0
             C = sqrt((1.0*N_zero-1)/n_tail);
         }
-        else {
+        else { // delete antiworm from tau=0
             C = sqrt(n_tail/(1.0*N_zero+1));
+        }
+    }
+    else if (trial_state=="gutzwiller"){
+        if (delete_head){
+            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))/sqrt(1.0*n_tail);
+        }
+        else {
+            C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
         }
     }
     else { // trial_state=="constant"
@@ -2771,7 +2791,8 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Variable declarations
     int n,src,next,n_head,n_tail,i,src_replica;
     double tau_prev,
-    l_path,dN,dV,p_type,tau_new,p_wormend,C,p_db,p_ib;
+    l_path,dN,dV,p_type,tau_new,p_wormend,p_db,p_ib;
+    long double C;
     bool is_worm; 
     long double R;
 
@@ -2892,12 +2913,21 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     
     // Build the trial wavefunction coefficient ratio C'/C
+    double kappa = 1.40;
     if (trial_state=="non-interacting"){
         if (is_worm){
             C = sqrt((1.0*N_beta+1)/n_tail);
         }
         else {
             C = sqrt(n_tail/(1.0*N_beta));
+        }
+    }
+    else if (trial_state=="gutzwiller"){
+        if (is_worm){
+            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))/sqrt(1.0*n_tail);
+        }
+        else {
+            C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
         }
     }
     else { // trial_state=="constant"
@@ -3193,7 +3223,8 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx;
-    double tau,tau_prev,l_path,dN,dV,p_type,p_wormend,C,p_db,p_ib;
+    double tau,tau_prev,l_path,dN,dV,p_type,p_wormend,p_db,p_ib;
+    long double C;
     bool delete_head;
     long double R;
 
@@ -3298,12 +3329,21 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (delete_head){dV *= -1;}
      
     // Build the trial wavefunction coefficient ratio C'/C
+    double kappa = 1.40;
     if (trial_state=="non-interacting"){
         if (!delete_head){ // delete worm
             C = sqrt((1.0*N_beta-1)/n_tail);
         }
         else { // delete antiworm
             C = sqrt(n_tail/(1.0*N_beta+1));
+        }
+    }
+    else if (trial_state=="gutzwiller"){
+        if (!delete_head){
+            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))/sqrt(1.0*n_tail);
+        }
+        else {
+            C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
         }
     }
     else { // trial_state=="constant"
