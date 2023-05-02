@@ -79,8 +79,9 @@ int main(int argc, char** argv){
         ("sweeps","Number of sweeps before attempting measurements",
             cxxopts::value<unsigned long long int>()->default_value("10000000"))
         ("beta","Set length of imaginary time",cxxopts::value<double>())
-
         ("mu","Chemical potential",cxxopts::value<double>()->default_value("-3.0"))
+        ("Z","Diagonal fraction",cxxopts::value<double>()->default_value("48"))
+        ("dZ","Size of half-window around desired Z",cxxopts::value<double>()->default_value("3"))
         ("t","Tunneling parameter",cxxopts::value<double>()->default_value("1.0"))
         ("canonical", "set to false for grand canonical simulation",
             cxxopts::value<bool>()->default_value("false"))
@@ -91,8 +92,10 @@ int main(int argc, char** argv){
         ("bins-wanted","Number of bins desired in data file",cxxopts::value<int>()->default_value("1000"))
         ("subgeometry","Shape of subregion: square OR strip",
             cxxopts::value<string>()->default_value("square"))
-        ("trial-state","Trial wavefunction: constant,non-interacting,gutzwiller",
+        ("trial-state","Trial wavefunction: constant,non-interacting,gutzwiller,jastrow",
             cxxopts::value<string>()->default_value("constant"))
+        ("kappa","Variational parameter (Gutzwiller)",cxxopts::value<double>()->default_value("-12345.6789"))
+        ("v","Variational parameter (Jastrow)",cxxopts::value<double>()->default_value("-12345.6789"))
         ("num-replicas","Number of replicas",cxxopts::value<int>()->default_value("2"))
         ("measurement-frequency","Measurements will be performed every other this amount",cxxopts::value<int>()->default_value("1"))
         ("rng","Random Number Generator type",cxxopts::value<string>()->default_value("pimc_mt19937"))
@@ -132,6 +135,21 @@ int main(int argc, char** argv){
     // bool no_sample_directly=result["no-sample-directly"].as<bool>();
 
     string trial_state=result["trial-state"].as<string>();
+    double kappa=result["kappa"].as<double>();
+    double v=result["v"].as<double>();
+    if (trial_state=="gutzwiller" && kappa==-12345.6789){
+        cout<<"ERROR: Gutzwiller state chosen; specify kappa"<<endl;
+        exit(1);
+    }
+    if (trial_state=="jastrow" && v==-12345.6789){
+        cout<<"ERROR: Jastrow state chosen; specify v"<<endl;
+        exit(1);
+    }
+    if (trial_state!="constant" && trial_state!="non-interacting"
+    && trial_state!="gutzwiller" && trial_state!="jastrow"){
+        cout<<"ERROR: Invalid trial state chosen."<<endl;
+        exit(1);
+    }
 
     /* Define the allowed random number generator names */
     vector<string> randomGeneratorName = {"boost_mt19937", "std_mt19937", "pimc_mt19937", "PCG"};
@@ -158,7 +176,7 @@ int main(int argc, char** argv){
     vector<int> initial_fock_state;
     
     // Simulation parameterss
-    double eta,beta;
+    double eta,beta,Z,dZ;
     bool canonical;
     unsigned long long int sweeps_pre,sweeps,sweep;
     unsigned long label; // random update label;
@@ -285,6 +303,14 @@ int main(int argc, char** argv){
     U=result["U"].as<double>();
     mu=result["mu"].as<double>();
     boundary=result["boundary"].as<string>();
+    if (boundary!="pbc" and boundary!="obc"){
+        cout<<"ERROR: Invalid boundary condition. Choose pbc or obc."<<endl;
+        exit(1);
+    }
+    if (boundary=="obc" && D>1){
+        cout<<"ERROR: obc only currently implemented in one dimension (D=1)"<<endl;
+        exit(1);
+    }
     subgeometry=result["subgeometry"].as<string>();
 
     // Subsystem settings
@@ -300,8 +326,9 @@ int main(int argc, char** argv){
     initial_fock_state = random_boson_config(M,N,*rng_ptr,restart);
     
     // Simulation parameters
-    eta=1/sqrt(M);
-    eta=1E-06;
+    // eta=1/sqrt(M);
+    eta=1E-05;
+    // eta=1.0;
     beta=result["beta"].as<double>();
     canonical=result["canonical"].as<bool>();
     sweeps=result["sweeps"].as<unsigned long long int>();
@@ -309,6 +336,16 @@ int main(int argc, char** argv){
     sweep=beta*M;
     if (sweep==0){sweep=M;} // in case beta<1.0
     bins_wanted=result["bins-wanted"].as<int>();
+    Z=result["Z"].as<double>()/100.0;
+    dZ=result["dZ"].as<double>()/100.0;
+    if (Z<0 || Z>100){
+        cout << "ERROR: Z must be between 0 and 100." << endl;
+        exit(1);
+    }
+    if ((Z-dZ)<0 || (Z+dZ)>100){
+        cout << "ERROR: Invalid dZ size." << endl;
+        exit(1);
+    }
     
     // Adjacency matrix
     build_hypercube_adjacency_matrix(L,D,boundary,adjacency_matrix);
@@ -352,8 +389,8 @@ int main(int argc, char** argv){
     }
 
     // Initialize vector that accumulates local particle number in A
-    vector<double> n_A_accum(m_A,0);
-    vector<double> n_A_squared_accum(m_A,0);
+    vector<double> n_A_accum(m_A,0.0);
+    vector<double> n_A_squared_accum(m_A,0.0);
 
     // Measurement settings
     measurement_center=beta/2.0;
@@ -500,7 +537,8 @@ int main(int argc, char** argv){
                          M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                          N_zero[0],N_beta[0],last_kinks[0],
                          dummy_counter,dummy_counter,
-                         dummy_counter,dummy_counter,*rng_ptr,trial_state);
+                         dummy_counter,dummy_counter,*rng_ptr,trial_state,
+                         kappa,v);
 
               }
             else if (label==3){ // deleteZero
@@ -508,7 +546,8 @@ int main(int argc, char** argv){
                             M,N,U,mu,t,beta,eta,canonical,N_tracker[0],
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
-                            dummy_counter,dummy_counter,*rng_ptr,trial_state);
+                            dummy_counter,dummy_counter,*rng_ptr,trial_state,
+                            kappa,v);
             }
             else if (label==4){ // insertBeta
                 insertBeta_2(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -516,7 +555,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
                             dummy_counter,dummy_counter,*rng_ptr,
-                            trial_state);
+                            trial_state,kappa,v);
             }
             else if (label==5){ // deleteBeta
                 deleteBeta_2(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -524,7 +563,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
                             dummy_counter,dummy_counter,*rng_ptr,
-                            trial_state);
+                            trial_state,kappa,v);
             }
             else if (label==6){ // timeshift
                 timeshift(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -686,8 +725,8 @@ int main(int argc, char** argv){
             eta=1/sqrt(N_flats_mean);
         }
         else{ // Fine tuning (want 0.10 < Z-frac < 0.15 to get more data quick)
-            if (Z_frac>=0.45 && Z_frac<=0.55){eta_fine_tuning_complete=true;}
-            else if (Z_frac>0.55){eta*=1.45;eta_fine_tuning_complete=false;}
+            if (Z_frac>=(Z-dZ) && Z_frac<=(Z+dZ)){eta_fine_tuning_complete=true;}
+            else if (Z_frac>Z+dZ){eta*=1.45;eta_fine_tuning_complete=false;}
             else {eta*=0.5;eta_fine_tuning_complete=false;} // if Z_frac<0.10
         }
 
@@ -696,7 +735,8 @@ int main(int argc, char** argv){
             if (peak_idx==N_idx && abs(N_mean_pre-N)<0.33
                 && at_least_one_iteration){
                 if (!eta_fine_tuning_stage){
-                    cout<<"Fine tuning eta... (Want: 10% < Z-frac < 15%)"<<endl
+                    cout<<"Fine tuning eta... (Want: " << (Z-dZ)*100.0 << 
+                    "% < diagonal fraction < " << (Z+dZ)*100.0 << "%)"<<endl
                     <<endl;
                     eta_fine_tuning_stage = true;
                     break;}
@@ -1173,7 +1213,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertZero_worm_attempts,insertZero_worm_accepts,
                        insertZero_anti_attempts,insertZero_anti_accepts,*rng_ptr,
-                       trial_state);
+                       trial_state,kappa,v);
             
         }
         else if (label==3){ // deleteZero
@@ -1182,7 +1222,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteZero_worm_attempts,deleteZero_worm_accepts,
                        deleteZero_anti_attempts,deleteZero_anti_accepts,*rng_ptr,
-                       trial_state);
+                       trial_state,kappa,v);
         }
         else if (label==4){ // insertBeta
             insertBeta_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -1190,7 +1230,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertBeta_worm_attempts,insertBeta_worm_accepts,
                        insertBeta_anti_attempts,insertBeta_anti_accepts,*rng_ptr,
-                       trial_state);
+                       trial_state,kappa,v);
         }
         else if (label==5){ // deleteBeta
             deleteBeta_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -1198,7 +1238,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteBeta_worm_attempts,deleteBeta_worm_accepts,
                        deleteBeta_anti_attempts,deleteBeta_anti_accepts,*rng_ptr,
-                       trial_state);
+                       trial_state,kappa,v);
         }
         else if (label==6){ // timeshift
             timeshift(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -1362,11 +1402,18 @@ int main(int argc, char** argv){
                 
                 int r=0; // TEMPORARY (eventually might loop over 0,1)
                 measurement_attempts[r]+=1;
-                if (head_idx[r]==-1 and tail_idx[r]==-1){
+                if (head_idx[r]==-1 and tail_idx[r]==-1){ // if no worm
+
+                    // Round out N_tracker since it might have
+                    // floating point errors after a while
+                    for (int r=0; r<num_replicas; r++){
+                        N_tracker[r] = round(N_tracker[r]);
+                    }
+
                     N_sum[r] += N_tracker[r];
                     Z_ctr[r] += 1;
 
-                    if (!canonical){
+                    if (!canonical){ // grand canonical
 
                         // Measure grand canonical particle distribution
                         if (get_PN){
@@ -1425,6 +1472,12 @@ int main(int argc, char** argv){
                     }
 
                     if (N_zero[r]==N && N_beta[r]==N && canonical){ // canonical measurement
+
+                    // Round out N_tracker since it might have
+                    // floating point errors after a while
+                    for (int r=0; r<num_replicas; r++){
+                        N_tracker[r] = round(N_tracker[r]);
+                    }
                         
                     // Get fock state at desired measurement center
                     get_fock_state(measurement_center,M,fock_state_at_slice,
@@ -1464,6 +1517,7 @@ int main(int argc, char** argv){
                             }
                     }
 
+                    // Measure n and n^2
                     if (get_n){ // this is for num_replicas < 1 for now
                     for (int REP=0; REP<num_replicas; REP++){
                                 std::fill(n_A[REP].begin(),
@@ -1473,8 +1527,7 @@ int main(int argc, char** argv){
                                                paths[REP]);
                                 n_A_last=0; // tracks subsystem n
                                 for (int m_A_primed=1; m_A_primed<=m_A; m_A_primed++){
-                                    n_A_last+=fock_state_at_half_plus[REP][
-                                        sub_sites[m_A_primed-1]];
+                                    n_A_last+=fock_state_at_half_plus[REP][sub_sites[m_A_primed-1]];
                                     n_A[REP][m_A_primed-1]=n_A_last; // needed to eventually compare if both replicas are on same local particle number sector
                                 }
                             }
@@ -1491,9 +1544,9 @@ int main(int argc, char** argv){
                         
                         // Round out N_tracker since it might have
                         // floating point errors after a while
-                        for (int r=0; r<num_replicas; r++){
-                            N_tracker[r] = round(N_tracker[r]);
-                        }
+                        // for (int r=0; r<num_replicas; r++){
+                        //     N_tracker[r] = round(N_tracker[r]);
+                        // }
                         
                         // Write energies to disk
                         kinetic_energy_file<<fixed<<setprecision(17)<<
@@ -1534,19 +1587,19 @@ int main(int argc, char** argv){
                         // Save current ell resolved n to file
                          for (int i=1; i<=m_A; i++){
                             n_file<<fixed<<setprecision(17)<<
-                            n_A_accum[i-1]/bin_size << " ";
+                            n_A_accum[i-1]*1.0/bin_size << " ";
 
                             n_squared_file<<fixed<<setprecision(17)<<
-                            n_A_squared_accum[i-1]/bin_size << " ";
+                            n_A_squared_accum[i-1]*1.0/bin_size << " ";
                          }
                             n_file<<endl;
                             n_squared_file<<endl;
 
                             // Restart accumulators
                             std::fill(n_A_accum.begin(),
-                            n_A_accum.end(),0);
+                            n_A_accum.end(),0.0);
                             std::fill(n_A_squared_accum.begin(),
-                            n_A_squared_accum.end(),0);
+                            n_A_squared_accum.end(),0.0);
                         }
 
                         writing_ctr=0;
@@ -1678,9 +1731,9 @@ int main(int argc, char** argv){
                     
                     // Round out N_tracker since it might have
                     // floating point errors after a while
-                    for (int r=0; r<num_replicas; r++){
-                        N_tracker[r] = round(N_tracker[r]);
-                    }
+                    // for (int r=0; r<num_replicas; r++){
+                    //     N_tracker[r] = round(N_tracker[r]);
+                    // }
                     
                     // Save current histogram of swapped sites to file
                     for (int i=0; i<=m_A; i++){

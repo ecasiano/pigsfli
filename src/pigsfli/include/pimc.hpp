@@ -29,6 +29,100 @@ using boost::math::lambert_wm1;
 using namespace std;
 using namespace std::chrono;
 
+// Variational parameters for L=64 @ U/t=3.3578 (from on-site to furthest site)
+// vector<double> v_i(64,-0.1);
+
+// vector<double> v_i(4,-1E-4);
+// vector<double> v_i{-1E-4,-0.5E-5,0.0,-0.5E-5};
+// vector<double> v_i{-0.16,-0.0002,-0.001,-0.0025,-0.0001,-0.007,-0.000001,
+// -0.0015,-0.0098,-0.0054,-0.0031,-0.002};
+
+// vector<double> v_i{ 3.2517620e-01,  2.0962960e-01,  1.5554618e-01,  1.2211202e-01,
+//         9.8614440e-02,  8.0873620e-02,  6.6948640e-02,  5.5733600e-02,
+//         4.6558460e-02,  3.8981000e-02,  3.2663420e-02,  2.7339220e-02,
+//         2.2867880e-02,  1.9090530e-02,  1.5881634e-02,  1.3159054e-02,
+//         1.0874230e-02,  8.9334560e-03,  7.3198500e-03,  5.9763480e-03,
+//         4.8419340e-03,  3.8898140e-03,  3.0875040e-03,  2.4032100e-03,
+//         1.8198904e-03,  1.3358778e-03,  9.0982140e-04,  6.0182260e-04,
+//         3.5976940e-04,  1.8775026e-04,  8.4795680e-05,  8.3339820e-06,
+//         0.0000000e+00,  8.3339820e-06,  8.4795680e-05,  1.8775026e-04,
+//         3.5976940e-04,  6.0182260e-04,  9.0982140e-04,  1.3358778e-03,
+//         1.8198904e-03,  2.4032100e-03,  3.0875040e-03,  3.8898140e-03,
+//         4.8419340e-03,  5.9763480e-03,  7.3198500e-03,  8.9334560e-03,
+//         1.0874230e-02,  1.3159054e-02,  1.5881634e-02,  1.9090530e-02,
+//         2.2867880e-02,  2.7339220e-02,  3.2663420e-02,  3.8981000e-02,
+//         4.6558460e-02,  5.5733600e-02,  6.6948640e-02,  8.0873620e-02,
+//         9.8614440e-02,  1.2211202e-01,  1.5554618e-01,  2.0962960e-01};
+
+// vector<double> v_i{1.625881e+00, 1.048148e+00, 7.777309e-01, 6.105601e-01,
+//        4.930722e-01, 4.043681e-01, 3.347432e-01, 2.786680e-01,
+//        2.327923e-01, 1.949050e-01, 1.633171e-01, 1.366961e-01,
+//        1.143394e-01, 9.545265e-02, 7.940817e-02, 6.579527e-02,
+//        5.437115e-02, 4.466728e-02, 3.659925e-02, 2.988174e-02,
+//        2.420967e-02, 1.944907e-02, 1.543752e-02, 1.201605e-02,
+//        9.099452e-03, 6.679389e-03, 4.549107e-03, 3.009113e-03,
+//        1.798847e-03, 9.387513e-04, 4.239784e-04, 4.166991e-05,
+//        0.000000e+00, 4.166991e-05, 4.239784e-04, 9.387513e-04,
+//        1.798847e-03, 3.009113e-03, 4.549107e-03, 6.679389e-03,
+//        9.099452e-03, 1.201605e-02, 1.543752e-02, 1.944907e-02,
+//        2.420967e-02, 2.988174e-02, 3.659925e-02, 4.466728e-02,
+//        5.437115e-02, 6.579527e-02, 7.940817e-02, 9.545265e-02,
+//        1.143394e-01, 1.366961e-01, 1.633171e-01, 1.949050e-01,
+//        2.327923e-01, 2.786680e-01, 3.347432e-01, 4.043681e-01,
+//        4.930722e-01, 6.105601e-01, 7.777309e-01, 1.048148e+00};
+
+// vector<double> v_i{8.1294050e-01, 5.2407400e-01, 3.8886545e-01, 3.0528005e-01,
+//        2.4653610e-01, 2.0218405e-01, 1.6737160e-01, 1.3933400e-01,
+//        1.1639615e-01, 9.7452500e-02, 8.1658550e-02, 6.8348050e-02,
+//        5.7169700e-02, 4.7726325e-02, 3.9704085e-02, 3.2897635e-02,
+//        2.7185575e-02, 2.2333640e-02, 1.8299625e-02, 1.4940870e-02,
+//        1.2104835e-02, 9.7245350e-03, 7.7187600e-03, 6.0080250e-03,
+//        4.5497260e-03, 3.3396945e-03, 2.2745535e-03, 1.5045565e-03,
+//        8.9942350e-04, 4.6937565e-04, 2.1198920e-04, 2.0834955e-05,
+//        0.0000000e+00, 2.0834955e-05, 2.1198920e-04, 4.6937565e-04,
+//        8.9942350e-04, 1.5045565e-03, 2.2745535e-03, 3.3396945e-03,
+//        4.5497260e-03, 6.0080250e-03, 7.7187600e-03, 9.7245350e-03,
+//        1.2104835e-02, 1.4940870e-02, 1.8299625e-02, 2.2333640e-02,
+//        2.7185575e-02, 3.2897635e-02, 3.9704085e-02, 4.7726325e-02,
+//        5.7169700e-02, 6.8348050e-02, 8.1658550e-02, 9.7452500e-02,
+//        1.1639615e-01, 1.3933400e-01, 1.6737160e-01, 2.0218405e-01,
+//        2.4653610e-01, 3.0528005e-01, 3.8886545e-01, 5.2407400e-01};
+
+// vector<double> v_i{1.3007048e+00, 8.3851840e-01, 6.2218472e-01, 4.8844808e-01,
+//        3.9445776e-01, 3.2349448e-01, 2.6779456e-01, 2.2293440e-01,
+//        1.8623384e-01, 1.5592400e-01, 1.3065368e-01, 1.0935688e-01,
+//        9.1471520e-02, 7.6362120e-02, 6.3526536e-02, 5.2636216e-02,
+//        4.3496920e-02, 3.5733824e-02, 2.9279400e-02, 2.3905392e-02,
+//        1.9367736e-02, 1.5559256e-02, 1.2350016e-02, 9.6128400e-03,
+//        7.2795616e-03, 5.3435112e-03, 3.6392856e-03, 2.4072904e-03,
+//        1.4390776e-03, 7.5100104e-04, 3.3918272e-04, 3.3335928e-05,
+//        0.0000000e+00, 3.3335928e-05, 3.3918272e-04, 7.5100104e-04,
+//        1.4390776e-03, 2.4072904e-03, 3.6392856e-03, 5.3435112e-03,
+//        7.2795616e-03, 9.6128400e-03, 1.2350016e-02, 1.5559256e-02,
+//        1.9367736e-02, 2.3905392e-02, 2.9279400e-02, 3.5733824e-02,
+//        4.3496920e-02, 5.2636216e-02, 6.3526536e-02, 7.6362120e-02,
+//        9.1471520e-02, 1.0935688e-01, 1.3065368e-01, 1.5592400e-01,
+//        1.8623384e-01, 2.2293440e-01, 2.6779456e-01, 3.2349448e-01,
+//        3.9445776e-01, 4.8844808e-01, 6.2218472e-01, 8.3851840e-01};
+
+vector<double> v_i{1.625881e+00, 1.048148e+00, 7.777309e-01, 6.105601e-01,
+       4.930722e-01, 4.043681e-01, 3.347432e-01, 2.786680e-01,
+       2.327923e-01, 1.949050e-01, 1.633171e-01, 1.366961e-01,
+       1.143394e-01, 9.545265e-02, 7.940817e-02, 6.579527e-02,
+       5.437115e-02, 4.466728e-02, 3.659925e-02, 2.988174e-02,
+       2.420967e-02, 1.944907e-02, 1.543752e-02, 1.201605e-02,
+       9.099452e-03, 6.679389e-03, 4.549107e-03, 3.009113e-03,
+       1.798847e-03, 9.387513e-04, 4.239784e-04, 4.166991e-05,
+       0.000000e+00, 4.166991e-05, 4.239784e-04, 9.387513e-04,
+       1.798847e-03, 3.009113e-03, 4.549107e-03, 6.679389e-03,
+       9.099452e-03, 1.201605e-02, 1.543752e-02, 1.944907e-02,
+       2.420967e-02, 2.988174e-02, 3.659925e-02, 4.466728e-02,
+       5.437115e-02, 6.579527e-02, 7.940817e-02, 9.545265e-02,
+       1.143394e-01, 1.366961e-01, 1.633171e-01, 1.949050e-01,
+       2.327923e-01, 2.786680e-01, 3.347432e-01, 4.043681e-01,
+       4.930722e-01, 6.105601e-01, 7.777309e-01, 1.048148e+00};
+
+vector<int> fock_edge(64,-1);
 /*--------------------------- Class Definitions ------------------------------*/
 
 class Kink
@@ -64,13 +158,13 @@ Kink::Kink (double time,int particles,int source_site,int destination_site,
 // Overload "<<" operator (so we can print it)
 ostream& operator<<(ostream& os, const Kink& dt)
 {
-//    os << '<' << dt.tau << ',' << dt.n << ',' << dt.src << ','
-//    << dt.dest << ',' << dt.prev << ',' << dt.next <<'>'
-//    << dt.src_replica << dt.dest_replica;
+   os << '<' << dt.tau << ',' << dt.n << ',' << dt.src << ','
+   << dt.dest << ',' << dt.prev << ',' << dt.next <<'>'
+   << dt.src_replica << dt.dest_replica;
     
-        os << setprecision(17) << dt.tau << ' ' << dt.n << ' ' << dt.src << ' '
-        << dt.dest << ' ' << dt.prev << ' ' << dt.next << ' '
-        << dt.src_replica << ' ' << dt.dest_replica;
+        // os << setprecision(17) << dt.tau << ' ' << dt.n << ' ' << dt.src << ' '
+        // << dt.dest << ' ' << dt.prev << ' ' << dt.next << ' '
+        // << dt.src_replica << ' ' << dt.dest_replica;
 
     return os;
 }
@@ -143,6 +237,8 @@ vector<Kink> create_paths(vector<int> &fock_state,int M,int replica_idx){
     int num_empty_kinks;
 
     // Set the number of kinks to pre-allocate based on lattice size
+
+    // num_empty_kinks = 1'000'000;
     num_empty_kinks = 1'000'000;
 
     // Pre-allocate kinks. Recall: (tau,n,src,dest,prev,next)
@@ -235,6 +331,11 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
    // int M = pow(L,D);
     string state_name;
 
+    int num_empty_kinks;
+    
+    // num_empty_kinks = 1'000'000;
+    num_empty_kinks = 1'000'000;
+
     // Name of system state file
     state_name=to_string(D)+"D_"+to_string(L)+
     "_"+to_string(N)+"_"+to_string(l_A)+"_"+
@@ -252,7 +353,7 @@ vector<vector<Kink> > load_paths(int D, int L, int N, int l_A,
         }
 
     // For each replica, initialize vector containinig all kinks
-    vector<vector<Kink> > paths(num_replicas,vector<Kink> (1'000'000,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1)));
+    vector<vector<Kink> > paths(num_replicas,vector<Kink> (num_empty_kinks,Kink(-1.0,-1,-1,-1,-1,-1,-1,-1)));
     
     if (num_replicas==2){
         // Assume 16 elements per line (two replicas max)
@@ -569,7 +670,7 @@ vector<double> get_N_tracker(vector<vector<Kink> > paths,
 
             N_tracker[r] += dN;
         }
-        N_tracker[r] = round(N_tracker[r]);
+        // N_tracker[r] = round(N_tracker[r]);
                 
     }
     return N_tracker;
@@ -989,6 +1090,30 @@ void create_sub_sites(vector<int> &sub_sites,int l_max,int L,int D,int M,
     
     return;
 }
+
+/*--------------------------------------------------------------------*/
+// For diagonal estimators around a time slice, Fock State will be needed
+void get_fock_state(double measurement_center, int M,
+                    vector<int> &fock_state_at_slice,
+                    vector<Kink> &paths){
+    
+    double tau;
+    int current,n_i;
+    
+    for (int i=0; i<M; i++){
+        current=i; // kink index
+        tau = paths[current].tau;
+        while (tau<measurement_center+1.0E-12 && current!=-1){
+            n_i=paths[current].n;
+            fock_state_at_slice[i]=n_i;
+            
+            current=paths[current].next;
+            if (current!=-1)
+                tau=paths[current].tau;
+        }
+    }
+    return;
+}
 /*--------------------------------------------------------------------*/
 
 void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
@@ -1076,6 +1201,8 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     p_iw = 0.5;
     R = eta * eta * n_tail * expl(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
     num_kinks * tau_flat * tau_flat;
+    // if (is_worm){cout << "R (insert worm) = " << R << endl;}
+    // else{cout << "R (insert anti) = " << R << endl;}
 
     // Metropolis sampling
     if (rng.rand() < R){ // Accept
@@ -1133,6 +1260,216 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
 /*--------------------------------------------------------------------*/
 
 void insert_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
+                 int &tail_idx, int M, int N, double U, double mu, double t,
+                 double beta, double eta, bool canonical, double &N_tracker,
+                 int &N_zero, int &N_beta, vector<int> &last_kinks,
+                 unsigned long long int &insert_worm_attempts,
+                 unsigned long long int &insert_worm_accepts,
+                 unsigned long long int &insert_anti_attempts,
+                 unsigned long long int &insert_anti_accepts,
+                 RNG &rng){
+    
+    // Variable declarations
+    int k,n,src,next,n_head,n_tail,src_replica;
+    long double tau,tau_h,tau_t,tau_prev,tau_next,l_path,dN,dV,p_iw,p_dw,R;
+    bool is_worm;
+    long double inv_e = boost::math::constants::exp_minus_one<double>(); // 1/e
+    
+    // Can only perform update if there are no worm ends
+    if (head_idx != -1 || tail_idx != -1){return;}
+        
+    // Randomly sample a flat interval (or kink if you like)
+    //boost::random::uniform_int_distribution<> flats(0, num_kinks-1);
+    k = rng.randInt(num_kinks-1);
+    
+    // Extract the attributes of the kink at the bottom of the flat interval
+    tau = paths[k].tau;
+    n = paths[k].n;
+    src = paths[k].src;
+    next = paths[k].next;
+    src_replica = paths[k].src_replica; //due to way replica indices are coded
+   
+    // Calculate the length of the flat interval
+    tau_prev = tau;
+    if (next != -1) // tau_next extractable iff sampled kink is not the last
+        tau_next = paths[next].tau;
+    else
+        tau_next = beta;
+
+    // Randomly choose to insert worm or antiworm
+    if (rng.rand() < 0.5){
+        is_worm = true;
+        insert_worm_attempts += 1;
+    }
+    else{
+        is_worm = false;
+        insert_anti_attempts += 1;
+    }
+    // p_type = 1/2;
+    
+    // Determine the no. of particles after each worm end
+    if (is_worm){
+        n_tail = n + 1;
+        n_head = n;
+    }
+    else{
+        n_tail = n;
+        n_head = n - 1;
+    }
+    // Reject antiworm insertion if no particles in the flat region
+    if (n == 0 && !(is_worm)){insert_anti_attempts-=1;return;}
+
+    // Calculate the difference in diagonal energy dV = \epsilon_w - \epsilon
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+    // To make acceptance ratio unity,antiworm needs to sample w/ dV=eps-eps_w
+    if (!is_worm){dV *= -1;} // dV=eps-eps_w
+
+    // debugging
+    // if (!is_worm){return;}
+
+    /* ==================== Truncated Exponential Sampling ================== */
+
+    // sample tau_1
+    long double y,x,a,b,c,tau_1,tau_2,a_new;
+    long double arg;
+
+    c = -dV;
+    b = tau_next;
+    a = tau_prev;
+
+    x = rng.rand();
+
+    // Compute normalization of truncated exponential dist.
+    long double Z_1, Z_2, Z;
+    // if (dV == 0){cout << "NOOOOOO" << endl;}
+
+    Z = (expl(c*(b-a)) + a*c - b*c - 1)/(c*c); // joint
+
+    Z_1 = (1/c) * (expl(c*(b-a)) - 1) - (b - a); // marginalized dist.
+    
+    //
+    y = Z_1*x - (1/c)*expl(c*(b-a)) - a;
+
+    // arg = max(-inv_e, -expl(c*(b+y)));  // z in boost documentation
+    // cout << arg << endl;
+    // if (arg > -2.28568e-300 && arg < 2.28568e-300)
+    //     arg = 0.0;
+
+    // this was the sampling without simplifying Ace^(cy) and no restriction
+    // A = -(1/c)*exp(c*b);
+    // arg = max(-1/exp(1), A*c*exp(c*y));
+    // cout << c*(b+y) << " " << -exp(c*(b+y)) << endl;
+    // if (abs(arg) < 1e-15){arg = 0.0;}
+
+    // Determine LambertW branch & compute tau
+    if (abs(c*(b+y)) < 600){
+        arg = max(-inv_e, -exp(c*(b+y)));  // z in boost documentation
+
+    }
+    else{ // exponent c*y is too large. Better to ignore and carry on. 
+        return;
+    }
+
+    if (c < 0){ // k = 0 branch
+        tau_1 = (1/c)*lambert_w0(arg)-y;
+    }
+    else {      // k = -1 branch
+        tau_1 = (1/c)*lambert_wm1(arg)-y;
+    }
+
+    // sample tau_2
+    x = rng.rand();
+    a_new = tau_1; // this is the new lower bound for the simple truncexpon sampling
+    Z_2 = 1.0 - exp(-(-c)*(b-a_new)); // conditional dist.
+    tau_2 = a_new - log(1.0-Z_2*x)  / (-c);
+
+    if (is_worm){
+        tau_t = tau_1;
+        tau_h = tau_2;
+    }
+    else{
+        tau_h = tau_1;
+        tau_t = tau_2;
+    }
+
+    // cout << a << " "<< tau_1 << " "<< a_new << " "<< tau_2 << " "<< b << " " 
+    // << c*y << " " << c+y << " " << arg << endl ;
+    /* ====================================================================== */ 
+
+    // Reject update if illegal worm insertion is proposed
+    if (tau_h == tau_prev || tau_t == tau_prev){return;}
+    if (tau_h == tau_t){return;}
+
+    // Determine length of modified path and particle change
+    l_path = tau_h - tau_t;
+    dN = l_path/beta;
+    
+    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    if (canonical)
+        if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+    
+    // Build the Metropolis ratio (R)
+    p_dw = 0.5;
+    p_iw = 0.5;
+    R = eta * eta * n_tail * Z * num_kinks * (p_dw/p_iw) * 2;
+    // cout << R << endl;
+
+    // Metropolis sampling
+    if (rng.rand() < R){ // Accept
+
+        // Activate the first two available kinks
+        if (is_worm){
+            paths[num_kinks]=Kink(tau_t,n_tail,src,src,k,num_kinks+1,
+                                  src_replica,src_replica);
+            paths[num_kinks+1]=Kink(tau_h,n_head,src,src,num_kinks,next,
+                                    src_replica,src_replica);
+            
+            // Save indices of head & tail kinks
+            head_idx = num_kinks+1;
+            tail_idx = num_kinks;
+            
+            // Add to Acceptance counter
+            insert_worm_accepts += 1;
+        }
+        else{ // Antiworm
+            paths[num_kinks]=Kink(tau_h,n_head,src,src,k,num_kinks+1,
+                                  src_replica,src_replica);
+            paths[num_kinks+1]=Kink(tau_t,n_tail,src,src,num_kinks,next,
+                                    src_replica,src_replica);
+            
+            // Save indices of head & tail kinks
+            head_idx = num_kinks;
+            tail_idx = num_kinks+1;
+            
+            // Add to Acceptance counter
+            insert_anti_accepts += 1;
+        }
+        
+        // "Connect" next of lower bound kink to nearest worm end
+        paths[k].next = num_kinks;
+        
+        // "Connect" prev of next kink to nearest worm end
+        if(next!=-1){paths[next].prev = num_kinks+1;}
+        
+        // Update trackers for: no of active kinks, total particles
+        num_kinks += 2;
+        N_tracker += dN;
+        
+        // If later worm end is last kink on site, update last kinks tracker vec
+        if (next==-1){
+            if (is_worm){last_kinks[src]=head_idx;}
+            else {last_kinks[src]=tail_idx;}
+        }
+        
+        return;
+    }
+    else // Reject
+        return;
+}
+
+/*--------------------------------------------------------------------*/
+
+void insert_worm_3(vector<Kink> &paths, int &num_kinks, int &head_idx,
                  int &tail_idx, int M, int N, double U, double mu, double t,
                  double beta, double eta, bool canonical, double &N_tracker,
                  int &N_zero, int &N_beta, vector<int> &last_kinks,
@@ -1203,48 +1540,39 @@ void insert_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     /* ==================== Truncated Exponential Sampling ================== */
 
     // sample tau_1
-    double y,x,a,b,c,tau_1,tau_2,a_new;
-    // long double arg;
-    double arg;
+    double y,x,a,b,c,tau_1,tau_2,a_new,arg,Z,Z_2,u,B;
+
+    y = rng.rand();
 
     c = -dV;
     b = tau_next;
     a = tau_prev;
 
-    x = rng.rand();
-
     // Compute normalization of truncated exponential dist.
-    double Z_1, Z_2, Z;
-    // if (dV == 0){cout << "NOOOOOO" << endl;}
-
-    Z = (exp(c*(b-a)) + a*c - b*c - 1)/(c*c); // joint
-
-    Z_1 = (1/c) * (exp(c*(b-a)) - 1) - (b - a); // marginalized dist.
-    
-    //
-    y = Z_1*x - (1/c)*exp(c*(b-a)) - a;
-
-    // this was the sampling without simplifying Ace^(cy) and no restriction
-    // A = -(1/c)*exp(c*b);
-    // arg = max(-1/exp(1), A*c*exp(c*y));
-    // cout << c*(b+y) << " " << -exp(c*(b+y)) << endl;
-    // if (abs(arg) < 1e-15){arg = 0.0;}
+    Z = (1/(c*c)) * (exp(-c*(b-a)) - 1) + (1/c) * (b - a);
+    B = -exp(-c*b);
+    u = y*c*c*Z + B*exp(c*a) + c*a;
 
     // Determine LambertW branch & compute tau
-    if (abs(c*(b+y)) < 600){
-    arg = max(-inv_e, -exp(c*(b+y)));  // z in boost documentation
-
+    // arg = max(-1/exp(1), A*c*exp(c*y));
+    arg = max(-1/exp(1), B*exp(u));
+    arg = B*exp(u);
+    if (arg > -1.0e-307 && arg < 1.0e-307){
+        arg = 0.0;
+        // if (arg < 0)
+        //     arg = -std::numeric_limits<double>::min()*10;
+        // else if (arg==0)
+        //     arg = 0.0;
+        // else
+        //     arg = std::numeric_limits<double>::min()*10;
     }
-    else{ // exponent c*y is too large. Better to ignore and carry on. 
-        return;
-    }
 
-
-    if (c < 0){ // k = 0 branch
-        tau_1 = (1/c)*lambert_w0(arg)-y;
+    // cout << -1/exp(1) << " " << A*c*exp(c*y) << endl;
+    if (c > 0){ // k = 0 branch
+        tau_1 = (1/c)*(u-lambert_w0(arg));
     }
     else {      // k = -1 branch
-        tau_1 = (1/c)*lambert_wm1(arg)-y;
+        tau_1 = (1/c)*(u-lambert_wm1(arg));
     }
 
     // sample tau_2
@@ -1526,7 +1854,7 @@ void delete_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Variable declarations
     int src,prev,next,n_head,n_tail;
     int prev_h,next_h,prev_t,next_t,high_end,low_end;
-    double tau_h,tau_t,tau_prev,tau_next,l_path,dN,dV,p_iw,p_dw,R;
+    long double tau_h,tau_t,tau_prev,tau_next,l_path,dN,dV,p_iw,p_dw,R;
     bool is_worm;
     
     // Can only propose worm deletion if both worm ends are present
@@ -1603,11 +1931,194 @@ void delete_worm_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (!is_worm){dV *= -1;} // dV=eps-eps_w
 
     // Compute normalization constant of joint distribution
-    double Z,a,b,c;
+    long double Z,a,b,c;
     a = tau_prev;
     b = tau_next;
     c = -dV;
     Z = (exp(c*(b-a)) + a*c - b*c - 1)/(c*c);
+
+    // In inverse update (insert), worm type must be randomly chosen
+    // double p_type = 1/2;
+    
+    // Build the Metropolis ratio (R)
+    p_dw = 1.0;
+    p_iw = 1.0;
+    R = eta * eta * n_tail * Z * (num_kinks-2) * (p_dw/p_iw) * 2;
+    R = 1.0/R;
+    
+    // Metropolis sampling
+    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
+    if (rng.rand() < R){ // Accept
+        
+        // Add to Acceptance counter
+        if (is_worm)
+            delete_worm_accepts += 1;
+        else
+            delete_anti_accepts += 1;
+        
+        // Stage 1: Delete the higher worm end
+        
+        // num_kinks-1 will be swapped. Modify links to these.
+        if (paths[num_kinks-1].next!=-1)
+            paths[paths[num_kinks-1].next].prev = high_end;
+        paths[paths[num_kinks-1].prev].next = high_end;
+                
+        swap(paths[high_end],paths[num_kinks-1]);
+        
+        // Upper,lower bounds of flat could've been swapped. Correct if so.
+        if (prev==num_kinks-1){prev=high_end;}
+        else if (next==num_kinks-1){next=high_end;}
+        else if (low_end==num_kinks-1){low_end=high_end;}
+        else {;}
+        
+        // The swapped kink could've been the last on its site.
+        if (paths[high_end].next==-1){
+            last_kinks[paths[high_end].src]=high_end;
+        }
+        
+        // Connect upper,lower bounds to lower worm end
+        if (next!=-1)
+            paths[next].prev = low_end;
+        paths[low_end].next = next;
+        
+        if (next==-1){last_kinks[src]=low_end;}
+
+        // Stage 2: Delete the lower worm end
+        
+        // num_kinks-2 will be swapped. Modify links to these.
+        if (paths[num_kinks-2].next!=-1)
+            paths[paths[num_kinks-2].next].prev = low_end;
+        paths[paths[num_kinks-2].prev].next = low_end;
+        
+        swap(paths[low_end],paths[num_kinks-2]);
+
+        if (prev==num_kinks-2){prev=low_end;}
+        else if (next==num_kinks-2){next=low_end;}
+        else {;}
+
+        if (paths[low_end].next==-1){
+            last_kinks[paths[low_end].src]=low_end;
+        }
+        
+        if (next!=-1)
+            paths[next].prev = prev;
+        paths[prev].next = next;
+        
+        if (next==-1){last_kinks[src]=prev;}
+
+        // Deactivate the head,tail indices
+        head_idx = -1;
+        tail_idx = -1;
+        
+        // Update trackers for: num of active kinks, total particles
+        num_kinks -= 2;
+        N_tracker += dN;
+        
+        return;
+    }
+        
+    else // Reject
+            return;
+}
+
+/*--------------------------------------------------------------------*/
+
+void delete_worm_3(vector<Kink> &paths, int &num_kinks, int &head_idx,
+                 int &tail_idx, int M, int N, double U, double mu, double t,
+                 double beta, double eta, bool canonical, double &N_tracker,
+                 int &N_zero, int &N_beta, vector<int> &last_kinks,
+                 unsigned long long int &delete_worm_attempts,
+                 unsigned long long int &delete_worm_accepts,
+                 unsigned long long int &delete_anti_attempts,
+                 unsigned long long int &delete_anti_accepts,
+                 RNG &rng){
+    
+    // Variable declarations
+    int src,prev,next,n_head,n_tail;
+    int prev_h,next_h,prev_t,next_t,high_end,low_end;
+    long double tau_h,tau_t,tau_prev,tau_next,l_path,dN,dV,p_iw,p_dw,R;
+    bool is_worm;
+    
+    // Can only propose worm deletion if both worm ends are present
+    if (head_idx == -1 || tail_idx == -1){return;}
+    
+    // Can only delete worm if wormends are on same flat interval
+    if (head_idx != paths[tail_idx].prev &&
+        tail_idx != paths[head_idx].prev)
+        return;
+    
+    // Extract worm end attributes
+    tau_h = paths[head_idx].tau; // Head attributes
+    n_head = paths[head_idx].n;
+    src = paths[head_idx].src;
+    prev_h = paths[head_idx].prev;
+    next_h = paths[head_idx].next;
+    
+    tau_t = paths[tail_idx].tau; // Tail attributes
+    n_tail = paths[tail_idx].n;
+    src = paths[tail_idx].src;
+    prev_t = paths[tail_idx].prev;
+    next_t = paths[tail_idx].next;
+
+    // Identify the type of worm
+    if (tau_h > tau_t)
+        is_worm = true;
+    else
+        is_worm = false; // antiworm
+    
+    // Identify lower and upper bound of flat interval where worm lives
+    if(is_worm){
+        tau_prev = paths[prev_t].tau;
+        delete_worm_attempts += 1; // Attempts counter
+        if(paths[head_idx].next == -1)
+            tau_next = beta;
+        else
+            tau_next = paths[next_h].tau;
+            }
+    else{ // antiworm
+        tau_prev = paths[prev_h].tau;
+        delete_anti_attempts += 1; // Attempts counter
+        if (paths[tail_idx].next == -1)
+            tau_next = beta;
+        else
+            tau_next = paths[next_t].tau;
+            }
+     
+    // Define upper,lower index variables independent of worm type
+    if (is_worm){
+        next = next_h;
+        prev = prev_t;
+        high_end = head_idx;
+        low_end = tail_idx;
+    }
+    else{
+        next = next_t;
+        prev = prev_h;
+        high_end = tail_idx;
+        low_end = head_idx;
+    }
+    
+    // Determine length of modified path and particle change
+    l_path = tau_h-tau_t;
+    dN = -l_path/beta;
+    
+    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    if (canonical)
+        if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+        
+    // Calculate the difference in diagonal energy dV = \epsilon_w - \epsilon
+    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+
+    // In inverse update, antiworm could've been sampled w/ dV=\eps-\eps_w
+    if (!is_worm){dV *= -1;} // dV=eps-eps_w
+
+    // Compute normalization constant of joint distribution
+    long double Z,a,b,c;
+    a = tau_prev;
+    b = tau_next;
+    c = -dV;
+    // Z = (exp(c*(b-a)) + a*c - b*c - 1)/(c*c);
+    Z = (1/(c*c)) * (exp(-c*(b-a)) - 1) + (1/c) * (b - a);      
 
     // In inverse update (insert), worm type must be randomly chosen
     // double p_type = 1/2;
@@ -1817,7 +2328,7 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Build the trial wavefunction coefficient ratio C'/C
     if (trial_state=="non-interacting"){
         if (is_worm){
-            C = sqrt((1.0*N_zero+1)/n_tail);
+            C = sqrt((N_zero+1)*1.0/n_tail);
         }
         else {
             C = sqrt(n_tail*1.0/N_zero);
@@ -1909,7 +2420,7 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertZero_worm_accepts,
                 unsigned long long int &insertZero_anti_attempts,
                 unsigned long long int &insertZero_anti_accepts,
-                RNG &rng, string trial_state){
+                RNG &rng, string trial_state, double kappa, double v){
     
     // Variable declarations
     int n,src,next,n_head,n_tail,i,dest_replica;
@@ -2002,7 +2513,7 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
     x = rng.rand();
     Z = 1.0 - expl(-c*(b-a)); //
-    tau_new = a - logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
+    tau_new = a - log(1.0-Z*x)  / c;
     if (tau_new==a){return;}
     // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
@@ -2037,14 +2548,77 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     
     // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+    // if (is_worm){cout << "worm made it " << N_tracker << "+" << dN <<endl;}
+    // else{cout << "anti made it " << N_tracker << "+" << dN <<endl;}
+    // cout << "N_tracker = " << N_tracker << endl;
     if (canonical)
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
    
     // Build the trial wavefunction coefficient ratio C'/C
-    double kappa = 1.40;
+    //------------- temporary (can make this segment a function jastrow_factor())------------
+    // vector<int> fock_edge(M,-1);
+    double tau_edge = 0.0; // insertZero
+    // int N_test = 0;
+    get_fock_state(tau_edge,M,fock_edge,paths); // get fock state at tau=0 edge
+    // for (int p=0; p<M; p++){
+    //     cout << paths[p].n << ",";
+    // }
+    // cout << endl << endl;
+    // for (int p=0; p<M; p++){
+    //     cout << fock_edge[p] << ",";
+    // }
+    // cout << endl << endl;
+    // exit(1);
+    // for (int p=0; p<M; p++){
+    //     N_test += fock_edge[p];
+    //     cout << fock_edge[p] << ",";
+    // }
+    // cout << "N_edge: "<< N_test << endl << endl;
+    // cout << "(Original)" << endl;
+    // for (int p=0; p<M; p++){
+    //     cout << v_i[p] << ",";
+    // }
+    // cout << endl << endl;
+    // cout << "(Shifted " << i << ")" << endl;
+    std::rotate(v_i.begin(),v_i.begin()+(v_i.size()-i),v_i.end()); // center v_i's on insertion site
+    // for (int p=0; p<M; p++){
+    //     cout << v_i[p] << ",";
+    // }
+    // cout << endl << endl;
+    long double J,J_exponent;
+    int delta;
+    J_exponent = 0.0;
+    // declare v_ij variational parameters globally for now
+    if (is_worm){ // worm
+        for (int j=0; j<M; j++ ){
+            if (j-i>=0){delta=j-i;}
+            else {delta=j-i+M;}
+            J_exponent -= v_i[j] * fock_edge[j];
+        }
+    }
+    else { // antiworm
+        for (int j=0; j<M; j++ ){
+            if (j-i>=0){delta=j-i;}
+            else {delta=j-i+M;}
+            J_exponent += v_i[j] * fock_edge[j];
+        }
+    }
+    J_exponent -= 0.5*v_i[i];
+    J = expl(J_exponent);
+    std::rotate(v_i.begin(),v_i.begin()+i,v_i.end()); // shift v_i's back
+    // cout << "(Shifted back)" << endl;
+    // for (int p=0; p<M; p++){
+    //     cout << v_i[p] << ",";
+    // }
+    // cout << endl << endl;
+
+
+
+     //------------- temporary ------------
+
     if (trial_state=="non-interacting"){
         if (is_worm){
-            C = sqrt((1.0*N_zero+1)/n_tail);
+            C = sqrt((N_zero+1)*1.0/n_tail);
         }
         else {
             C = sqrt(n_tail*1.0/N_zero);
@@ -2052,10 +2626,22 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     else if (trial_state=="gutzwiller"){
         if (is_worm){
-            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))/sqrt(1.0*n_tail);
+            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))*1.0/sqrt(n_tail);
         }
         else {
             C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
+        }
+    }
+    else if (trial_state=="jastrow"){
+        if (is_worm){ // worm
+            C = J * sqrt((N_zero+1)*1.0/n_tail);
+            // cout << "insertZero_2 (worm) J = " << J << endl;
+            // cout << "insertZero_2 (worm) C = " << C << endl;
+        }
+        else { // antiworm
+            C = J * sqrt(n_tail*1.0/N_zero);
+            // cout << "insertZero_2 (anti) J = " << J << endl;
+            // cout << "insertZero_2 (anti) C = " << C << endl;
         }
     }
     else { // trial_state=="constant"
@@ -2259,10 +2845,10 @@ void deleteZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Build the trial wavefunction coefficient ratio C'/C
     if (trial_state=="non-interacting"){
         if (delete_head){ // delete worm from tau=0
-            C = sqrt((1.0*N_zero-1)/n_tail);
+            C = sqrt((N_zero-1)*1.0/n_tail);
         }
         else { // delete antiworm from tau=0
-            C = sqrt(n_tail/(1.0*N_zero+1));
+            C = sqrt(n_tail*1.0/(N_zero+1));
         }
     }
     else { // trial_state=="constant"
@@ -2359,7 +2945,7 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteZero_worm_accepts,
                 unsigned long long int &deleteZero_anti_attempts,
                 unsigned long long int &deleteZero_anti_accepts,
-                RNG &rng, string trial_state){
+                RNG &rng, string trial_state, double kappa, double v){
     
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx;
@@ -2471,21 +3057,78 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
     
     // Build the trial wavefunction coefficient ratio C'/C
-    double kappa = 1.40;
+    //------------- temporary (can make this segment a function jastrow_factor())------------
+    // vector<int> fock_edge(M,-1);
+    double tau_edge = 0.0; // deleteZero
+    int i=src; // deletion site
+    get_fock_state(tau_edge,M,fock_edge,paths);
+    // for (int p=0; p<M; p++){
+    //     cout << paths[p].n << ",";
+    // }
+    // cout << endl << endl;
+    // for (int p=0; p<M; p++){
+    //     cout << fock_edge[p] << ",";
+    // }
+    // cout << endl << endl;
+    // exit(1);
+    std::rotate(v_i.begin(),v_i.begin()+(v_i.size()-i),v_i.end()); // center v_i's on insertion site
+    long double J,J_exponent;
+    int delta;
+    J_exponent = 0.0;
+    // declare v_ij variational parameters globally for now
+    if (delete_head){ // worm
+        for (int j=0; j<M; j++ ){
+            if (j-i>=0){delta=j-i;}
+            else {delta=j-i+M;}
+            if (j!=i){
+                J_exponent -= (v_i[j]*(fock_edge[j]));
+            }
+            else{
+                J_exponent -= (v_i[j]*(fock_edge[i]-1));
+            }
+        }
+    }
+    else { // antiworm
+        for (int j=0; j<M; j++ ){
+            if (j-i>=0){delta=j-i;}
+            else {delta=j-i+M;}
+            if (j!=i){
+                J_exponent += (v_i[j]*(fock_edge[j]));
+            }
+            else{
+                J_exponent += (v_i[j]*(fock_edge[i]+1));
+            }
+        }
+    }
+    J_exponent -= 0.5*v_i[i];
+    J = expl(J_exponent);
+    std::rotate(v_i.begin(),v_i.begin()+i,v_i.end()); // shift v_i's back
+
+     //------------- temporary ------------
     if (trial_state=="non-interacting"){
         if (delete_head){ // delete worm from tau=0
-            C = sqrt((1.0*N_zero-1)/n_tail);
+            C = sqrt((N_zero-1)*1.0/n_tail);
         }
         else { // delete antiworm from tau=0
-            C = sqrt(n_tail/(1.0*N_zero+1));
+            C = sqrt(n_tail*1.0/(N_zero+1));
         }
     }
     else if (trial_state=="gutzwiller"){
-        if (delete_head){
-            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))/sqrt(1.0*n_tail);
+        if (delete_head){ // worm
+            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))*1.0/sqrt(n_tail);
         }
-        else {
+        else {  // antiworm
             C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
+        }
+    }
+    else if (trial_state=="jastrow"){
+        if (delete_head){ // worm
+            C = J * sqrt((N_zero-1)*1.0/n_tail);
+            // cout << "deleteZero_2 (worm) J = " << J << endl;
+        }
+        else { // antiworm
+            C = J * sqrt(n_tail*1.0/(N_zero+1));
+            // cout << "deleteZero_2 (anti) J = " << J << endl;
         }
     }
     else { // trial_state=="constant"
@@ -2699,10 +3342,10 @@ void insertBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Build the trial wavefunction coefficient ratio C'/C
     if (trial_state=="non-interacting"){
         if (is_worm){
-            C = sqrt((1.0*N_beta+1)/n_tail);
+            C = sqrt((N_beta+1)*1.0/n_tail);
         }
         else {
-            C = sqrt(n_tail/(1.0*N_beta));
+            C = sqrt(n_tail*1.0/(N_beta));
         }
     }
     else { // trial_state=="constant"
@@ -2786,7 +3429,7 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertBeta_worm_accepts,
                 unsigned long long int &insertBeta_anti_attempts,
                 unsigned long long int &insertBeta_anti_accepts,
-                RNG &rng, string trial_state){
+                RNG &rng, string trial_state, double kappa, double v){
     
     // Variable declarations
     int n,src,next,n_head,n_tail,i,src_replica;
@@ -2859,6 +3502,7 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Calculate the diagonal energy difference dV = \epsilon_w - \epsilon
     dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
+
     if (!is_worm){dV *= -1;}
 
     /* :::::::::::::::::::::::::: Truncated Sampling :::::::::::::::::::::::: */
@@ -2873,7 +3517,7 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
     x = rng.rand();
     Z = 1.0 - expl(-c*(b-a)); //
-    tau_new = b + logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
+    tau_new = b + log(1.0-Z*x)  / c;
     if (tau_new==b){return;}
     // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
@@ -2913,37 +3557,74 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     
     // Build the trial wavefunction coefficient ratio C'/C
-    double kappa = 1.40;
+    //------------- temporary (can make this segment a function jastrow_factor())------------
+    // vector<int> fock_edge(M,-1);
+    double tau_edge = beta; // insertBeta
+    get_fock_state(tau_edge,M,fock_edge,paths);
+    std::rotate(v_i.begin(),v_i.begin()+(v_i.size()-i),v_i.end()); // center v_i's on insertion site
+    long double J,J_exponent;
+    int delta;
+    J_exponent = 0.0;
+    // declare v_ij variational parameters globally for now
+    if (is_worm){ // worm
+        for (int j=0; j<M; j++ ){
+            if (j-i>=0){delta=j-i;}
+            else {delta=j-i+M;}
+            J_exponent -= v_i[j] * fock_edge[j];
+        }
+    }
+    else { // antiworm
+        for (int j=0; j<M; j++ ){
+            if (j-i>=0){delta=j-i;}
+            else {delta=j-i+M;}
+            J_exponent += v_i[j] * fock_edge[j];
+        }
+    }
+    J_exponent -= 0.5*v_i[i];
+    J = expl(J_exponent);
+    std::rotate(v_i.begin(),v_i.begin()+i,v_i.end()); // shift v_i's back
+
+     //------------- temporary ------------
     if (trial_state=="non-interacting"){
         if (is_worm){
-            C = sqrt((1.0*N_beta+1)/n_tail);
+            C = sqrt((N_beta+1)*1.0/n_tail);
         }
         else {
-            C = sqrt(n_tail/(1.0*N_beta));
+            C = sqrt(n_tail*1.0/(N_beta));
         }
     }
     else if (trial_state=="gutzwiller"){
         if (is_worm){
-            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))/sqrt(1.0*n_tail);
+            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))*1.0/sqrt(n_tail);
         }
         else {
             C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
+        }
+    }
+    else if (trial_state=="jastrow"){
+        if (is_worm){ // worm
+            C = J * sqrt((N_beta+1)*1.0/n_tail);
+            // cout << "insertBeta_2 (worm) J = " << J << endl;
+        }
+        else { // antiworm
+            C = J * sqrt(n_tail*1.0/(N_beta));
+            // cout << "insertBeta_2 (anti) J = " << J << endl;
         }
     }
     else { // trial_state=="constant"
         C = 1.0;
     }
 
-    // Build the weight ratio W'/W
-    //  C = 1.0; // C_pre/C_post
-    if (is_worm){
-//        C = sqrt(N_b+1)/sqrt(n+1);
-        // W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau_new));
-    }
-    else{
-//        C = sqrt(n)/sqrt(N_b);
-        // W = eta * sqrt(n_tail) * C * exp(dV*(beta-tau_new));
-    }
+//     // Build the weight ratio W'/W
+//     //  C = 1.0; // C_pre/C_post
+//     if (is_worm){
+// //        C = sqrt(N_b+1)/sqrt(n+1);
+//         // W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau_new));
+//     }
+//     else{
+// //        C = sqrt(n)/sqrt(N_b);
+//         // W = eta * sqrt(n_tail) * C * exp(dV*(beta-tau_new));
+//     }
     
     // Build the Metropolis Ratio (R)
     p_db = 0.5;
@@ -3121,10 +3802,10 @@ void deleteBeta(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Build the trial wavefunction coefficient ratio C'/C
     if (trial_state=="non-interacting"){
         if (!delete_head){ // delete worm
-            C = sqrt((1.0*N_beta-1)/n_tail);
+            C = sqrt((N_beta-1)*1.0/n_tail);
         }
         else { // delete antiworm
-            C = sqrt(n_tail/(1.0*N_beta+1));
+            C = sqrt(n_tail*1.0/(N_beta+1));
         }
     }
     else { // trial_state=="constant"
@@ -3219,7 +3900,7 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteBeta_worm_accepts,
                 unsigned long long int &deleteBeta_anti_attempts,
                 unsigned long long int &deleteBeta_anti_accepts,
-                RNG &rng, string trial_state){
+                RNG &rng, string trial_state, double kappa, double v){
     
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx;
@@ -3329,37 +4010,93 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (delete_head){dV *= -1;}
      
     // Build the trial wavefunction coefficient ratio C'/C
-    double kappa = 1.40;
+    //------------- temporary (can make this segment a function jastrow_factor())------------
+    // vector<int> fock_edge(M,-1);
+    double tau_edge = beta; // insertZero
+    int i=src;
+    get_fock_state(tau_edge,M,fock_edge,paths);
+    // for (int p=0; p<M; p++){
+    //     cout << paths[last_kinks[p]].n << ",";
+    // }
+    // cout << endl << endl;
+    // for (int p=0; p<M; p++){
+    //     cout << fock_edge[p] << ",";
+    // }
+    // cout << endl << endl;
+    // exit(1);
+    std::rotate(v_i.begin(),v_i.begin()+(v_i.size()-i),v_i.end()); // center v_i's on insertion site
+    long double J,J_exponent;
+    int delta;
+    J_exponent = 0.0;
+    // declare v_ij variational parameters globally for now
+    if (!delete_head){ // worm
+        for (int j=0; j<M; j++ ){
+            if (j-i>=0){delta=j-i;}
+            else {delta=j-i+M;}
+            if (j!=i){
+                J_exponent -= (v_i[j]*(fock_edge[j]));
+            }
+            else{
+                J_exponent -= (v_i[j]*(fock_edge[i]-1));
+            }
+        }
+    }
+    else { // antiworm
+        for (int j=0; j<M; j++ ){
+            if (j-i>=0){delta=j-i;}
+            else {delta=j-i+M;}
+            if (j!=i){
+                J_exponent += (v_i[j]*(fock_edge[j]));
+            }
+            else{
+                J_exponent += (v_i[j]*(fock_edge[i]+1));
+            }
+        }
+    }
+    J_exponent -= 0.5*v_i[i];
+    J = expl(J_exponent);
+    std::rotate(v_i.begin(),v_i.begin()+i,v_i.end()); // shift v_i's back
+     //------------- temporary ------------
     if (trial_state=="non-interacting"){
         if (!delete_head){ // delete worm
-            C = sqrt((1.0*N_beta-1)/n_tail);
+            C = sqrt((N_beta-1)*1.0/n_tail);
         }
         else { // delete antiworm
-            C = sqrt(n_tail/(1.0*N_beta+1));
+            C = sqrt(n_tail*1.0/(N_beta+1));
         }
     }
     else if (trial_state=="gutzwiller"){
-        if (!delete_head){
-            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))/sqrt(1.0*n_tail);
+        if (!delete_head){ // worm
+            C = expl((-kappa/2.0)*(1+2*(n_tail-1)))*1.0/sqrt(n_tail);
         }
-        else {
+        else { // antiworm
             C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
+        }
+    }
+    else if (trial_state=="jastrow"){
+        if (!delete_head){ // worm
+            C = J * sqrt((N_beta-1)*1.0/n_tail);
+            // cout << "deleteBeta_2 (worm) J = " << J << endl;
+        }
+        else { // antiworm
+            C = J * sqrt(n_tail*1.0/(N_beta+1));
+            // cout << "deleteBeta_2 (anti) J = " << J << endl;
         }
     }
     else { // trial_state=="constant"
         C = 1.0;
     }
 
-    // Build the weigh ratio W'/W
-    // C = 1.0;
-    if (!delete_head){ // delete worm
-//        C = sqrt(N_b+1)/sqrt(n);
-        // W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau));
-    }
-    else{ // delete antiworm
-//        C = sqrt(n+1)/sqrt(N_b);
-        // W = eta * sqrt(n_tail) * C * exp(-dV*(tau-beta));
-    }
+//     // Build the weigh ratio W'/W
+//     // C = 1.0;
+//     if (!delete_head){ // delete worm
+// //        C = sqrt(N_b+1)/sqrt(n);
+//         // W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau));
+//     }
+//     else{ // delete antiworm
+// //        C = sqrt(n+1)/sqrt(N_b);
+//         // W = eta * sqrt(n_tail) * C * exp(-dV*(tau-beta));
+//     }
     
     // inverse move (insertBeta) truncated exponential sampling
     double a,b,c;
@@ -3617,6 +4354,7 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Diagonal energy difference in simplified form
     dV=U*(n-!shift_head)-mu;
+    if (dV==0){return;} // almost impossible if we initialize mu not equal to 0
     
     // To make acceptance ratio unity,shift tail needs to sample w/ dV=eps-eps_w
     if (!shift_head){dV *= -1;} // dV=eps-eps_w
@@ -3630,9 +4368,8 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Sample the new time of the worm end from truncated exponential dist.
     /*:::::::::::::::::::: Truncated Exponential RVS :::::::::::::::::::::::::*/
-    Z = 1.0 - exp(-dV*(tau_next-tau_prev));
-    // tau_new = tau_prev - log(1.0-Z*rng.rand())  / dV;
-    tau_new = tau_prev - logl(1.0-(1.0 - expl(-dV*(tau_next-tau_prev)))*rng.rand()) / dV;
+    Z = 1.0 - expl(-dV*(tau_next-tau_prev));
+    tau_new = tau_prev - log(1.0-Z*rng.rand()) / dV;
     if (tau_new==tau_prev){return;}
     // cout<<Z<<"::"<<-dV*(tau_next-tau_prev)<<"::"<<tau_new<<"::"<<tau_next<<"::"<<tau_prev<<endl;
     /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
@@ -3931,7 +4668,7 @@ void insert_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     x = rng.rand();
     Z = 1.0 - expl(-c*(b-a));
     if (dV != 0)
-        tau_kink = b + logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
+        tau_kink = b + log(1.0-Z*x)  / c;
     else // dV == 0
         tau_kink = b + x*(a-b); // L'hopitale was used
     if (tau_kink==b){return;}
@@ -4696,7 +5433,7 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     x = rng.rand();
     Z = 1.0 - expl(-c*(b-a));
     if (dV != 0)
-        tau_kink = a - logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
+        tau_kink = a - log(1.0-Z*x)  / c;
     else // dV == 0
         tau_kink = a - x*(a-b); // L'Hopitale
     if (tau_kink==a){return;}
@@ -5444,7 +6181,7 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     x = rng.rand();
     Z = 1.0 - expl(-c*(b-a)); //
     if (dV != 0)
-        tau_kink = b + logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
+        tau_kink = b + log(1.0-Z*x)  / c;
     else // dV == 0
         tau_kink = b + x*(a-b); // L'hopitale was used
     if (tau_kink==b){return;}
@@ -5459,7 +6196,7 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     if (dV != 0)
         R = t * n_wj * (p_dkbt/p_ikbt) * (Z/dV) /p_site;
     else
-        R = t * n_wj * (p_dkbt/p_ikbt) * (b-a) /p_site;
+        R = t * n_wj * (p_dkbt/p_ikbt) * (b-a) /p_site; // L'hopitale was used
     // R = W * (p_dkbt/p_ikbt) * (tau_t-tau_min)/p_site;
 
     // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
@@ -6195,7 +6932,7 @@ void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     x = rng.rand();
     Z = 1.0 - expl(-c*(b-a));
     if (dV !=0)
-        tau_kink = a - logl(1.0-(1.0 - expl(-c*(b-a)))*x)  / c;
+        tau_kink = a - log(1.0-Z*x)  / c;
     else // dV == 0
         tau_kink = a - x*(a-b); // L'Hopitale
     if (tau_kink==a){return;}
@@ -6211,7 +6948,7 @@ void insert_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     if (dV != 0)
         R = t * n_wj * (p_dkat/p_ikat) * (Z/dV) / p_site;
     else
-        R = t * n_wj * (p_dkat/p_ikat) * (b-a) / p_site;
+        R = t * n_wj * (p_dkat/p_ikat) * (b-a) / p_site; // L'hopitale
 
     // Metropolis Sampling
     if (rng.rand() < R){ // Accept
@@ -7680,28 +8417,28 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
 
 /*------------------------------- Estimators ---------------------------------*/
 
-// For diagonal estimators around a time slice, Fock State will be needed
-void get_fock_state(double measurement_center, int M,
-                    vector<int> &fock_state_at_slice,
-                    vector<Kink> &paths){
+// // For diagonal estimators around a time slice, Fock State will be needed
+// void get_fock_state(double measurement_center, int M,
+//                     vector<int> &fock_state_at_slice,
+//                     vector<Kink> &paths){
     
-    double tau;
-    int current,n_i;
+//     double tau;
+//     int current,n_i;
     
-    for (int i=0; i<M; i++){
-        current=i;
-        tau = paths[current].tau;
-        while (tau<measurement_center+1.0E-12 && current!=-1){
-            n_i=paths[current].n;
-            fock_state_at_slice[i]=n_i;
+//     for (int i=0; i<M; i++){
+//         current=i;
+//         tau = paths[current].tau;
+//         while (tau<measurement_center+1.0E-12 && current!=-1){
+//             n_i=paths[current].n;
+//             fock_state_at_slice[i]=n_i;
             
-            current=paths[current].next;
-            if (current!=-1)
-                tau=paths[current].tau;
-        }
-    }
-    return;
-}
+//             current=paths[current].next;
+//             if (current!=-1)
+//                 tau=paths[current].tau;
+//         }
+//     }
+//     return;
+// }
 
 /*--------------------------------------------------------------------*/
 
