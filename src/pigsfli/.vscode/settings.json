@@ -74,5 +74,6 @@
         "unordered_map": "cpp",
         "unordered_set": "cpp",
         "utility": "cpp"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

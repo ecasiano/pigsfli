@@ -30,14 +30,14 @@ using namespace std;
 using namespace std::chrono;
 
 // Variational parameters for L=64 @ U/t=3.3578 (from on-site to furthest site)
-// vector<double> v_i(64,-0.1);
+// vector<double> v(64,-0.1);
 
-// vector<double> v_i(4,-1E-4);
-// vector<double> v_i{-1E-4,-0.5E-5,0.0,-0.5E-5};
-// vector<double> v_i{-0.16,-0.0002,-0.001,-0.0025,-0.0001,-0.007,-0.000001,
+// vector<double> v(4,-1E-4);
+// vector<double> v{-1E-4,-0.5E-5,0.0,-0.5E-5};
+// vector<double> v{-0.16,-0.0002,-0.001,-0.0025,-0.0001,-0.007,-0.000001,
 // -0.0015,-0.0098,-0.0054,-0.0031,-0.002};
 
-// vector<double> v_i{ 3.2517620e-01,  2.0962960e-01,  1.5554618e-01,  1.2211202e-01,
+// vector<double> v{ 3.2517620e-01,  2.0962960e-01,  1.5554618e-01,  1.2211202e-01,
 //         9.8614440e-02,  8.0873620e-02,  6.6948640e-02,  5.5733600e-02,
 //         4.6558460e-02,  3.8981000e-02,  3.2663420e-02,  2.7339220e-02,
 //         2.2867880e-02,  1.9090530e-02,  1.5881634e-02,  1.3159054e-02,
@@ -54,7 +54,7 @@ using namespace std::chrono;
 //         4.6558460e-02,  5.5733600e-02,  6.6948640e-02,  8.0873620e-02,
 //         9.8614440e-02,  1.2211202e-01,  1.5554618e-01,  2.0962960e-01};
 
-// vector<double> v_i{1.625881e+00, 1.048148e+00, 7.777309e-01, 6.105601e-01,
+// vector<double> v{1.625881e+00, 1.048148e+00, 7.777309e-01, 6.105601e-01,
 //        4.930722e-01, 4.043681e-01, 3.347432e-01, 2.786680e-01,
 //        2.327923e-01, 1.949050e-01, 1.633171e-01, 1.366961e-01,
 //        1.143394e-01, 9.545265e-02, 7.940817e-02, 6.579527e-02,
@@ -71,7 +71,19 @@ using namespace std::chrono;
 //        2.327923e-01, 2.786680e-01, 3.347432e-01, 4.043681e-01,
 //        4.930722e-01, 6.105601e-01, 7.777309e-01, 1.048148e+00};
 
-// vector<double> v_i{8.1294050e-01, 5.2407400e-01, 3.8886545e-01, 3.0528005e-01,
+// vector<double> v{1.625881 , 1.048148 , 0., 0., 0.       , 0.       ,
+//        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
+//        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
+//        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
+//        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
+//        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
+//        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
+//        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
+//        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
+//        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
+//        0.       , 0., 0., 1.048148};
+
+// vector<double> v{8.1294050e-01, 5.2407400e-01, 3.8886545e-01, 3.0528005e-01,
 //        2.4653610e-01, 2.0218405e-01, 1.6737160e-01, 1.3933400e-01,
 //        1.1639615e-01, 9.7452500e-02, 8.1658550e-02, 6.8348050e-02,
 //        5.7169700e-02, 4.7726325e-02, 3.9704085e-02, 3.2897635e-02,
@@ -88,24 +100,8 @@ using namespace std::chrono;
 //        1.1639615e-01, 1.3933400e-01, 1.6737160e-01, 2.0218405e-01,
 //        2.4653610e-01, 3.0528005e-01, 3.8886545e-01, 5.2407400e-01};
 
-// vector<double> v_i{1.3007048e+00, 8.3851840e-01, 6.2218472e-01, 4.8844808e-01,
-//        3.9445776e-01, 3.2349448e-01, 2.6779456e-01, 2.2293440e-01,
-//        1.8623384e-01, 1.5592400e-01, 1.3065368e-01, 1.0935688e-01,
-//        9.1471520e-02, 7.6362120e-02, 6.3526536e-02, 5.2636216e-02,
-//        4.3496920e-02, 3.5733824e-02, 2.9279400e-02, 2.3905392e-02,
-//        1.9367736e-02, 1.5559256e-02, 1.2350016e-02, 9.6128400e-03,
-//        7.2795616e-03, 5.3435112e-03, 3.6392856e-03, 2.4072904e-03,
-//        1.4390776e-03, 7.5100104e-04, 3.3918272e-04, 3.3335928e-05,
-//        0.0000000e+00, 3.3335928e-05, 3.3918272e-04, 7.5100104e-04,
-//        1.4390776e-03, 2.4072904e-03, 3.6392856e-03, 5.3435112e-03,
-//        7.2795616e-03, 9.6128400e-03, 1.2350016e-02, 1.5559256e-02,
-//        1.9367736e-02, 2.3905392e-02, 2.9279400e-02, 3.5733824e-02,
-//        4.3496920e-02, 5.2636216e-02, 6.3526536e-02, 7.6362120e-02,
-//        9.1471520e-02, 1.0935688e-01, 1.3065368e-01, 1.5592400e-01,
-//        1.8623384e-01, 2.2293440e-01, 2.6779456e-01, 3.2349448e-01,
-//        3.9445776e-01, 4.8844808e-01, 6.2218472e-01, 8.3851840e-01};
-
-vector<double> v_i{1.625881e+00, 1.048148e+00, 7.777309e-01, 6.105601e-01,
+// Optimized for L=64,U=3.3578
+vector<double> v{1.625881e+00, 1.048148e+00, 7.777309e-01, 6.105601e-01,
        4.930722e-01, 4.043681e-01, 3.347432e-01, 2.786680e-01,
        2.327923e-01, 1.949050e-01, 1.633171e-01, 1.366961e-01,
        1.143394e-01, 9.545265e-02, 7.940817e-02, 6.579527e-02,
@@ -113,16 +109,43 @@ vector<double> v_i{1.625881e+00, 1.048148e+00, 7.777309e-01, 6.105601e-01,
        2.420967e-02, 1.944907e-02, 1.543752e-02, 1.201605e-02,
        9.099452e-03, 6.679389e-03, 4.549107e-03, 3.009113e-03,
        1.798847e-03, 9.387513e-04, 4.239784e-04, 4.166991e-05,
-       0.000000e+00, 4.166991e-05, 4.239784e-04, 9.387513e-04,
-       1.798847e-03, 3.009113e-03, 4.549107e-03, 6.679389e-03,
-       9.099452e-03, 1.201605e-02, 1.543752e-02, 1.944907e-02,
-       2.420967e-02, 2.988174e-02, 3.659925e-02, 4.466728e-02,
-       5.437115e-02, 6.579527e-02, 7.940817e-02, 9.545265e-02,
-       1.143394e-01, 1.366961e-01, 1.633171e-01, 1.949050e-01,
-       2.327923e-01, 2.786680e-01, 3.347432e-01, 4.043681e-01,
-       4.930722e-01, 6.105601e-01, 7.777309e-01, 1.048148e+00};
+       0.000000e+00};
 
-vector<int> fock_edge(64,-1);
+// U/t = 2.0
+// vector<double> v{1.271701e+00, 9.165332e-01, 7.297424e-01, 6.082873e-01,
+//        5.197703e-01, 4.506179e-01, 3.941231e-01, 3.465468e-01,
+//        3.056239e-01, 2.699670e-01, 2.384965e-01, 2.104728e-01,
+//        1.854160e-01, 1.629088e-01, 1.426244e-01, 1.243158e-01,
+//        1.078597e-01, 9.300705e-02, 7.962102e-02, 6.759296e-02,
+//        5.676928e-02, 4.708107e-02, 3.847660e-02, 3.084347e-02,
+//        2.415341e-02, 1.831201e-02, 1.335686e-02, 9.227781e-03,
+//        5.899738e-03, 3.278447e-03, 1.435390e-03, 3.232842e-04,
+//        0.000000e+00};
+
+// U/t = 1.0
+// vector<double> v{8.654201e-01, 6.748730e-01, 5.580728e-01, 4.767725e-01,
+//        4.152224e-01, 3.658466e-01, 3.246041e-01, 2.891843e-01,
+//        2.581594e-01, 2.306021e-01, 2.058635e-01, 1.834956e-01,
+//        1.631928e-01, 1.446917e-01, 1.277795e-01, 1.123129e-01,
+//        9.815439e-02, 8.519871e-02, 7.340501e-02, 6.265848e-02,
+//        5.291495e-02, 4.410442e-02, 3.619346e-02, 2.913576e-02,
+//        2.290222e-02, 1.745228e-02, 1.276994e-02, 8.842698e-03,
+//        5.643732e-03, 3.161468e-03, 1.415490e-03, 3.570709e-04,
+//        0.000000e+00};
+
+// vector<double> v{1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+//        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+//        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+//        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+
+// vector<double> v{1.0, 0.01, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001,
+//        0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001,
+//        0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001,
+//        0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001,
+//        0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001,
+//        0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001,
+//        0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001,
+//        0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.01};
 /*--------------------------- Class Definitions ------------------------------*/
 
 class Kink
@@ -1112,6 +1135,31 @@ void get_fock_state(double measurement_center, int M,
                 tau=paths[current].tau;
         }
     }
+    return;
+}
+/*--------------------------------------------------------------------*/
+
+void get_fock_state_at_zero(int M,
+                    vector<int> &fock_state_at_zero,
+                    vector<Kink> &paths){
+    
+    for (int i=0; i<M; i++){
+        fock_state_at_zero[i] = paths[i].n;
+    }
+
+    return;
+}
+
+/*--------------------------------------------------------------------*/
+
+void get_fock_state_at_beta(int M, vector<int> &last_kinks,
+                    vector<int> &fock_state_at_beta,
+                    vector<Kink> &paths){
+    
+    for (int i=0; i<M; i++){
+        fock_state_at_beta[i] = paths[last_kinks[i]].n;
+    }
+
     return;
 }
 /*--------------------------------------------------------------------*/
@@ -2409,7 +2457,115 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
     else // Reject
         return;
 }
+/*--------------------------------------------------------------------*/
 
+long double jastrow_ratio(bool is_worm,vector<int> &fock_state_at_edge, 
+                   int M, int insertion_site){
+
+    long double J,J_exponent;
+    int i,delta;
+    
+    i = insertion_site;
+    // std::rotate(v.begin(),v.begin()+(v.size()-i),v.end()); // center v's on insertion site
+
+    // cout << "fock_state = ";
+    // for (int p=0; p<M; p++){
+    //     cout << fock_state_at_edge[p] << " ";
+    // }
+    // cout << endl;
+    J_exponent = 0.0;
+    // cout << "fock_state = ";
+    if (is_worm){ // edge worm insertion
+        for (int j=0; j<M; j++){
+            // cout << "A" << endl;    
+            delta = abs(i-j); 
+            // cout << fock_state_at_edge[j] << " ";
+            // cout << "delta = " << delta << "---> ";
+            if (delta > M/2){delta = (M-delta);}   
+            // cout << delta << " | k = " << i << endl;          
+            J_exponent -= v[delta]*fock_state_at_edge[j];
+        }
+        // cout << "(insert worm)" << endl << endl;
+    }
+    else{ // edge antiworm insertion
+        for (int j=0; j<M; j++){
+            // cout << "B" << endl;
+            delta = abs(i-j); 
+            // cout << fock_state_at_edge[j] << " ";
+            // cout << "delta = " << delta << "---> ";
+            if (delta > M/2){delta = (M-delta);}   
+            // cout << delta << " | k = " << i << endl;  
+            J_exponent += v[delta]*fock_state_at_edge[j];
+        }
+        // cout << "(insert anti)" << endl << endl;
+    }
+    J_exponent -= 0.5*v[0];
+    J = exp(J_exponent);
+
+    // std::rotate(v.begin(),v.begin()+i,v.end()); // shift v's back
+
+    return J;
+}
+/*--------------------------------------------------------------------*/
+
+long double jastrow_ratio_delete(bool is_worm,vector<int> &fock_state_at_edge, 
+                   int M, int deletion_site){
+
+    // for (int p=0; p<v.size(); p++){
+    //     cout << v[p] << endl;
+    // }
+    // cout << endl << endl;
+    long double J,J_exponent;
+    int i,delta;
+    
+    i = deletion_site;
+    // std::rotate(v.begin(),v.begin()+(v.size()-i),v.end()); // center v's on insertion site
+
+    J_exponent = 0.0;
+    // cout << "fock_state = ";
+    // for (int p=0; p<M; p++){
+    //     cout << fock_state_at_edge[p] << " ";
+    // }
+    // cout << endl;
+    // cout << "fock_state = ";
+    if (is_worm){ // edge worm deletion
+        // cout << "C" << endl;
+        for (int j=0; j<M; j++){
+            delta = abs(i-j);
+            // cout << fock_state_at_edge[j] << " ";
+            // cout << "delta = " << delta << "---> ";
+            // if (delta > M/2){delta = (M-delta);}   
+            // cout << delta << " | k = " << i << endl;       
+            if (i!=j)
+                J_exponent -= v[delta]*fock_state_at_edge[j];
+            else
+                J_exponent -= v[delta]*(fock_state_at_edge[i]-1);
+        }
+        // cout << "(delete worm)" << endl << endl;
+    }
+    else{ // edge antiworm deletion
+        // cout << "D" << endl;
+        for (int j=0; j<M; j++){
+            delta = abs(i-j); 
+            // cout << "delta = " << delta << "---> ";
+            if (delta > M/2){delta = (M-delta);}  
+            // cout << fock_state_at_edge[j] << " "; 
+            // cout << delta << " | k = " << i << endl;   
+            if (i!=j)
+                J_exponent += v[delta]*fock_state_at_edge[j];
+            else
+                J_exponent += v[delta]*(fock_state_at_edge[i]+1);
+        }
+        // cout << "(delete anti)" << endl << endl;
+    }
+    J_exponent -= 0.5*v[0];
+    // cout << "J_exponent (delete) = " << J_exponent << endl;
+    J = exp(J_exponent);
+
+    // std::rotate(v.begin(),v.begin()+i,v.end()); // shift v's back
+
+    return J;
+}
 /*--------------------------------------------------------------------*/
 
 void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
@@ -2420,13 +2576,20 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertZero_worm_accepts,
                 unsigned long long int &insertZero_anti_attempts,
                 unsigned long long int &insertZero_anti_accepts,
-                RNG &rng, string trial_state, double kappa, double v){
-    
+                RNG &rng, string trial_state, double kappa, double v_old,
+                vector<int> &fock_state_at_zero, bool print_it){
+
+    // cout << "fock state at zero = ";
+    // for (int p=0; p<M; p++){
+    //     cout << fock_state_at_zero[p] << " ";
+    // }
+    // cout << "(initial) " << endl;
+
     // Variable declarations
     int n,src,next,n_head,n_tail,i,dest_replica;
     double tau_flat,l_path,dN,dV,p_type,tau_new,p_wormend,
     p_dz,p_iz;
-    long double C;
+    long double C,J;
     bool is_worm;
     long double R;
 
@@ -2548,74 +2711,10 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     
     // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
-    // if (is_worm){cout << "worm made it " << N_tracker << "+" << dN <<endl;}
-    // else{cout << "anti made it " << N_tracker << "+" << dN <<endl;}
-    // cout << "N_tracker = " << N_tracker << endl;
     if (canonical)
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
    
     // Build the trial wavefunction coefficient ratio C'/C
-    //------------- temporary (can make this segment a function jastrow_factor())------------
-    // vector<int> fock_edge(M,-1);
-    double tau_edge = 0.0; // insertZero
-    // int N_test = 0;
-    get_fock_state(tau_edge,M,fock_edge,paths); // get fock state at tau=0 edge
-    // for (int p=0; p<M; p++){
-    //     cout << paths[p].n << ",";
-    // }
-    // cout << endl << endl;
-    // for (int p=0; p<M; p++){
-    //     cout << fock_edge[p] << ",";
-    // }
-    // cout << endl << endl;
-    // exit(1);
-    // for (int p=0; p<M; p++){
-    //     N_test += fock_edge[p];
-    //     cout << fock_edge[p] << ",";
-    // }
-    // cout << "N_edge: "<< N_test << endl << endl;
-    // cout << "(Original)" << endl;
-    // for (int p=0; p<M; p++){
-    //     cout << v_i[p] << ",";
-    // }
-    // cout << endl << endl;
-    // cout << "(Shifted " << i << ")" << endl;
-    std::rotate(v_i.begin(),v_i.begin()+(v_i.size()-i),v_i.end()); // center v_i's on insertion site
-    // for (int p=0; p<M; p++){
-    //     cout << v_i[p] << ",";
-    // }
-    // cout << endl << endl;
-    long double J,J_exponent;
-    int delta;
-    J_exponent = 0.0;
-    // declare v_ij variational parameters globally for now
-    if (is_worm){ // worm
-        for (int j=0; j<M; j++ ){
-            if (j-i>=0){delta=j-i;}
-            else {delta=j-i+M;}
-            J_exponent -= v_i[j] * fock_edge[j];
-        }
-    }
-    else { // antiworm
-        for (int j=0; j<M; j++ ){
-            if (j-i>=0){delta=j-i;}
-            else {delta=j-i+M;}
-            J_exponent += v_i[j] * fock_edge[j];
-        }
-    }
-    J_exponent -= 0.5*v_i[i];
-    J = expl(J_exponent);
-    std::rotate(v_i.begin(),v_i.begin()+i,v_i.end()); // shift v_i's back
-    // cout << "(Shifted back)" << endl;
-    // for (int p=0; p<M; p++){
-    //     cout << v_i[p] << ",";
-    // }
-    // cout << endl << endl;
-
-
-
-     //------------- temporary ------------
-
     if (trial_state=="non-interacting"){
         if (is_worm){
             C = sqrt((N_zero+1)*1.0/n_tail);
@@ -2634,14 +2733,12 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     else if (trial_state=="jastrow"){
         if (is_worm){ // worm
+            J = jastrow_ratio(is_worm,fock_state_at_zero,M,i);
             C = J * sqrt((N_zero+1)*1.0/n_tail);
-            // cout << "insertZero_2 (worm) J = " << J << endl;
-            // cout << "insertZero_2 (worm) C = " << C << endl;
         }
         else { // antiworm
+            J = jastrow_ratio(is_worm,fock_state_at_zero,M,i);
             C = J * sqrt(n_tail*1.0/N_zero);
-            // cout << "insertZero_2 (anti) J = " << J << endl;
-            // cout << "insertZero_2 (anti) C = " << C << endl;
         }
     }
     else { // trial_state=="constant"
@@ -2677,6 +2774,9 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             
             // Update the number of particles in the initial kink at site i
             paths[i].n = n_tail;
+
+            // Update Fock State at zero edge
+            fock_state_at_zero[i] += 1;
             
             // Add to Acceptance counter
             insertZero_worm_accepts += 1;
@@ -2693,6 +2793,9 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             
             // Update number of particles in initial kink of insertion site
             paths[i].n = n_head;
+
+            // Update Fock State at zero edge
+            fock_state_at_zero[i] -= 1;
             
             // Add to Acceptance counter
             insertZero_anti_accepts += 1;
@@ -2716,6 +2819,13 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             if (is_worm){last_kinks[src]=head_idx;}
             else {last_kinks[src]=tail_idx;}
         }
+
+    //     cout << "fock state at zero = ";
+    // for (int p=0; p<M; p++){
+    //     cout << fock_state_at_zero[p] << " ";
+    // }
+    // cout << "(zero edge insertion at k= " << i << ")" << endl << endl;
+    // // exit(1);
 
         return;
     }
@@ -2945,14 +3055,21 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteZero_worm_accepts,
                 unsigned long long int &deleteZero_anti_attempts,
                 unsigned long long int &deleteZero_anti_accepts,
-                RNG &rng, string trial_state, double kappa, double v){
-    
+                RNG &rng, string trial_state, double kappa, double v_old,
+                vector<int> &fock_state_at_zero){
+
+    // cout << "fock state at zero = ";
+    // for (int p=0; p<M; p++){
+    //     cout << fock_state_at_zero[p] << " ";
+    // }
+    // cout << "(initial) " << endl;
+
     // Variable declarations
-    int n,src,prev,next,n_head,n_tail,worm_end_idx;
+    int n,src,prev,next,n_head,n_tail,worm_end_idx,i;
     double tau,tau_next,l_path,dN,dV,p_type,p_wormend,
     p_dz,p_iz;
-    long double C;
-    bool delete_head;
+    long double C,J;
+    bool delete_head,is_worm;
     long double R,Z;
 
     // Cannot delete if there are no worm ends present
@@ -3011,6 +3128,11 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     prev = paths[worm_end_idx].prev;
     next = paths[worm_end_idx].next;
 
+    // To simplify notation in computation of jastrow factor (if necessary)
+    i = src;
+    if (delete_head){is_worm=true;}
+    else{is_worm=false;}
+
     // Calculate the length of the flat interval (excluding the wormend)
     if (next == -1)
         tau_next = beta;
@@ -3055,54 +3177,6 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
         
     // Calculate diagonal energy difference
     dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
-    
-    // Build the trial wavefunction coefficient ratio C'/C
-    //------------- temporary (can make this segment a function jastrow_factor())------------
-    // vector<int> fock_edge(M,-1);
-    double tau_edge = 0.0; // deleteZero
-    int i=src; // deletion site
-    get_fock_state(tau_edge,M,fock_edge,paths);
-    // for (int p=0; p<M; p++){
-    //     cout << paths[p].n << ",";
-    // }
-    // cout << endl << endl;
-    // for (int p=0; p<M; p++){
-    //     cout << fock_edge[p] << ",";
-    // }
-    // cout << endl << endl;
-    // exit(1);
-    std::rotate(v_i.begin(),v_i.begin()+(v_i.size()-i),v_i.end()); // center v_i's on insertion site
-    long double J,J_exponent;
-    int delta;
-    J_exponent = 0.0;
-    // declare v_ij variational parameters globally for now
-    if (delete_head){ // worm
-        for (int j=0; j<M; j++ ){
-            if (j-i>=0){delta=j-i;}
-            else {delta=j-i+M;}
-            if (j!=i){
-                J_exponent -= (v_i[j]*(fock_edge[j]));
-            }
-            else{
-                J_exponent -= (v_i[j]*(fock_edge[i]-1));
-            }
-        }
-    }
-    else { // antiworm
-        for (int j=0; j<M; j++ ){
-            if (j-i>=0){delta=j-i;}
-            else {delta=j-i+M;}
-            if (j!=i){
-                J_exponent += (v_i[j]*(fock_edge[j]));
-            }
-            else{
-                J_exponent += (v_i[j]*(fock_edge[i]+1));
-            }
-        }
-    }
-    J_exponent -= 0.5*v_i[i];
-    J = expl(J_exponent);
-    std::rotate(v_i.begin(),v_i.begin()+i,v_i.end()); // shift v_i's back
 
      //------------- temporary ------------
     if (trial_state=="non-interacting"){
@@ -3122,11 +3196,13 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
         }
     }
     else if (trial_state=="jastrow"){
-        if (delete_head){ // worm
+        if (is_worm){ // worm
+            J = jastrow_ratio_delete(is_worm,fock_state_at_zero,M,i);
             C = J * sqrt((N_zero-1)*1.0/n_tail);
             // cout << "deleteZero_2 (worm) J = " << J << endl;
         }
         else { // antiworm
+            J = jastrow_ratio_delete(is_worm,fock_state_at_zero,M,i);
             C = J * sqrt(n_tail*1.0/(N_zero+1));
             // cout << "deleteZero_2 (anti) J = " << J << endl;
         }
@@ -3134,6 +3210,9 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     else { // trial_state=="constant"
         C = 1.0;
     }
+
+    // cout << J << endl;
+
   
 //     // Build the weigh ratio W'/W
 //     if (delete_head){ // delete worm
@@ -3202,6 +3281,9 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             
             // Worm deleted, subtract one to tau=0 particle tracker
             N_zero -= 1;
+
+            // Update Fock State at zero edge
+            fock_state_at_zero[i] -= 1;
         }
         else{
             tail_idx = -1;
@@ -3211,6 +3293,9 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             
             // Antiworm deleted, add one to tau=0 particle tracker
             N_zero += 1;
+
+            // Update Fock State at zero edge
+            fock_state_at_zero[i] += 1;
         }
         
         // Update trackers for: num of active kinks, total particles
@@ -3429,13 +3514,20 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertBeta_worm_accepts,
                 unsigned long long int &insertBeta_anti_attempts,
                 unsigned long long int &insertBeta_anti_accepts,
-                RNG &rng, string trial_state, double kappa, double v){
-    
+                RNG &rng, string trial_state, double kappa, double v_old,
+                vector<int> &fock_state_at_beta){
+
+    // cout << "fock state at beta = ";
+    // for (int p=0; p<M; p++){
+    //     cout << fock_state_at_beta[p] << " ";
+    // }
+    // cout << "(initial) " << endl;
+
     // Variable declarations
     int n,src,next,n_head,n_tail,i,src_replica;
     double tau_prev,
     l_path,dN,dV,p_type,tau_new,p_wormend,p_db,p_ib;
-    long double C;
+    long double C,J;
     bool is_worm; 
     long double R;
 
@@ -3555,36 +3647,7 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (canonical)
         if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
     
-    
     // Build the trial wavefunction coefficient ratio C'/C
-    //------------- temporary (can make this segment a function jastrow_factor())------------
-    // vector<int> fock_edge(M,-1);
-    double tau_edge = beta; // insertBeta
-    get_fock_state(tau_edge,M,fock_edge,paths);
-    std::rotate(v_i.begin(),v_i.begin()+(v_i.size()-i),v_i.end()); // center v_i's on insertion site
-    long double J,J_exponent;
-    int delta;
-    J_exponent = 0.0;
-    // declare v_ij variational parameters globally for now
-    if (is_worm){ // worm
-        for (int j=0; j<M; j++ ){
-            if (j-i>=0){delta=j-i;}
-            else {delta=j-i+M;}
-            J_exponent -= v_i[j] * fock_edge[j];
-        }
-    }
-    else { // antiworm
-        for (int j=0; j<M; j++ ){
-            if (j-i>=0){delta=j-i;}
-            else {delta=j-i+M;}
-            J_exponent += v_i[j] * fock_edge[j];
-        }
-    }
-    J_exponent -= 0.5*v_i[i];
-    J = expl(J_exponent);
-    std::rotate(v_i.begin(),v_i.begin()+i,v_i.end()); // shift v_i's back
-
-     //------------- temporary ------------
     if (trial_state=="non-interacting"){
         if (is_worm){
             C = sqrt((N_beta+1)*1.0/n_tail);
@@ -3603,10 +3666,12 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     else if (trial_state=="jastrow"){
         if (is_worm){ // worm
+            J = jastrow_ratio(is_worm,fock_state_at_beta,M,i);
             C = J * sqrt((N_beta+1)*1.0/n_tail);
             // cout << "insertBeta_2 (worm) J = " << J << endl;
         }
         else { // antiworm
+            J = jastrow_ratio(is_worm,fock_state_at_beta,M,i);
             C = J * sqrt(n_tail*1.0/(N_beta));
             // cout << "insertBeta_2 (anti) J = " << J << endl;
         }
@@ -3648,6 +3713,9 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             
             // Worm inserted, add one to tau=beta particle tracker
             N_beta += 1;
+    
+            // Update Fock State at beta edge
+            fock_state_at_beta[i] += 1;
         }
         else{ // antiworm
             paths[num_kinks] = Kink (tau_new,n_head,src,src,
@@ -3662,6 +3730,9 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             
             // Antiworm inserted, subtract one to tau=beta particle tracker
             N_beta -= 1;
+
+            // Update Fock State at beta edge
+            fock_state_at_beta[i] -= 1;
         }
         
         // "Connect" next of lower bound kink to the new worm end
@@ -3676,6 +3747,13 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             if (is_worm){last_kinks[src]=tail_idx;}
             else {last_kinks[src]=head_idx;}
         }
+
+    //     cout << "fock state at beta = ";
+    // for (int p=0; p<M; p++){
+    //     cout << fock_state_at_beta[p] << " ";
+    // }
+    // cout << "(beta edge insertion at k= " << i << ")" << endl << endl;
+
         return;
     }
     else // Reject
@@ -3900,13 +3978,20 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteBeta_worm_accepts,
                 unsigned long long int &deleteBeta_anti_attempts,
                 unsigned long long int &deleteBeta_anti_accepts,
-                RNG &rng, string trial_state, double kappa, double v){
+                RNG &rng, string trial_state, double kappa, double v_old,
+                vector<int> &fock_state_at_beta){
+
+    // cout << "fock state at beta = ";
+    // for (int p=0; p<M; p++){
+    //     cout << fock_state_at_beta[p] << " ";
+    // }
+    // cout << "(initial) " << endl;
     
     // Variable declarations
-    int n,src,prev,next,n_head,n_tail,worm_end_idx;
+    int n,src,prev,next,n_head,n_tail,worm_end_idx,i;
     double tau,tau_prev,l_path,dN,dV,p_type,p_wormend,p_db,p_ib;
-    long double C;
-    bool delete_head;
+    long double C,J;
+    bool delete_head,is_worm;
     long double R;
 
     // Cannot delete if there are no worm ends present
@@ -3966,6 +4051,11 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     prev = paths[worm_end_idx].prev;
     next = paths[worm_end_idx].next;
 
+    // To simplify notation in computation of jastrow factor (if necessary)
+    i = src;
+    if (!delete_head){is_worm=true;}
+    else{is_worm=false;}
+
     // Calculate the length of the flat interval (excluding the worm end)
     tau_prev = paths[prev].tau;
 
@@ -4010,53 +4100,6 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (delete_head){dV *= -1;}
      
     // Build the trial wavefunction coefficient ratio C'/C
-    //------------- temporary (can make this segment a function jastrow_factor())------------
-    // vector<int> fock_edge(M,-1);
-    double tau_edge = beta; // insertZero
-    int i=src;
-    get_fock_state(tau_edge,M,fock_edge,paths);
-    // for (int p=0; p<M; p++){
-    //     cout << paths[last_kinks[p]].n << ",";
-    // }
-    // cout << endl << endl;
-    // for (int p=0; p<M; p++){
-    //     cout << fock_edge[p] << ",";
-    // }
-    // cout << endl << endl;
-    // exit(1);
-    std::rotate(v_i.begin(),v_i.begin()+(v_i.size()-i),v_i.end()); // center v_i's on insertion site
-    long double J,J_exponent;
-    int delta;
-    J_exponent = 0.0;
-    // declare v_ij variational parameters globally for now
-    if (!delete_head){ // worm
-        for (int j=0; j<M; j++ ){
-            if (j-i>=0){delta=j-i;}
-            else {delta=j-i+M;}
-            if (j!=i){
-                J_exponent -= (v_i[j]*(fock_edge[j]));
-            }
-            else{
-                J_exponent -= (v_i[j]*(fock_edge[i]-1));
-            }
-        }
-    }
-    else { // antiworm
-        for (int j=0; j<M; j++ ){
-            if (j-i>=0){delta=j-i;}
-            else {delta=j-i+M;}
-            if (j!=i){
-                J_exponent += (v_i[j]*(fock_edge[j]));
-            }
-            else{
-                J_exponent += (v_i[j]*(fock_edge[i]+1));
-            }
-        }
-    }
-    J_exponent -= 0.5*v_i[i];
-    J = expl(J_exponent);
-    std::rotate(v_i.begin(),v_i.begin()+i,v_i.end()); // shift v_i's back
-     //------------- temporary ------------
     if (trial_state=="non-interacting"){
         if (!delete_head){ // delete worm
             C = sqrt((N_beta-1)*1.0/n_tail);
@@ -4074,11 +4117,13 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
         }
     }
     else if (trial_state=="jastrow"){
-        if (!delete_head){ // worm
+        if (is_worm){ // worm
+            J = jastrow_ratio_delete(is_worm,fock_state_at_beta,M,i);
             C = J * sqrt((N_beta-1)*1.0/n_tail);
             // cout << "deleteBeta_2 (worm) J = " << J << endl;
         }
         else { // antiworm
+            J = jastrow_ratio_delete(is_worm,fock_state_at_beta,M,i);
             C = J * sqrt(n_tail*1.0/(N_beta+1));
             // cout << "deleteBeta_2 (anti) J = " << J << endl;
         }
@@ -4086,6 +4131,8 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     else { // trial_state=="constant"
         C = 1.0;
     }
+
+    // cout << J << endl;
 
 //     // Build the weigh ratio W'/W
 //     // C = 1.0;
@@ -4153,6 +4200,9 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             
             // Antiworm deleted, add one to tau=beta particle tracker
             N_beta += 1;
+
+            // Update Fock State at beta edge
+            fock_state_at_beta[i] += 1;
         }
         else{
             tail_idx = -1;
@@ -4162,6 +4212,9 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             
             // Worm deleted, subtracts one to tau=beta particle tracker
             N_beta -= 1;
+
+            // Update Fock State at beta edge
+            fock_state_at_beta[i] -= 1;
         }
         
         // Update trackers for: num of active kinks, total particles

@@ -136,12 +136,12 @@ int main(int argc, char** argv){
 
     string trial_state=result["trial-state"].as<string>();
     double kappa=result["kappa"].as<double>();
-    double v=result["v"].as<double>();
+    double v_old=result["v"].as<double>();
     if (trial_state=="gutzwiller" && kappa==-12345.6789){
         cout<<"ERROR: Gutzwiller state chosen; specify kappa"<<endl;
         exit(1);
     }
-    if (trial_state=="jastrow" && v==-12345.6789){
+    if (trial_state=="jastrow" && v_old==-12345.6789){
         cout<<"ERROR: Jastrow state chosen; specify v"<<endl;
         exit(1);
     }
@@ -395,6 +395,7 @@ int main(int argc, char** argv){
     // Measurement settings
     measurement_center=beta/2.0;
     measurement_plus_minus=0.10*beta;
+    // measurement_plus_minus=0.45*beta;
     bin_size=result["bin-size"].as<int>();
     measurement_centers=get_measurement_centers(beta);
     for (int i=0;i<M;i++){
@@ -405,10 +406,31 @@ int main(int argc, char** argv){
     // Initialize accumulator of number of flat regions
     N_flats_mean=0.0;
     N_flats_samples=0;
-        
+
+    // Initialize vectors that store Fock state at the edges
+    // NOTE: NEED TO GENERALIZE TO MORE REPLICAS FOR ENTANGLEMENT MEASUREMENT
+    // NOTE: NEED TO IMPLEMENT TO RESTARTS
+    vector<int> fock_state_at_zero(M,-1);
+    vector<int> fock_state_at_beta(M,-1);
+
+    get_fock_state_at_zero(M,fock_state_at_zero,paths[0]);
+    get_fock_state_at_beta(M,last_kinks[0],fock_state_at_beta,paths[0]);
+
+        cout << "fock state at zero = ";
+        for (int p=0; p<M; p++){
+            cout << fock_state_at_zero[p] << " ";
+        }
+        cout << "(initial) ";
+        cout << endl;
+        cout << "fock state at beta = ";
+        for (int p=0; p<M; p++){
+            cout << fock_state_at_beta[p] << " ";
+        }
+        cout << "(initial) ";
+        cout << endl << endl;
+
 /*------------------- Try drawing a pretty welcome message -------------------*/
 
-// cout << "sub-sites: ";
 // for (int i=0; i<sub_sites.size(); i++){
 //     cout << sub_sites[i] << " ";
 // }
@@ -485,6 +507,8 @@ int main(int argc, char** argv){
         N_beta.clear();
         last_kinks.clear();
         paths.clear();
+        std::fill(fock_state_at_zero.begin(),fock_state_at_zero.end(),0);
+        std::fill(fock_state_at_beta.begin(),fock_state_at_beta.end(),0);
         for (int r=0;r<num_replicas;r++){
             num_kinks.push_back(M);
             N_tracker.push_back(N);
@@ -498,6 +522,11 @@ int main(int argc, char** argv){
             
             paths.push_back(create_paths(initial_fock_state,M,r));
         }
+        get_fock_state_at_zero(M,fock_state_at_zero,
+                                                    paths[0]);
+        get_fock_state_at_beta(M,last_kinks[0],fock_state_at_beta,
+                                                    paths[0]);
+
         
         N_data.clear();
         N_hist.clear();
@@ -515,6 +544,8 @@ int main(int argc, char** argv){
         std::fill(measurement_attempts.begin(),measurement_attempts.end(),0);
         
         for (unsigned long long int m_pre=0;m_pre<sweeps_pre;m_pre++){
+
+        bool print_it = false;
             
         label = rng_ptr->randInt(14);
 
@@ -538,7 +569,7 @@ int main(int argc, char** argv){
                          N_zero[0],N_beta[0],last_kinks[0],
                          dummy_counter,dummy_counter,
                          dummy_counter,dummy_counter,*rng_ptr,trial_state,
-                         kappa,v);
+                         kappa,v_old,fock_state_at_zero,print_it);
 
               }
             else if (label==3){ // deleteZero
@@ -547,7 +578,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
                             dummy_counter,dummy_counter,*rng_ptr,trial_state,
-                            kappa,v);
+                            kappa,v_old,fock_state_at_zero);
             }
             else if (label==4){ // insertBeta
                 insertBeta_2(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -555,7 +586,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
                             dummy_counter,dummy_counter,*rng_ptr,
-                            trial_state,kappa,v);
+                            trial_state,kappa,v_old,fock_state_at_beta);
             }
             else if (label==5){ // deleteBeta
                 deleteBeta_2(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -563,7 +594,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
                             dummy_counter,dummy_counter,*rng_ptr,
-                            trial_state,kappa,v);
+                            trial_state,kappa,v_old,fock_state_at_beta);
             }
             else if (label==6){ // timeshift
                 timeshift(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -1072,6 +1103,8 @@ int main(int argc, char** argv){
         N_beta.clear();
         last_kinks.clear();
         paths.clear();
+        std::fill(fock_state_at_zero.begin(),fock_state_at_zero.end(),0);
+        std::fill(fock_state_at_beta.begin(),fock_state_at_beta.end(),0);
         for (int r=0;r<num_replicas;r++){
             num_kinks.push_back(M);
             N_tracker.push_back(N);
@@ -1085,6 +1118,9 @@ int main(int argc, char** argv){
             
             paths.push_back(create_paths(initial_fock_state,M,r));
         }
+        get_fock_state_at_zero(M,fock_state_at_zero,paths[0]);
+        get_fock_state_at_beta(M,last_kinks[0],fock_state_at_beta,paths[0]);
+
     }
     else{ // Restarted simulation
                         
@@ -1122,6 +1158,9 @@ int main(int argc, char** argv){
         N_beta = get_N_beta(paths,num_replicas,M);
         last_kinks = get_last_kinks(paths,num_replicas,M);
         num_swaps = get_num_swaps(paths,num_replicas,M);
+        get_fock_state_at_zero(M,fock_state_at_zero,paths[0]);
+        get_fock_state_at_beta(M,last_kinks[0],fock_state_at_beta,paths[0]);
+
     }
 
     Z_frac=0.0;
@@ -1186,9 +1225,15 @@ int main(int argc, char** argv){
     }
     bins_written=0; // tracks how many beens have been written
     
+    bool print_it;
     while(bins_written<bins_wanted){
+    
+        if (bins_written > bins_wanted/4){ print_it = false;}
+        else{ print_it = false;}
 
     for (int r=0;r<num_replicas;r++){
+
+
         
         label = rng_ptr->randInt(14);
 
@@ -1213,7 +1258,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertZero_worm_attempts,insertZero_worm_accepts,
                        insertZero_anti_attempts,insertZero_anti_accepts,*rng_ptr,
-                       trial_state,kappa,v);
+                       trial_state,kappa,v_old,fock_state_at_zero,print_it);
             
         }
         else if (label==3){ // deleteZero
@@ -1222,7 +1267,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteZero_worm_attempts,deleteZero_worm_accepts,
                        deleteZero_anti_attempts,deleteZero_anti_accepts,*rng_ptr,
-                       trial_state,kappa,v);
+                       trial_state,kappa,v_old,fock_state_at_zero);
         }
         else if (label==4){ // insertBeta
             insertBeta_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -1230,7 +1275,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertBeta_worm_attempts,insertBeta_worm_accepts,
                        insertBeta_anti_attempts,insertBeta_anti_accepts,*rng_ptr,
-                       trial_state,kappa,v);
+                       trial_state,kappa,v_old,fock_state_at_beta);
         }
         else if (label==5){ // deleteBeta
             deleteBeta_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -1238,7 +1283,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteBeta_worm_attempts,deleteBeta_worm_accepts,
                        deleteBeta_anti_attempts,deleteBeta_anti_accepts,*rng_ptr,
-                       trial_state,kappa,v);
+                       trial_state,kappa,v_old,fock_state_at_beta);
         }
         else if (label==6){ // timeshift
             timeshift(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -1473,6 +1518,8 @@ int main(int argc, char** argv){
 
                     if (N_zero[r]==N && N_beta[r]==N && canonical){ // canonical measurement
 
+
+
                     // Round out N_tracker since it might have
                     // floating point errors after a while
                     for (int r=0; r<num_replicas; r++){
@@ -1482,7 +1529,14 @@ int main(int argc, char** argv){
                     // Get fock state at desired measurement center
                     get_fock_state(measurement_center,M,fock_state_at_slice,
                                    paths[r]);
-                        
+
+                    // get_fock_state(0.00,M,fock_state_at_zero,
+                    //                paths[r]);
+
+                    // get_fock_state(beta,M,fock_state_at_beta,
+                    //                paths[r]);
+
+                                       
                     // Measure and accumulate <K>
                     kinetic_energy+=pimc_kinetic_energy(paths[r],num_kinks[r],measurement_center,
                         measurement_plus_minus,M,t,beta);
@@ -1541,6 +1595,22 @@ int main(int argc, char** argv){
                         
                     // Take binned averages and write to disk
                     if (writing_ctr==bin_size){
+
+                    //     cout << "fock state at zero = ";
+                    //     for (int p=0; p<M; p++){
+                    //         cout << fock_state_at_zero[p] << " ";
+                    //     }
+                    //     cout << endl;
+                    // cout << "fock state at mid  = ";
+                    // for (int p=0; p<M; p++){
+                    //     cout << fock_state_at_slice[p] << " ";
+                    // }
+                    // cout << endl;
+                    //     cout << "fock state at beta = ";
+                    //     for (int p=0; p<M; p++){
+                    //         cout << fock_state_at_beta[p] << " ";
+                    //     }
+                    //     cout << endl << endl;
                         
                         // Round out N_tracker since it might have
                         // floating point errors after a while
