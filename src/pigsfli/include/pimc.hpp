@@ -37,39 +37,39 @@ using namespace std::chrono;
 // vector<double> v{-0.16,-0.0002,-0.001,-0.0025,-0.0001,-0.007,-0.000001,
 // -0.0015,-0.0098,-0.0054,-0.0031,-0.002};
 
-// vector<double> v{ 3.2517620e-01,  2.0962960e-01,  1.5554618e-01,  1.2211202e-01,
-//         9.8614440e-02,  8.0873620e-02,  6.6948640e-02,  5.5733600e-02,
-//         4.6558460e-02,  3.8981000e-02,  3.2663420e-02,  2.7339220e-02,
-//         2.2867880e-02,  1.9090530e-02,  1.5881634e-02,  1.3159054e-02,
-//         1.0874230e-02,  8.9334560e-03,  7.3198500e-03,  5.9763480e-03,
-//         4.8419340e-03,  3.8898140e-03,  3.0875040e-03,  2.4032100e-03,
-//         1.8198904e-03,  1.3358778e-03,  9.0982140e-04,  6.0182260e-04,
-//         3.5976940e-04,  1.8775026e-04,  8.4795680e-05,  8.3339820e-06,
-//         0.0000000e+00,  8.3339820e-06,  8.4795680e-05,  1.8775026e-04,
-//         3.5976940e-04,  6.0182260e-04,  9.0982140e-04,  1.3358778e-03,
-//         1.8198904e-03,  2.4032100e-03,  3.0875040e-03,  3.8898140e-03,
-//         4.8419340e-03,  5.9763480e-03,  7.3198500e-03,  8.9334560e-03,
-//         1.0874230e-02,  1.3159054e-02,  1.5881634e-02,  1.9090530e-02,
-//         2.2867880e-02,  2.7339220e-02,  3.2663420e-02,  3.8981000e-02,
-//         4.6558460e-02,  5.5733600e-02,  6.6948640e-02,  8.0873620e-02,
-//         9.8614440e-02,  1.2211202e-01,  1.5554618e-01,  2.0962960e-01};
+// vector<double> v{ 3.2517620E-01,  2.0962960E-01,  1.5554618E-01,  1.2211202E-01,
+//         9.8614440E-02,  8.0873620E-02,  6.6948640E-02,  5.5733600E-02,
+//         4.6558460E-02,  3.8981000E-02,  3.2663420E-02,  2.7339220E-02,
+//         2.2867880E-02,  1.9090530E-02,  1.5881634E-02,  1.3159054E-02,
+//         1.0874230E-02,  8.9334560E-03,  7.3198500E-03,  5.9763480E-03,
+//         4.8419340E-03,  3.8898140E-03,  3.0875040E-03,  2.4032100E-03,
+//         1.8198904E-03,  1.3358778E-03,  9.0982140E-04,  6.0182260E-04,
+//         3.5976940E-04,  1.8775026E-04,  8.4795680E-05,  8.3339820E-06,
+//         0.0000000E+00,  8.3339820E-06,  8.4795680E-05,  1.8775026E-04,
+//         3.5976940E-04,  6.0182260E-04,  9.0982140E-04,  1.3358778E-03,
+//         1.8198904E-03,  2.4032100E-03,  3.0875040E-03,  3.8898140E-03,
+//         4.8419340E-03,  5.9763480E-03,  7.3198500E-03,  8.9334560E-03,
+//         1.0874230E-02,  1.3159054E-02,  1.5881634E-02,  1.9090530E-02,
+//         2.2867880E-02,  2.7339220E-02,  3.2663420E-02,  3.8981000E-02,
+//         4.6558460E-02,  5.5733600E-02,  6.6948640E-02,  8.0873620E-02,
+//         9.8614440E-02,  1.2211202E-01,  1.5554618E-01,  2.0962960E-01};
 
-// vector<double> v{1.625881e+00, 1.048148e+00, 7.777309e-01, 6.105601e-01,
-//        4.930722e-01, 4.043681e-01, 3.347432e-01, 2.786680e-01,
-//        2.327923e-01, 1.949050e-01, 1.633171e-01, 1.366961e-01,
-//        1.143394e-01, 9.545265e-02, 7.940817e-02, 6.579527e-02,
-//        5.437115e-02, 4.466728e-02, 3.659925e-02, 2.988174e-02,
-//        2.420967e-02, 1.944907e-02, 1.543752e-02, 1.201605e-02,
-//        9.099452e-03, 6.679389e-03, 4.549107e-03, 3.009113e-03,
-//        1.798847e-03, 9.387513e-04, 4.239784e-04, 4.166991e-05,
-//        0.000000e+00, 4.166991e-05, 4.239784e-04, 9.387513e-04,
-//        1.798847e-03, 3.009113e-03, 4.549107e-03, 6.679389e-03,
-//        9.099452e-03, 1.201605e-02, 1.543752e-02, 1.944907e-02,
-//        2.420967e-02, 2.988174e-02, 3.659925e-02, 4.466728e-02,
-//        5.437115e-02, 6.579527e-02, 7.940817e-02, 9.545265e-02,
-//        1.143394e-01, 1.366961e-01, 1.633171e-01, 1.949050e-01,
-//        2.327923e-01, 2.786680e-01, 3.347432e-01, 4.043681e-01,
-//        4.930722e-01, 6.105601e-01, 7.777309e-01, 1.048148e+00};
+// vector<double> v{1.625881E+00, 1.048148E+00, 7.777309E-01, 6.105601E-01,
+//        4.930722E-01, 4.043681E-01, 3.347432E-01, 2.786680E-01,
+//        2.327923E-01, 1.949050E-01, 1.633171E-01, 1.366961E-01,
+//        1.143394E-01, 9.545265E-02, 7.940817E-02, 6.579527E-02,
+//        5.437115E-02, 4.466728E-02, 3.659925E-02, 2.988174E-02,
+//        2.420967E-02, 1.944907E-02, 1.543752E-02, 1.201605E-02,
+//        9.099452E-03, 6.679389E-03, 4.549107E-03, 3.009113E-03,
+//        1.798847E-03, 9.387513E-04, 4.239784E-04, 4.166991E-05,
+//        0.000000E+00, 4.166991E-05, 4.239784E-04, 9.387513E-04,
+//        1.798847E-03, 3.009113E-03, 4.549107E-03, 6.679389E-03,
+//        9.099452E-03, 1.201605E-02, 1.543752E-02, 1.944907E-02,
+//        2.420967E-02, 2.988174E-02, 3.659925E-02, 4.466728E-02,
+//        5.437115E-02, 6.579527E-02, 7.940817E-02, 9.545265E-02,
+//        1.143394E-01, 1.366961E-01, 1.633171E-01, 1.949050E-01,
+//        2.327923E-01, 2.786680E-01, 3.347432E-01, 4.043681E-01,
+//        4.930722E-01, 6.105601E-01, 7.777309E-01, 1.048148E+00};
 
 // vector<double> v{1.625881 , 1.048148 , 0., 0., 0.       , 0.       ,
 //        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
@@ -83,55 +83,99 @@ using namespace std::chrono;
 //        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
 //        0.       , 0., 0., 1.048148};
 
-// vector<double> v{8.1294050e-01, 5.2407400e-01, 3.8886545e-01, 3.0528005e-01,
-//        2.4653610e-01, 2.0218405e-01, 1.6737160e-01, 1.3933400e-01,
-//        1.1639615e-01, 9.7452500e-02, 8.1658550e-02, 6.8348050e-02,
-//        5.7169700e-02, 4.7726325e-02, 3.9704085e-02, 3.2897635e-02,
-//        2.7185575e-02, 2.2333640e-02, 1.8299625e-02, 1.4940870e-02,
-//        1.2104835e-02, 9.7245350e-03, 7.7187600e-03, 6.0080250e-03,
-//        4.5497260e-03, 3.3396945e-03, 2.2745535e-03, 1.5045565e-03,
-//        8.9942350e-04, 4.6937565e-04, 2.1198920e-04, 2.0834955e-05,
-//        0.0000000e+00, 2.0834955e-05, 2.1198920e-04, 4.6937565e-04,
-//        8.9942350e-04, 1.5045565e-03, 2.2745535e-03, 3.3396945e-03,
-//        4.5497260e-03, 6.0080250e-03, 7.7187600e-03, 9.7245350e-03,
-//        1.2104835e-02, 1.4940870e-02, 1.8299625e-02, 2.2333640e-02,
-//        2.7185575e-02, 3.2897635e-02, 3.9704085e-02, 4.7726325e-02,
-//        5.7169700e-02, 6.8348050e-02, 8.1658550e-02, 9.7452500e-02,
-//        1.1639615e-01, 1.3933400e-01, 1.6737160e-01, 2.0218405e-01,
-//        2.4653610e-01, 3.0528005e-01, 3.8886545e-01, 5.2407400e-01};
+// vector<double> v{8.1294050E-01, 5.2407400E-01, 3.8886545E-01, 3.0528005E-01,
+//        2.4653610E-01, 2.0218405E-01, 1.6737160E-01, 1.3933400E-01,
+//        1.1639615E-01, 9.7452500E-02, 8.1658550E-02, 6.8348050E-02,
+//        5.7169700E-02, 4.7726325E-02, 3.9704085E-02, 3.2897635E-02,
+//        2.7185575E-02, 2.2333640E-02, 1.8299625E-02, 1.4940870E-02,
+//        1.2104835E-02, 9.7245350E-03, 7.7187600E-03, 6.0080250E-03,
+//        4.5497260E-03, 3.3396945E-03, 2.2745535E-03, 1.5045565E-03,
+//        8.9942350E-04, 4.6937565E-04, 2.1198920E-04, 2.0834955E-05,
+//        0.0000000E+00, 2.0834955E-05, 2.1198920E-04, 4.6937565E-04,
+//        8.9942350E-04, 1.5045565E-03, 2.2745535E-03, 3.3396945E-03,
+//        4.5497260E-03, 6.0080250E-03, 7.7187600E-03, 9.7245350E-03,
+//        1.2104835E-02, 1.4940870E-02, 1.8299625E-02, 2.2333640E-02,
+//        2.7185575E-02, 3.2897635E-02, 3.9704085E-02, 4.7726325E-02,
+//        5.7169700E-02, 6.8348050E-02, 8.1658550E-02, 9.7452500E-02,
+//        1.1639615E-01, 1.3933400E-01, 1.6737160E-01, 2.0218405E-01,
+//        2.4653610E-01, 3.0528005E-01, 3.8886545E-01, 5.2407400E-01};
 
-// Optimized for L=64,U=3.3578
-vector<double> v{1.625881e+00, 1.048148e+00, 7.777309e-01, 6.105601e-01,
-       4.930722e-01, 4.043681e-01, 3.347432e-01, 2.786680e-01,
-       2.327923e-01, 1.949050e-01, 1.633171e-01, 1.366961e-01,
-       1.143394e-01, 9.545265e-02, 7.940817e-02, 6.579527e-02,
-       5.437115e-02, 4.466728e-02, 3.659925e-02, 2.988174e-02,
-       2.420967e-02, 1.944907e-02, 1.543752e-02, 1.201605e-02,
-       9.099452e-03, 6.679389e-03, 4.549107e-03, 3.009113e-03,
-       1.798847e-03, 9.387513e-04, 4.239784e-04, 4.166991e-05,
-       0.000000e+00};
+// Optimized for L=64,N=64,U=3.3578
+vector<double> v{1.625881E+00, 1.048148E+00, 7.777309E-01, 6.105601E-01,
+       4.930722E-01, 4.043681E-01, 3.347432E-01, 2.786680E-01,
+       2.327923E-01, 1.949050E-01, 1.633171E-01, 1.366961E-01,
+       1.143394E-01, 9.545265E-02, 7.940817E-02, 6.579527E-02,
+       5.437115E-02, 4.466728E-02, 3.659925E-02, 2.988174E-02,
+       2.420967E-02, 1.944907E-02, 1.543752E-02, 1.201605E-02,
+       9.099452E-03, 6.679389E-03, 4.549107E-03, 3.009113E-03,
+       1.798847E-03, 9.387513E-04, 4.239784E-04, 4.166991E-05,
+       0.000000E+00};
+
+// vector<double> v_minus{1.625881E+00, 1.048148E+00, 7.777309E-01, 6.105601E-01,
+//        4.930722E-01, 4.043681E-01, 3.347432E-01, 2.786680E-01,
+//        2.327923E-01, 1.949050E-01, 1.633171E-01, 1.366961E-01,
+//        1.143394E-01, 9.545265E-02, 7.940817E-02, 6.579527E-02,
+//        5.437115E-02, 4.466728E-02, 3.659925E-02, 2.988174E-02,
+//        2.420967E-02, 1.944907E-02, 1.543752E-02, 1.201605E-02,
+//        9.099452E-03, 6.679389E-03, 4.549107E-03, 3.009113E-03,
+//        1.798847E-03, 9.387513E-04, 4.239784E-04, 4.166991E-05,
+//        0.000000E+00};
+
+// vector<double> v_plus{1.625881E+00, 1.048148E+00, 7.777309E-01, 6.105601E-01,
+//        4.930722E-01, 4.043681E-01, 3.347432E-01, 2.786680E-01,
+//        2.327923E-01, 1.949050E-01, 1.633171E-01, 1.366961E-01,
+//        1.143394E-01, 9.545265E-02, 7.940817E-02, 6.579527E-02,
+//        5.437115E-02, 4.466728E-02, 3.659925E-02, 2.988174E-02,
+//        2.420967E-02, 1.944907E-02, 1.543752E-02, 1.201605E-02,
+//        9.099452E-03, 6.679389E-03, 4.549107E-03, 3.009113E-03,
+//        1.798847E-03, 9.387513E-04, 4.239784E-04, 4.166991E-05,
+//        0.000000E+00};
+
+// // Optimized for L=64,N-1=63,U=3.3578
+vector<double> v_minus{0.1838515E+01,0.1257052E+01,0.9829405E+00,0.8111121E+00,
+        0.6880079E+00,0.5926589E+00,0.5154230E+00,0.4510010E+00,
+        0.3958168E+00,0.3481990E+00,0.3063461E+00,0.2694546E+00,
+        0.2365700E+00,0.2071930E+00,0.1808217E+00,0.1572558E+00,
+        0.1360164E+00,0.1168063E+00,0.9960700E-01,0.8435079E-01,
+        0.7084361E-01,0.5864457E-01,0.4784104E-01,0.3833292E-01,
+        0.2991798E-01,0.2273866E-01,0.1665206E-01,0.1154433E-01,
+        0.7554742E-02,0.4337178E-02,0.1902896E-02,0.5176960E-03,
+        0.000000E+00};
+
+// // Optimized for L=64,N+1=65,U=3.3578
+vector<double> v_plus{0.1823105E+01,0.1246333E+01,0.9749262E+00,0.8048625E+00,
+        0.6828646E+00,0.5883580E+00,0.5117156E+00,0.4475514E+00,
+        0.3929206E+00,0.3456165E+00,0.3041864E+00,0.2675363E+00,
+        0.2350314E+00,0.2059986E+00,0.1798679E+00,0.1567103E+00,
+        0.1356862E+00,0.1168733E+00,0.9993806E-01,0.8472419E-01,
+        0.7121235E-01,0.5928081E-01,0.4867053E-01,0.3906685E-01,
+        0.3071542E-01,0.2354202E-01,0.1753628E-01,0.1226348E-01,
+        0.7751994E-02,0.4427018E-02,0.2012376E-02,0.4844157E-03,
+        0.000000E+00};
+
+
 
 // U/t = 2.0
-// vector<double> v{1.271701e+00, 9.165332e-01, 7.297424e-01, 6.082873e-01,
-//        5.197703e-01, 4.506179e-01, 3.941231e-01, 3.465468e-01,
-//        3.056239e-01, 2.699670e-01, 2.384965e-01, 2.104728e-01,
-//        1.854160e-01, 1.629088e-01, 1.426244e-01, 1.243158e-01,
-//        1.078597e-01, 9.300705e-02, 7.962102e-02, 6.759296e-02,
-//        5.676928e-02, 4.708107e-02, 3.847660e-02, 3.084347e-02,
-//        2.415341e-02, 1.831201e-02, 1.335686e-02, 9.227781e-03,
-//        5.899738e-03, 3.278447e-03, 1.435390e-03, 3.232842e-04,
-//        0.000000e+00};
+// vector<double> v{1.271701E+00, 9.165332E-01, 7.297424E-01, 6.082873E-01,
+//        5.197703E-01, 4.506179E-01, 3.941231E-01, 3.465468E-01,
+//        3.056239E-01, 2.699670E-01, 2.384965E-01, 2.104728E-01,
+//        1.854160E-01, 1.629088E-01, 1.426244E-01, 1.243158E-01,
+//        1.078597E-01, 9.300705E-02, 7.962102E-02, 6.759296E-02,
+//        5.676928E-02, 4.708107E-02, 3.847660E-02, 3.084347E-02,
+//        2.415341E-02, 1.831201E-02, 1.335686E-02, 9.227781E-03,
+//        5.899738E-03, 3.278447E-03, 1.435390E-03, 3.232842E-04,
+//        0.000000E+00};
 
 // U/t = 1.0
-// vector<double> v{8.654201e-01, 6.748730e-01, 5.580728e-01, 4.767725e-01,
-//        4.152224e-01, 3.658466e-01, 3.246041e-01, 2.891843e-01,
-//        2.581594e-01, 2.306021e-01, 2.058635e-01, 1.834956e-01,
-//        1.631928e-01, 1.446917e-01, 1.277795e-01, 1.123129e-01,
-//        9.815439e-02, 8.519871e-02, 7.340501e-02, 6.265848e-02,
-//        5.291495e-02, 4.410442e-02, 3.619346e-02, 2.913576e-02,
-//        2.290222e-02, 1.745228e-02, 1.276994e-02, 8.842698e-03,
-//        5.643732e-03, 3.161468e-03, 1.415490e-03, 3.570709e-04,
-//        0.000000e+00};
+// vector<double> v{8.654201E-01, 6.748730E-01, 5.580728E-01, 4.767725E-01,
+//        4.152224E-01, 3.658466E-01, 3.246041E-01, 2.891843E-01,
+//        2.581594E-01, 2.306021E-01, 2.058635E-01, 1.834956E-01,
+//        1.631928E-01, 1.446917E-01, 1.277795E-01, 1.123129E-01,
+//        9.815439E-02, 8.519871E-02, 7.340501E-02, 6.265848E-02,
+//        5.291495E-02, 4.410442E-02, 3.619346E-02, 2.913576E-02,
+//        2.290222E-02, 1.745228E-02, 1.276994E-02, 8.842698E-03,
+//        5.643732E-03, 3.161468E-03, 1.415490E-03, 3.570709E-04,
+//        0.000000E+00};
 
 // vector<double> v{1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
 //        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
@@ -693,7 +737,7 @@ vector<double> get_N_tracker(vector<vector<Kink> > paths,
 
             N_tracker[r] += dN;
         }
-        // N_tracker[r] = round(N_tracker[r]);
+        N_tracker[r] = round(N_tracker[r]);
                 
     }
     return N_tracker;
@@ -1249,6 +1293,13 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     p_iw = 0.5;
     R = eta * eta * n_tail * expl(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
     num_kinks * tau_flat * tau_flat;
+    // if (!is_worm){
+    //     cout << "eta^2: " << eta*eta << endl;
+    //     cout << "n_tail: " << n_tail << endl;
+    //     cout << "expl(-dV*(tau_h-tau_t)): " << expl(-dV*(tau_h-tau_t)) << endl;
+    //     cout << "num_kinks: " << num_kinks << endl;
+    //     cout << "tau_flat^2: " << tau_flat*tau_flat<< endl << endl;
+    // }
     // if (is_worm){cout << "R (insert worm) = " << R << endl;}
     // else{cout << "R (insert anti) = " << R << endl;}
 
@@ -2459,6 +2510,298 @@ void insertZero(vector<Kink> &paths, int &num_kinks, int &head_idx,
 }
 /*--------------------------------------------------------------------*/
 
+long double extended_jastrow_ratio(bool is_worm,vector<int> &fock_state_at_edge, 
+                   int M, int insertion_site,
+                   int N, int N_zero, int N_beta, string tau_edge){
+
+    long double J,J_exponent_0,J_exponent_1,J_exponent_2,gamma_ratio;
+    int i,delta;
+    vector<double> v_new,v_old;
+    double v_diff;
+    
+    i = insertion_site;
+    J_exponent_0 = 0.0;
+    J_exponent_1 = 0.0;
+    J_exponent_2 = 0.0;
+
+    // set the variational parameters based on particle number at edges
+    if (tau_edge=="zero"){
+        if (N_zero==N){
+            v_old = v;
+            if (is_worm){v_new=v_plus;}
+            else {v_new=v_minus;}
+            gamma_ratio=sqrt(18);
+        }
+        else if (N_zero==N-1){
+            v_old = v_minus;
+            v_new = v;
+            gamma_ratio=1/sqrt(18);
+        }
+        else if (N_zero==N+1){
+            v_old = v_plus;
+            v_new = v;
+            gamma_ratio=1/sqrt(18);
+        }
+        else{
+            cout << "ERROR 1: We should not have visited this N-sector." << endl;
+            exit(1);
+        }
+    }
+    else if (tau_edge=="beta"){
+        if (N_beta==N){
+            v_old = v;
+            // cout << "3 " << is_worm << endl;
+            if (is_worm){v_new=v_plus;}
+            else {v_new=v_minus;}
+            gamma_ratio=sqrt(18);
+        }
+        else if (N_beta==N-1){
+            // cout << "1 " << is_worm << endl;
+            v_old = v_minus;
+            v_new = v;
+            gamma_ratio=1/sqrt(18);
+        }
+        else if (N_beta==N+1){
+            // cout << "2 " << !is_worm << endl;
+            v_old = v_plus;
+            v_new = v;
+            gamma_ratio=1/sqrt(18);
+        }
+        else{
+            cout << "ERROR 2: We should not have visited this N-sector." << endl;
+            exit(1);
+        }
+    }
+    else{
+        cout << "tau_edge (insert) = " << tau_edge << endl;
+        cout << "ERROR: Invalid tau edge. Should be zero or beta" << endl;
+        exit(1);
+    }
+
+// // Rescaling v's
+// for (int p=0; p<v_new.size() ; i++){
+//     v_new[p] = v_new[p]/2.0;
+//     v_old[p] = v_old[p]/2.0;
+// }
+
+    // On-site term (i.e, v_kk in notes)
+    J_exponent_0 = v_new[0];
+
+    if (is_worm){ // edge worm insertion
+        for (int j=0; j<M; j++){
+
+            // Single sum term
+            delta = abs(i-j); 
+            if (delta > M/2){delta = (M-delta);}   
+            J_exponent_1 += v_new[delta]*fock_state_at_edge[j];
+
+            // Double sum term
+            for (int p=0; p<M; p++){
+                delta = abs(j-p);
+                if (delta > M/2){delta = (M-delta);}   
+                v_diff = v_new[delta]-v_old[delta];
+                J_exponent_2 += fock_state_at_edge[j]*fock_state_at_edge[p]*v_diff;
+            }
+        }
+    }
+    else{ // edge antiworm insertion
+        for (int j=0; j<M; j++){
+
+            // Single sum term
+            delta = abs(i-j); 
+            if (delta > M/2){delta = (M-delta);}   
+            J_exponent_1 -= v_new[delta]*fock_state_at_edge[j];
+
+            // Double sum term
+            for (int p=0; p<M; p++){
+                delta = abs(j-p);
+                if (delta > M/2){delta = (M-delta);}  
+                v_diff = v_new[delta]-v_old[delta];
+                J_exponent_2 += fock_state_at_edge[j]*fock_state_at_edge[p]*v_diff;
+            }
+        }
+    }
+
+    // // cout << "++++++++++++++" << endl;
+    // cout << J_exponent_0 << "\t" << 2*J_exponent_1 << "\t" << J_exponent_2 <<
+    // "\t" << J_exponent_0 + 2*J_exponent_1 + J_exponent_2 << "\t" << 1 << endl;
+    // // cout << "++++++++++++++" << endl;
+    J = expl(-0.5*(J_exponent_0 + 2*J_exponent_1 + J_exponent_2));
+
+    // cout << "J = " << J << endl;
+
+    return J * gamma_ratio;
+
+    // return J;
+
+}
+
+
+/*--------------------------------------------------------------------*/
+
+long double extended_jastrow_ratio_delete(bool is_worm,
+                   vector<int> &fock_state_at_edge, int M, int deletion_site,
+                   int N, int N_zero, int N_beta, string tau_edge){
+
+    long double J,J_exponent_0,J_exponent_1,J_exponent_2,gamma_ratio;
+    int i,delta;
+    vector<double> v_old,v_new;
+    double v_diff;
+    
+    i = deletion_site;
+    J_exponent_0 = 0.0;
+    J_exponent_1 = 0.0;
+    J_exponent_2 = 0.0;
+
+    // set the variational parameters based on particle number at edges
+    if (tau_edge=="zero"){
+        if (N_zero==N){
+            v_new = v;
+            if (is_worm){v_old=v_minus;} // maybe these are not true
+            else {v_old=v_plus;}
+            gamma_ratio=1/sqrt(18);
+        }
+        else if (N_zero==N-1){
+            v_new = v_minus;
+            v_old = v;
+            gamma_ratio=sqrt(18);
+        }
+        else if (N_zero==N+1){
+            v_new = v_plus;
+            v_old = v;
+            gamma_ratio=sqrt(18);
+        }
+        else{
+            cout << "ERROR 3: We should not have visited this N-sector." << endl;
+            exit(1);
+        }
+    }
+    else if (tau_edge=="beta"){
+        if (N_beta==N){
+            v_new = v;
+            if (is_worm){v_old=v_minus;}
+            else {v_old=v_plus;}
+            gamma_ratio=1/sqrt(18);
+        }
+        else if (N_beta==N-1){
+            v_new = v_minus;
+            v_old = v;
+            gamma_ratio=sqrt(18);
+        }
+        else if (N_beta==N+1){
+            v_new = v_plus;
+            v_old = v;
+            gamma_ratio=sqrt(18);
+        }
+        else{
+            cout << "ERROR 4: We should not have visited this N-sector." << endl;
+            cout << "N_beta = " << N_beta << endl;
+            cout << "N_zero = " << N_zero << endl;
+            // cout << "N_tracker = " << N_tracker << endl;
+            exit(1);
+        }
+    }
+    else{
+        cout << "tau_edge (delete) = " << tau_edge << endl;
+        cout << "ERROR: Invalid tau edge. Should be zero or beta" << endl;
+        exit(1);
+    }
+
+// // Rescaling v's
+// for (int p=0; p<v_new.size() ; i++){
+//     v_new[p] = v_new[p]/2.0;
+//     v_old[p] = v_old[p]/2.0;
+// }
+
+
+    // On site term (i.e, v_kk in notes)
+    J_exponent_0 = v_new[0];
+
+    if (is_worm){ // edge worm deletion
+        for (int j=0; j<M; j++){
+
+            // Single sum term
+            delta = abs(i-j);    
+            if (delta > M/2){delta = (M-delta);} 
+
+            if (i!=j)
+                J_exponent_1 += v_new[delta]*fock_state_at_edge[j];
+            else
+                J_exponent_1 += v_new[delta]*(fock_state_at_edge[i]-1);
+
+            // Double sum term
+            for (int p=0; p<M; p++){
+                delta = abs(j-p);
+                if (delta > M/2){delta = (M-delta);} 
+                v_diff = v_new[delta]-v_old[delta];
+
+                if (delta > M/2){delta = (M-delta);} 
+                if (j!=i && p!=i){  
+                    J_exponent_2 += fock_state_at_edge[j]*fock_state_at_edge[p]*v_diff;
+                }
+                else if (j!=i && p==i){
+                     J_exponent_2 += fock_state_at_edge[j]*(fock_state_at_edge[p]-1)*v_diff;                   
+                }
+                else if (j==i && p!=i){
+                     J_exponent_2 += (fock_state_at_edge[j]-1)*fock_state_at_edge[p]*v_diff;                   
+                }
+                else{
+                     J_exponent_2 += (fock_state_at_edge[j]-1)*(fock_state_at_edge[p]-1)*v_diff;    
+                }        
+            }
+        }
+    }
+    else{ // edge antiworm deletion
+        for (int j=0; j<M; j++){
+
+                    // Single sum term
+                    delta = abs(i-j);    
+                    if (delta > M/2){delta = (M-delta);} 
+
+                    if (i!=j)
+                        J_exponent_1 -= v_new[delta]*fock_state_at_edge[j];
+                    else
+                        J_exponent_1 -= v_new[delta]*(fock_state_at_edge[i]+1);
+
+                    // Double sum term
+                    for (int p=0; p<M; p++){
+                        delta = abs(j-p);
+                        if (delta > M/2){delta = (M-delta);} 
+                        v_diff = v_new[delta]-v_old[delta];
+                        // cout << v_new[delta]-v_old[delta] << endl;
+                        // if (v_new[delta]-v_old[delta]!=0){exit(1);} 
+
+                        if (j!=i && p!=i){  
+                            J_exponent_2 += fock_state_at_edge[j]*fock_state_at_edge[p]*v_diff;
+                        }
+                        else if (j!=i && p==i){
+                            J_exponent_2 += fock_state_at_edge[j]*(fock_state_at_edge[p]+1)*v_diff;                   
+                        }
+                        else if (j==i && p!=i){
+                            J_exponent_2 += (fock_state_at_edge[j]+1)*fock_state_at_edge[p]*v_diff;                   
+                        }
+                        else{
+                            // cout << j << p << i << endl;
+                            J_exponent_2 += (fock_state_at_edge[j]+1)*(fock_state_at_edge[p]+1)*v_diff;    
+                        }     
+                    }
+                }
+            }
+
+    // // cout << "--------------" << endl;
+    // cout << J_exponent_0 << "\t" << 2*J_exponent_1 << "\t" << J_exponent_2 <<
+    // "\t" << J_exponent_0 + 2*J_exponent_1 + J_exponent_2 << "\t" << 0 << endl;
+    // // cout << "--------------" << endl;
+    J = expl(-0.5*(J_exponent_0 + 2*J_exponent_1 + J_exponent_2));
+
+    return J * gamma_ratio;
+
+    // return J;
+
+}
+
+/*--------------------------------------------------------------------*/
+
 long double jastrow_ratio(bool is_worm,vector<int> &fock_state_at_edge, 
                    int M, int insertion_site){
 
@@ -2479,9 +2822,9 @@ long double jastrow_ratio(bool is_worm,vector<int> &fock_state_at_edge,
         for (int j=0; j<M; j++){
             // cout << "A" << endl;    
             delta = abs(i-j); 
+            if (delta > M/2){delta = (M-delta);}   
             // cout << fock_state_at_edge[j] << " ";
             // cout << "delta = " << delta << "---> ";
-            if (delta > M/2){delta = (M-delta);}   
             // cout << delta << " | k = " << i << endl;          
             J_exponent -= v[delta]*fock_state_at_edge[j];
         }
@@ -2491,9 +2834,9 @@ long double jastrow_ratio(bool is_worm,vector<int> &fock_state_at_edge,
         for (int j=0; j<M; j++){
             // cout << "B" << endl;
             delta = abs(i-j); 
+            if (delta > M/2){delta = (M-delta);}   
             // cout << fock_state_at_edge[j] << " ";
             // cout << "delta = " << delta << "---> ";
-            if (delta > M/2){delta = (M-delta);}   
             // cout << delta << " | k = " << i << endl;  
             J_exponent += v[delta]*fock_state_at_edge[j];
         }
@@ -2532,9 +2875,9 @@ long double jastrow_ratio_delete(bool is_worm,vector<int> &fock_state_at_edge,
         // cout << "C" << endl;
         for (int j=0; j<M; j++){
             delta = abs(i-j);
+            if (delta > M/2){delta = (M-delta);}   
             // cout << fock_state_at_edge[j] << " ";
             // cout << "delta = " << delta << "---> ";
-            // if (delta > M/2){delta = (M-delta);}   
             // cout << delta << " | k = " << i << endl;       
             if (i!=j)
                 J_exponent -= v[delta]*fock_state_at_edge[j];
@@ -2547,8 +2890,8 @@ long double jastrow_ratio_delete(bool is_worm,vector<int> &fock_state_at_edge,
         // cout << "D" << endl;
         for (int j=0; j<M; j++){
             delta = abs(i-j); 
-            // cout << "delta = " << delta << "---> ";
             if (delta > M/2){delta = (M-delta);}  
+            // cout << "delta = " << delta << "---> ";
             // cout << fock_state_at_edge[j] << " "; 
             // cout << delta << " | k = " << i << endl;   
             if (i!=j)
@@ -2733,11 +3076,15 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     else if (trial_state=="jastrow"){
         if (is_worm){ // worm
-            J = jastrow_ratio(is_worm,fock_state_at_zero,M,i);
+            J = extended_jastrow_ratio(is_worm,fock_state_at_zero,M,i,
+            N,N_zero,N_beta,"zero");
+            // J = jastrow_ratio(is_worm,fock_state_at_zero,M,i)  
             C = J * sqrt((N_zero+1)*1.0/n_tail);
         }
         else { // antiworm
-            J = jastrow_ratio(is_worm,fock_state_at_zero,M,i);
+            J = extended_jastrow_ratio(is_worm,fock_state_at_zero,M,i,
+            N,N_zero,N_beta,"zero");
+            // J = jastrow_ratio(is_worm,fock_state_at_zero,M,i)  
             C = J * sqrt(n_tail*1.0/N_zero);
         }
     }
@@ -2759,6 +3106,7 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     p_dz = 0.5;
     p_iz = 0.5;
     R = eta * sqrt(n_tail) * C * (p_dz/p_iz) * M * p_wormend * (Z/dV) / p_type;
+    // cout << J << " " << C << " " << R << endl;
     // if (!is_worm){cout << R << " " << Z << " " << dV << endl;}
 
     // Metropolis sampling
@@ -3178,7 +3526,6 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Calculate diagonal energy difference
     dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
 
-     //------------- temporary ------------
     if (trial_state=="non-interacting"){
         if (delete_head){ // delete worm from tau=0
             C = sqrt((N_zero-1)*1.0/n_tail);
@@ -3197,12 +3544,14 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     else if (trial_state=="jastrow"){
         if (is_worm){ // worm
-            J = jastrow_ratio_delete(is_worm,fock_state_at_zero,M,i);
+            J = extended_jastrow_ratio_delete(is_worm,fock_state_at_zero,M,i,
+            N,N_zero,N_beta,"zero");
             C = J * sqrt((N_zero-1)*1.0/n_tail);
             // cout << "deleteZero_2 (worm) J = " << J << endl;
         }
         else { // antiworm
-            J = jastrow_ratio_delete(is_worm,fock_state_at_zero,M,i);
+            J = extended_jastrow_ratio_delete(is_worm,fock_state_at_zero,M,i,
+            N,N_zero,N_beta,"zero");            
             C = J * sqrt(n_tail*1.0/(N_zero+1));
             // cout << "deleteZero_2 (anti) J = " << J << endl;
         }
@@ -3666,12 +4015,16 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     else if (trial_state=="jastrow"){
         if (is_worm){ // worm
-            J = jastrow_ratio(is_worm,fock_state_at_beta,M,i);
+            J = extended_jastrow_ratio(is_worm,fock_state_at_beta,M,i,
+            N,N_zero,N_beta,"beta");
+            // J = jastrow_ratio(is_worm,fock_state_at_beta,M,i)  
             C = J * sqrt((N_beta+1)*1.0/n_tail);
             // cout << "insertBeta_2 (worm) J = " << J << endl;
         }
         else { // antiworm
-            J = jastrow_ratio(is_worm,fock_state_at_beta,M,i);
+            J = extended_jastrow_ratio(is_worm,fock_state_at_beta,M,i,
+            N,N_zero,N_beta,"beta");
+            // J = jastrow_ratio(is_worm,fock_state_at_beta,M,i)  
             C = J * sqrt(n_tail*1.0/(N_beta));
             // cout << "insertBeta_2 (anti) J = " << J << endl;
         }
@@ -4118,12 +4471,14 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     else if (trial_state=="jastrow"){
         if (is_worm){ // worm
-            J = jastrow_ratio_delete(is_worm,fock_state_at_beta,M,i);
+            J = extended_jastrow_ratio_delete(is_worm,fock_state_at_beta,M,i,
+            N,N_zero,N_beta,"beta");
             C = J * sqrt((N_beta-1)*1.0/n_tail);
             // cout << "deleteBeta_2 (worm) J = " << J << endl;
         }
         else { // antiworm
-            J = jastrow_ratio_delete(is_worm,fock_state_at_beta,M,i);
+            J = extended_jastrow_ratio_delete(is_worm,fock_state_at_beta,M,i,
+            N,N_zero,N_beta,"beta");            
             C = J * sqrt(n_tail*1.0/(N_beta+1));
             // cout << "deleteBeta_2 (anti) J = " << J << endl;
         }
@@ -4212,6 +4567,9 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             
             // Worm deleted, subtracts one to tau=beta particle tracker
             N_beta -= 1;
+            if (N_beta<N-1){
+                cout << "ERROR: N_beta=" << N_beta << "<N-1" << endl;
+            }
 
             // Update Fock State at beta edge
             fock_state_at_beta[i] -= 1;

@@ -328,6 +328,8 @@ int main(int argc, char** argv){
     // Simulation parameters
     // eta=1/sqrt(M);
     eta=1E-05;
+    // eta=9.87;
+    // mu = 0.0000000000000001;
     // eta=1.0;
     beta=result["beta"].as<double>();
     canonical=result["canonical"].as<bool>();
@@ -394,7 +396,7 @@ int main(int argc, char** argv){
 
     // Measurement settings
     measurement_center=beta/2.0;
-    measurement_plus_minus=0.10*beta;
+    measurement_plus_minus=0.4*beta;
     // measurement_plus_minus=0.45*beta;
     bin_size=result["bin-size"].as<int>();
     measurement_centers=get_measurement_centers(beta);
@@ -673,26 +675,26 @@ int main(int argc, char** argv){
                   // lol
               }   
 
-        //    cout << label << " " << paths[0][num_kinks[0]-1].tau << endl;
+           //   cout << label << " " << paths[0][num_kinks[0]-1].tau << endl;
 
             // Measure the total number of particles
             if (m_pre%(sweep*measurement_frequency)==0 && m_pre>=0.25*sweeps_pre){
                 measurement_attempts[0]+=1;
                 if (head_idx[0]==-1 && tail_idx[0]==-1){
-                    N_data.push_back(N_beta[0]);
+                    N_data.push_back(N_beta[0]); // Data to histogram later
                     Z_frac+=1.0;
                 }
             }
 
             // Measure the number of flats
-            N_flats_mean+=num_kinks[0];
+            N_flats_mean+=num_kinks[0]; // Actually accumulator, will average later
             N_flats_samples+=1;
         }
 
         // Calculate diagonal fraction of Monte Carlo just exited
-        Z_frac/=measurement_attempts[0];
+        Z_frac/=measurement_attempts[0]; 
 
-        // Not enough N samples collecte;decrease eta and try again.
+        // Not enough N samples collected;decrease eta and try again.
         // if (N_data.size()<sweeps_pre/(beta*M)/10){eta*=0.5;continue;}
         if (!eta_fine_tuning_stage){
             if (N_data.size()<5){eta*=0.5;continue;}
@@ -704,6 +706,7 @@ int main(int argc, char** argv){
         // Find the minimum and maximum number of particles measured
         N_min=*min_element(N_data.begin(),N_data.end());
         N_max=*max_element(N_data.begin(),N_data.end());
+        // cout << "N_min " << N_min << " N_max " << N_max << endl;
 
         // Generate the support of the distribution & initialize the histogram
         N_target_in_bins=false;
@@ -715,7 +718,9 @@ int main(int argc, char** argv){
         }
 
         // Get the index of the target N in the support of the distribution
-        N_idx = N-N_min;
+        N_idx = N - N_min;
+        // cout << "N_idx = " << N_idx << endl;
+        // cout << P_N[N_idx+1] << endl;
 
         // Fill out the histogram
         for (size_t i=0;i<N_data.size();i++){
@@ -733,19 +738,21 @@ int main(int argc, char** argv){
                 P_N_peak=P_N[peak_idx];
             }
         }
+        // cout << "P_N.size() = " << P_N.size() << endl; 
 
         // Print out current mu and draw the particle probability distribution
         cout << "mu: " << mu;
         cout << " eta: " << eta << " Z-frac: " << Z_frac*100 << "%" << endl;
-        cout << "N     P(N)"<<endl;
+        cout << "N        P(N)"<<endl;
         for (size_t i=0;i<N_bins.size();i++){
-            cout << setw(6) << left << N_bins[i];
-            for (int j=0;j<=static_cast<int>(100*P_N[i]);j++){
-                cout<<"*";
-            }
+            cout << setw(6) << left << N_bins[i] << "   " << P_N[i];
+            // for (int j=0;j<=static_cast<int>(100*P_N[i]);j++){
+            //     cout<<"*";
+            // }
             cout<<endl;
             N_mean_pre+=N_bins[i]*P_N[i];
         }
+        // cout << "---------------------------------------" << endl;
         cout << "<N>: " << N_mean_pre << " ; N samples: " <<
         N_data.size() << endl << endl;
         
@@ -755,16 +762,22 @@ int main(int argc, char** argv){
             N_flats_mean/=N_flats_samples;
             eta=1/sqrt(N_flats_mean);
         }
-        else{ // Fine tuning (want 0.10 < Z-frac < 0.15 to get more data quick)
+        else{ // Fine tuning (want Z-dZ < Z-frac < Z+dZ)
             if (Z_frac>=(Z-dZ) && Z_frac<=(Z+dZ)){eta_fine_tuning_complete=true;}
             else if (Z_frac>Z+dZ){eta*=1.45;eta_fine_tuning_complete=false;}
-            else {eta*=0.5;eta_fine_tuning_complete=false;} // if Z_frac<0.10
+            else {eta*=0.5;eta_fine_tuning_complete=false;}
         }
 
         if (N_target_in_bins){
             // Stop the loop if the peak is at P(N)
-            if (peak_idx==N_idx && abs(N_mean_pre-N)<0.33
+            if (peak_idx==N_idx
+                && P_N.size() > 0
+                && P_N[peak_idx-1]/P_N[peak_idx] < 0.66
+                && P_N[peak_idx+1]/P_N[peak_idx] < 0.66
+                && abs(N_mean_pre-N)/N<0.33
                 && at_least_one_iteration){
+                // cout << "LOL 0" << endl;
+                //     cout << P_N[N_idx-1] << " " << P_N[N_idx] << " " << P_N[N_idx+1] << endl << endl;
                 if (!eta_fine_tuning_stage){
                     cout<<"Fine tuning eta... (Want: " << (Z-dZ)*100.0 << 
                     "% < diagonal fraction < " << (Z+dZ)*100.0 << "%)"<<endl
@@ -778,25 +791,36 @@ int main(int argc, char** argv){
 
             else{
                 // Estimate mu via Eq. 15 in:https://arxiv.org/pdf/1312.6177.pdf
-                if (P_N[N_idx-1]>1E-12 &&
+                if (P_N.size()==3 &&
+                    P_N[N_idx-1]>1E-12 &&
                     P_N[N_idx]>1E-12 &&
                     P_N[N_idx+1]>1E-12){
                     mu_right=mu-(1/beta)*log(P_N[N_idx+1]/P_N[N_idx]);
                     mu_left=mu-(1/beta)*log(P_N[N_idx]/P_N[N_idx-1]);
                     mu=0.5*(mu_left+mu_right);
+
                 }
-                else if (P_N[N_idx]>1E-12 &&
+                else if (P_N.size()==2 &&
+                         N_min==N &&
+                         P_N[N_idx]>1E-12 &&
                          P_N[N_idx+1]>1E-12){
                     mu_right=mu-(1/beta)*log(P_N[N_idx+1]/P_N[N_idx]);
                     mu=mu_right;
+
                 }
-                else if (P_N[N_idx]>1E-12 &&
+                else if (P_N.size()==2 &&
+                         N_min==N-1 &&
+                         P_N[N_idx]>1E-12 &&
                          P_N[N_idx-1]>1E-12){
                     mu_left=mu-(1/beta)*log(P_N[N_idx]/P_N[N_idx-1]);
                     mu=mu_left;
+
                 }
                 else { // Peak is 100% at N... Yes. It can happen.
                     // We might've entered here b.c need at least 2 iterations
+                    // mu = mu*(1.5-rand());
+                    // mu = mu*0.95;
+
                 }
             }
         }
@@ -804,12 +828,12 @@ int main(int argc, char** argv){
             if (N_bins[peak_idx]>N){
                 if (mu>1){mu*=0.5;}
                 else if (mu<=-1){mu*=1.1;}
-                else {mu-=(mu*0.5);}
+                else {mu-=(mu*1.01);}
             }
             else{
                 if (mu>1){mu*=1.1;}
                 else if (mu<=-1){mu*=0.5;}
-                else {mu+=(mu*0.3);}
+                else {mu-=(mu*1.03);}
             }
         }
         at_least_one_iteration=true;
@@ -1092,6 +1116,9 @@ int main(int argc, char** argv){
     
     // Time main function execution
     auto start = high_resolution_clock::now();
+
+    // eta = 0.001;
+    // cout << "Manually setting eta = 1.0" << endl;
     
     // Restart data structure and trackers
     if (!restart){
