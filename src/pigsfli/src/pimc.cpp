@@ -266,6 +266,9 @@ int main(int argc, char** argv){
     
     unsigned long long int advance_tail_attempts=0,advance_tail_accepts=0;
     unsigned long long int recede_tail_attempts=0,recede_tail_accepts=0;
+
+    unsigned long long int advance_kink_attempts=0,advance_kink_accepts=0;
+    unsigned long long int recede_kink_attempts=0,recede_kink_accepts=0;
     
     unsigned long long int ikbh_attempts=0,ikbh_accepts=0;
     unsigned long long int dkbh_attempts=0,dkbh_accepts=0;
@@ -396,7 +399,7 @@ int main(int argc, char** argv){
 
     // Measurement settings
     measurement_center=beta/2.0;
-    measurement_plus_minus=0.4*beta;
+    measurement_plus_minus=0.1*beta;
     // measurement_plus_minus=0.45*beta;
     bin_size=result["bin-size"].as<int>();
     measurement_centers=get_measurement_centers(beta);
@@ -453,6 +456,13 @@ int main(int argc, char** argv){
  Path-Integral Ground State (Monte Carlo) For Lattice Implementations
      )";
     
+int random_lol;
+
+// for (int i=0; i<25; i++){
+//     random_lol = rng_ptr->randInt(15);
+//     cout << random_lol << endl;
+// }
+
 /*    cout << R"(
                                  _
                                ( `.
@@ -549,7 +559,7 @@ int main(int argc, char** argv){
 
         bool print_it = false;
             
-        label = rng_ptr->randInt(14);
+        label = rng_ptr->randInt(15);
 
          if (label==0){     // worm_insert
               insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -671,6 +681,13 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
+        else if (label==15){
+            timeshift_kink(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
+                M,N,U,mu,t,beta,eta,canonical,
+                N_zero[0],N_beta[0],last_kinks[0],
+                dummy_counter,dummy_counter,
+                dummy_counter,dummy_counter,*rng_ptr);
+        }
               else{
                   // lol
               }   
@@ -685,6 +702,7 @@ int main(int argc, char** argv){
                     Z_frac+=1.0;
                 }
             }
+
 
             // Measure the number of flats
             N_flats_mean+=num_kinks[0]; // Actually accumulator, will average later
@@ -1259,10 +1277,8 @@ int main(int argc, char** argv){
         else{ print_it = false;}
 
     for (int r=0;r<num_replicas;r++){
-
-
         
-        label = rng_ptr->randInt(14);
+        label = rng_ptr->randInt(15);
 
         // These versions of the updates sample taus directly
          if (label==0){     // worm_insert
@@ -1377,6 +1393,17 @@ int main(int argc, char** argv){
                         N_zero[r],N_beta[r],last_kinks[r],
                         dkat_attempts,dkat_accepts,*rng_ptr,boundary);
          }
+        else if (label==15){
+            timeshift_kink(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
+                M,N,U,mu,t,beta,eta,canonical,
+                N_zero[r],N_beta[r],last_kinks[r],
+                advance_kink_attempts,advance_kink_accepts,
+                recede_kink_attempts,recede_kink_accepts,
+                *rng_ptr);
+        }
+        else{
+            // lol
+        } 
 
     } // end of replica loop
 
@@ -1478,9 +1505,9 @@ int main(int argc, char** argv){
 
                     // Round out N_tracker since it might have
                     // floating point errors after a while
-                    for (int r=0; r<num_replicas; r++){
-                        N_tracker[r] = round(N_tracker[r]);
-                    }
+                    // for (int r=0; r<num_replicas; r++){
+                    //     N_tracker[r] = round(N_tracker[r]);
+                    // }
 
                     N_sum[r] += N_tracker[r];
                     Z_ctr[r] += 1;
@@ -1545,13 +1572,11 @@ int main(int argc, char** argv){
 
                     if (N_zero[r]==N && N_beta[r]==N && canonical){ // canonical measurement
 
-
-
                     // Round out N_tracker since it might have
                     // floating point errors after a while
-                    for (int r=0; r<num_replicas; r++){
-                        N_tracker[r] = round(N_tracker[r]);
-                    }
+                    // for (int r=0; r<num_replicas; r++){
+                    //     N_tracker[r] = round(N_tracker[r]);
+                    // }
                         
                     // Get fock state at desired measurement center
                     get_fock_state(measurement_center,M,fock_state_at_slice,
@@ -1622,6 +1647,12 @@ int main(int argc, char** argv){
                         
                     // Take binned averages and write to disk
                     if (writing_ctr==bin_size){
+
+                    // Round out N_tracker since it might have
+                    // floating point errors after a while
+                    for (int r=0; r<num_replicas; r++){
+                        N_tracker[r] = round(N_tracker[r]);
+                    }
 
                     //     cout << "fock state at zero = ";
                     //     for (int p=0; p<M; p++){
@@ -1828,9 +1859,9 @@ int main(int argc, char** argv){
                     
                     // Round out N_tracker since it might have
                     // floating point errors after a while
-                    // for (int r=0; r<num_replicas; r++){
-                    //     N_tracker[r] = round(N_tracker[r]);
-                    // }
+                    for (int r=0; r<num_replicas; r++){
+                        N_tracker[r] = round(N_tracker[r]);
+                    }
                     
                     // Save current histogram of swapped sites to file
                     for (int i=0; i<=m_A; i++){
@@ -2020,6 +2051,11 @@ int main(int argc, char** argv){
                                ikat_attempts<<endl;
     cout <<"DKAT: "<<dkat_accepts<<"/"<<
                                dkat_attempts<<endl;
+
+    cout<< endl <<"Advance Kink: "<<advance_kink_accepts<<"/"<<
+                               advance_kink_attempts<<endl;
+    cout<<"Recede  Kink: "<<recede_kink_accepts<<"/"<<
+                               recede_kink_attempts<<endl;
     
     cout<< endl <<"SWAP: "<<insert_swap_kink_accepts<<"/"<<
                                insert_swap_kink_attempts<<endl;
