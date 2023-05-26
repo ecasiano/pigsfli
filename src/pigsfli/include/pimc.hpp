@@ -5288,10 +5288,10 @@ void timeshift_kink(vector<Kink> &paths, int &num_kinks, int &head_idx,
         Z = (1.0 - expl(-dV*(tau_max-tau_min)));
         tau_new = tau_min - log(1.0-Z*rng.rand()) / dV;
     }
-    else {
+    else { // Truncated exponential pdf is zero if dV==0
         // L'hopitale
+        // tau_new = tau_min + rng.rand()*(tau_max-tau_min);
         return;
-        tau_new = tau_min + rng.rand()*(tau_max-tau_min);
     }
     if (tau_new==tau_min){return;}
     // cout<<Z<<"::"<<-dV*(tau_next-tau_prev)<<"::"<<tau_new<<"::"<<tau_next<<"::"<<tau_prev<<endl;
@@ -6480,7 +6480,7 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
 
     x = rng.rand();
     Z = 1.0 - expl(-c*(b-a));
-    if (dV != 0)
+    i'f (dV != 0)
         tau_kink = a - log(1.0-Z*x)  / c;
     else // dV == 0
         tau_kink = a - x*(a-b); // L'Hopitale
