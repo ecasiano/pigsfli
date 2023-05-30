@@ -455,11 +455,6 @@ int main(int argc, char** argv){
  
  Path-Integral Ground State (Monte Carlo) For Lattice Implementations
      )";
-    
-// for (int i=0; i<25; i++){
-//     random_lol = rng_ptr->randInt(15);
-//     cout << random_lol << endl;
-// }
 
 /*    cout << R"(
                                  _

@@ -5285,110 +5285,102 @@ void timeshift_kink(vector<Kink> &paths, int &num_kinks, int &head_idx,
     
     // Variable declarations
     int prev,src,dest,n_i,n_j,next_dest,prev_dest,next_src,prev_src,n_src,n_dest,
-    kink_idx_dest,kink_idx_src,i,j;
-    double l_path,dN,dV,tau_new,R,tau_dest,tau_kink,
-    tau_min,tau_max,tau_next_dest,tau_prev_dest,tau_next_src,tau_prev_src;
+    kink_idx_j,kink_idx_i,i,j,prev_i,next_i,prev_j,next_j,n_before_i,
+    n_before_j,n_after_i,n_after_j;
+    double l_path,dN,dV,tau_new,R,tau_j,tau,
+    tau_min,tau_max,tau_next_j,tau_prev_j,tau_next_i,tau_prev_i,dV_i,dV_j;
     long double Z;
     
     // Reject update if there are no kinks present
     if (num_kinks==M){return;}
 
     // Randomly choose which regular kink to move
-    kink_idx_src = rng.randInt(num_kinks-M-1)+M;
-    // kink_idx_src = rng.randInt(num_kinks-1);
+    kink_idx_i = rng.randInt(num_kinks-M-1)+M;
     
     // Extract src kink attributes
-    tau_kink = paths[kink_idx_src].tau;
-    n_src = paths[kink_idx_src].n;
-    prev_src = paths[kink_idx_src].prev;
-    next_src = paths[kink_idx_src].next;
-    src = paths[kink_idx_src].src;
-    dest = paths[kink_idx_src].dest;
+    tau = paths[kink_idx_i].tau;
+    n_i = paths[kink_idx_i].n;
+    prev_i = paths[kink_idx_i].prev;
+    next_i = paths[kink_idx_i].next;
+    i = paths[kink_idx_i].src;
+    j = paths[kink_idx_i].dest;
 
     // Reject update if proposed kink is a worm end
-    if (src==dest){return;}
+    if (i==j){return;}
     
     // Determine index of lower/upper kinks of the connecting kink
-    tau_dest = 0.0;     // tau_prev_dest candidate
-    prev = dest;        // prev_dest candidate
-    prev_dest = dest;   // this avoids "variable maybe not initialized" warning
-    while (tau_dest<tau_kink){
+    tau_prev_j = 0.0;     // tau_prev_j candidate
+    prev = j;        // prev_j candidate
+    prev_j = j;   // this avoids "variable maybe not initialized" warning
+    while (tau_prev_j<tau){
         // Set the lower bound index
-        prev_dest = prev;
+        prev_j = prev;
         
         // Update lower bound index and tau candidates for next iteration
         prev = paths[prev].next;
         if (prev==-1){break;}
-        tau_dest = paths[prev].tau;
+        tau_prev_j = paths[prev].tau;
     }
-    next_dest=prev;
-    kink_idx_dest = paths[prev_dest].next;
-
-    // cout << paths[kink_idx_src] << endl;
-    // cout << paths[kink_idx_dest] << endl << endl;
+    next_j=prev;
+    kink_idx_j = paths[prev_j].next;
 
     // Extract dest kink attributes
-    n_dest = paths[kink_idx_dest].n;
-    prev_dest = paths[kink_idx_dest].prev;
-    next_dest = paths[kink_idx_dest].next;
-
-    // Fix "i" as site that losses particle; "j" the one that gains.
-    // This is for consistency with derivation of weight ratios in notes.
-    if (n_dest>n_src){
-        j = dest; 
-        i = src;
-        n_j = n_dest;
-        n_i = n_src;
-    }
-    else{
-        j = src;
-        i = dest;
-        n_j = n_src;
-        n_i = n_dest;
-    }
+    n_j = paths[kink_idx_j].n;
+    prev_j = paths[kink_idx_j].prev;
+    next_j = paths[kink_idx_j].next;
         
     // Determine the lower and upper bound times of the kink ends to be shifted
-    if (next_dest==-1)
-        tau_next_dest = beta;
+    if (next_j==-1)
+        tau_next_j = beta;
     else
-        tau_next_dest = paths[next_dest].tau;
-    tau_prev_dest = paths[prev_dest].tau;
+        tau_next_j = paths[next_j].tau;
+    tau_prev_j = paths[prev_j].tau;
 
-    if (next_src==-1)
-        tau_next_src = beta;
+    if (next_i==-1)
+        tau_next_i = beta;
     else
-        tau_next_src = paths[next_src].tau;
-    tau_prev_src = paths[prev_src].tau;
+        tau_next_i = paths[next_i].tau;
+    tau_prev_i = paths[prev_i].tau;
 
     // Determine lowest time at which kink could've been inserted
-    if (tau_prev_src>tau_prev_dest){tau_min=tau_prev_src;}
-    else {tau_min=tau_prev_dest;}
+    if (tau_prev_i>tau_prev_j){tau_min=tau_prev_i;}
+    else {tau_min=tau_prev_j;}
 
     // Determine largest time at which kink could've been inserted
-    if (tau_next_src<tau_next_dest){tau_max=tau_next_src;}
-    else {tau_max=tau_next_dest;}
+    if (tau_next_i<tau_next_j){tau_max=tau_next_i;}
+    else {tau_max=tau_next_j;}
+
+    // Label the relevant particle numbers for dV calculatio
+    n_before_i = paths[prev_i].n;
+    n_before_j = paths[prev_j].n;
+    n_after_i = n_i;
+    n_after_j = n_j;
+
+    if (abs(n_before_i-n_after_i)!=1){cout<<"1"<<endl;exit(1);}
+    if (abs(n_before_j-n_after_j)!=1){cout<<"2"<<endl;exit(1);}
 
     // Diagonal energy difference in simplified form
-    // dV=U*(n-!shift_head)-mu;
-    dV=U*(n_i-n_j+1);
+    // dV=U*(n_i-n_j+1);
+    dV_i = 0.5*U*(n_before_i*(n_before_i-1)-n_after_i*(n_after_i-1));
+    dV_j = 0.5*U*(n_before_j*(n_before_j-1)-n_after_j*(n_after_j-1));
+    dV = dV_i + dV_j;
 
     // Sample the new time of the worm end from truncated exponential dist.
     /*:::::::::::::::::::: Truncated Exponential RVS :::::::::::::::::::::::::*/
     if (dV!=0){
-        Z = (1.0 - expl(-dV*(tau_max-tau_min)));
-        tau_new = tau_min - log(1.0-Z*rng.rand()) / dV;
+        Z = (1.0 - expl(-dV*(tau_max-tau_min)))/dV;
+        tau_new = tau_min - log(1.0-dV*Z*rng.rand()) / dV;
     }
     else { // Truncated exponential pdf is zero if dV==0
         // L'hopitale
-        // tau_new = tau_min + rng.rand()*(tau_max-tau_min);
-        return;
+        tau_new = tau_min + rng.rand()*(tau_max-tau_min);
     }
-    if (tau_new==tau_min){return;}
+    // if (tau_new==tau_min){return;}
     // cout<<Z<<"::"<<-dV*(tau_next-tau_prev)<<"::"<<tau_new<<"::"<<tau_next<<"::"<<tau_prev<<endl;
     /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     
     // Add to PROPOSAL counter
-    if (tau_new > tau_kink){advance_kink_attempts+=1;}
+    if (tau_new > tau){advance_kink_attempts+=1;}
     else{recede_kink_attempts+=1;}
     
     // Determine the length of path to be modified
@@ -5410,12 +5402,12 @@ void timeshift_kink(vector<Kink> &paths, int &num_kinks, int &head_idx,
     if (rng.rand() < R){
         
         // Add to acceptance counters
-        if (tau_new > tau_kink){advance_kink_accepts+=1;}
+        if (tau_new > tau){advance_kink_accepts+=1;}
         else{recede_kink_accepts+=1;}
 
         // Modify the kink times
-        paths[kink_idx_src].tau = tau_new;
-        paths[kink_idx_dest].tau = tau_new;
+        paths[kink_idx_i].tau = tau_new;
+        paths[kink_idx_j].tau = tau_new;
         
         // Modify total particle number tracker
         // N_tracker += dN;
