@@ -45,8 +45,7 @@ mkdir build
 cd build
 cmake ../src
 make
-sudo make install
-  ```
+```
 
 The following are some CMake options that can be edited in before compilation, where xxx should be replaced with the appropriate values:
 
