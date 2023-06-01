@@ -5291,6 +5291,9 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
     tau_min,tau_max,tau_next_j,tau_prev_j,tau_next_i,tau_prev_i,dV_i,dV_j,
     tau_kink,tau_anti,tau_1,tau_2,W,H1_squared,P,p_site,tau_flat;
 
+    // Add to PROPOSAL counter
+    insert_kink_antikink_attempts+=1;
+
     // Randomly choose flat region to insert kink/antikink pair
     flat_idx_i = rng.randInt(num_kinks-1);
     
@@ -5300,9 +5303,11 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
     prev_i = paths[flat_idx_i].prev;
     next_i = paths[flat_idx_i].next;
     i = paths[flat_idx_i].src;
-    // j = paths[flat_idx_i].dest;
     src_replica = paths[flat_idx_i].src_replica;
     dest_replica = paths[flat_idx_i].dest_replica;
+
+    // Reject update if there are not particles on the source site
+    if (n_i==0){return;}
 
     // Randomly choose a nearest neighbor site to hop to
     j = adjacency_matrix[i][rng.randInt(total_nn-1)];
@@ -5321,7 +5326,7 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
     tau_prev_i = paths[prev_i].tau;
     
     // Determine index of lower/upper kinks of flat where particle hops (site j)
-    tau = 0.0;            // tau_prev_j candidate
+    tau = 0.0;          // tau_prev_j candidate
     prev = j;           // prev_j candidate
     prev_j = j;         // this avoids "variable maybe not initialized" warning
     while (tau<tau_next_i){
@@ -5391,10 +5396,7 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
     W = expl(-dV*(tau_anti-tau_kink))*H1_squared;
 
     // Compute ratio of "a priori" sampling probabilities P(c'->c)/P(c->c')
-    P = 1.0/(num_kinks+4)*num_kinks*tau_flat*tau_flat/(2*p_site);
-
-    // Add to PROPOSAL counter
-    insert_kink_antikink_attempts+=1;
+    P = (1.0*num_kinks)/(num_kinks+4.0)*tau_flat*tau_flat/(2*p_site);
     
     // Build the Metropolis condition (R)
     R = W*P; // Sampling worm end time from truncated exponential makes R unity.
@@ -5412,9 +5414,9 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
                                 num_kinks,next_i,src_replica,dest_replica);
 
         // Create the kink and antikink on destination site
-        paths[num_kinks+2]=Kink(tau_kink,n_after_j,j,i,
+        paths[num_kinks+2]=Kink(tau_kink,n_after_j,i,j,
                                 prev_j,num_kinks+3,src_replica,dest_replica);
-        paths[num_kinks+3]=Kink(tau_anti,n_before_j,i,j,
+        paths[num_kinks+3]=Kink(tau_anti,n_before_j,j,i,
                                 num_kinks+2,next_j,src_replica,dest_replica);
 
         // "Connect" lower bounds of original flat to all the new kinks
