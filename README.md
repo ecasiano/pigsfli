@@ -78,7 +78,7 @@ pigsfli.e --help
 
 If you want to perform a quick test-run for a small one-dimensional Bose-Hubbard lattice you could try something like:
 ```bash
-./pigsfli.e -D 1 -L 4 -N 4 -l 2 -U 1.995 --mu 1.998 --sweeps 2001 --seed 1968 --measurement-frequency 1 --rng boost_mt19937 --bin-size 10 --bins-wanted 1000 --num-replicas 2 --beta 1.2
+./pigsfli.e -D 1 -L 8 -N 8 -l 4 -U 3.3578 --mu 0.0001 --beta 8.0 --seed 1969 --bin-size 10000 --measurement-frequency 50 --bins-wanted 100 --num-replicas 1 --canonical --sweeps-pre 200000 --sweeps 1000000 --boundary pbc --get-n -Z 50 --dZ 1 --trial-state gutzwiller --kappa 0.7
 ```
 
 | Code Option | Description |
