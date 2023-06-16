@@ -686,7 +686,7 @@ unsigned long long int  insert_kink_antikink_attempts=0,insert_kink_antikink_acc
                 dummy_counter,dummy_counter,
                 dummy_counter,dummy_counter,*rng_ptr);
         }
-        else if (label==16){ // insert kink-antikink pair
+        else if (label==-16){ // insert kink-antikink pair
             insert_kink_antikink(paths[0], num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,
@@ -1421,7 +1421,7 @@ unsigned long long int  insert_kink_antikink_attempts=0,insert_kink_antikink_acc
                 recede_kink_attempts,recede_kink_accepts,
                 *rng_ptr);
         }
-        else if (label==16){ // insert kink-antikink pair
+        else if (label==-16){ // insert kink-antikink pair
             insert_kink_antikink(paths[r], num_kinks[r],
                             head_idx[r],tail_idx[r],
                             M,N,U,mu,t,
