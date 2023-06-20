@@ -31,8 +31,6 @@ git clone https://github.com/DelMaestroGroup/pigsfli.git
 
 The code is written in c++ and makes use of <a href="http://www.boost.org/">boost</a> libraries and, for handling of command-line arguments, the <a href="https://github.com/jarro2783/cxxopts">cxxopts</a> header-only library. For generation of random numbers and the ability to save the state of an RNG for simulation restarts, we use <a href="https://github.com/ajibadeshd/RNG_CLASS">RNG_CLASS</a>. Both cxxopts and RNG_CLASS are included in the repository when cloning.
 
-We will also need CMAKE
-
 ## Compilation
 
 After dependencies are satisfied, you are now ready to compile the
@@ -45,7 +43,8 @@ mkdir build
 cd build
 cmake ../src
 make
-```
+sudo make install
+  ```
 
 The following are some CMake options that can be edited in before compilation, where xxx should be replaced with the appropriate values:
 
@@ -78,7 +77,7 @@ pigsfli.e --help
 
 If you want to perform a quick test-run for a small one-dimensional Bose-Hubbard lattice you could try something like:
 ```bash
-./pigsfli.e -D 1 -L 4 -N 4 -l 2 -U 3.3578 --mu 0.0001 --beta 1.0 --seed 1969 --bin-size 10000 --measurement-frequency 50 --bins-wanted 10 --num-replicas 1 --canonical --sweeps-pre 200000 --sweeps 1000000 --boundary pbc --get-n -Z 50 --dZ 1 --trial-state gutzwiller --kappa 0.7
+./pigsfli.e -D 1 -L 4 -N 4 -l 2 -U 1.995 --mu 1.998 --sweeps 2001 --seed 1968 --measurement-frequency 1 --rng boost_mt19937 --bin-size 10 --bins-wanted 1000 --num-replicas 2 --beta 1.2
 ```
 
 | Code Option | Description |

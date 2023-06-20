@@ -269,10 +269,10 @@ int main(int argc, char** argv){
 
     unsigned long long int advance_kink_attempts=0,advance_kink_accepts=0;
     unsigned long long int recede_kink_attempts=0,recede_kink_accepts=0;
-
-unsigned long long int  insert_kink_antikink_attempts=0,insert_kink_antikink_accepts=0;
-    unsigned long long int delete_kink_antikink_attempts=0,delete_kink_antikink_accepts=0;
     
+    unsigned long long int  insert_kink_antikink_attempts=0,insert_kink_antikink_accepts=0;
+    unsigned long long int delete_kink_antikink_attempts=0,delete_kink_antikink_accepts=0;
+
     unsigned long long int ikbh_attempts=0,ikbh_accepts=0;
     unsigned long long int dkbh_attempts=0,dkbh_accepts=0;
     
@@ -556,8 +556,6 @@ unsigned long long int  insert_kink_antikink_attempts=0,insert_kink_antikink_acc
         bool print_it = false;
             
         label = rng_ptr->randInt(17);
-        // label = rng_ptr->randInt(2);
-        // label += 15;
 
          if (label==0){     // worm_insert
               insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -1296,9 +1294,7 @@ unsigned long long int  insert_kink_antikink_attempts=0,insert_kink_antikink_acc
 
     for (int r=0;r<num_replicas;r++){
         
-        // label = rng_ptr->randInt(17);
-        label = rng_ptr->randInt(2);
-        label += 15;
+        label = rng_ptr->randInt(17);
 
         // These versions of the updates sample taus directly
          if (label==0){     // worm_insert
@@ -2098,8 +2094,7 @@ unsigned long long int  insert_kink_antikink_attempts=0,insert_kink_antikink_acc
                                insert_kink_antikink_attempts<<endl;
     cout<<"Delete  Kink-Antikink: "<<delete_kink_antikink_accepts<<"/"<<
                                delete_kink_antikink_attempts<<endl;
-    
-
+                               
     cout<< endl <<"Advance Kink: "<<advance_kink_accepts<<"/"<<
                                advance_kink_attempts<<endl;
     cout<<"Recede  Kink: "<<recede_kink_accepts<<"/"<<

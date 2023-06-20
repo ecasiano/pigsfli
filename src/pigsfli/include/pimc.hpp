@@ -4018,12 +4018,10 @@ void delete_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
 
         if (tail_idx==num_kinks-2){tail_idx=head_idx;}
 
-        // note: this "head_idx" leads to the kink that took the head kink place
         if (paths[head_idx].next==-1){
             last_kinks[paths[head_idx].src]=head_idx;
         }
 
-        // connect kink that was preceding the head to the lower & upper bounds
         if (next_j!=-1)
             paths[next_j].prev = kink_idx_j;
         paths[kink_idx_j].next = next_j;
@@ -5462,7 +5460,8 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
     int prev,i,j,prev_i,next_i,prev_j,next_j,n_before_i,
     n_before_j,n_after_i,n_after_j,src_replica,dest_replica,
     flat_idx,src_low,dest_low,next_kink,src_high,dest_high,n_after_kink,
-    n_after_anti,kink_idx_j,kink_idx_i,anti_idx_j,anti_idx_i;
+    n_after_anti,kink_idx_j,kink_idx_i,anti_idx_j,anti_idx_i,
+    n_after_anti_i,n_after_anti_j;
     double dV,R,tau,tau_min,tau_max,tau_next_j,tau_prev_j,tau_next_i,tau_prev_i,
     dV_i,dV_j,tau_kink,tau_anti,W,H1_squared,P,p_site,tau_flat,tau_kink_i,
     tau_anti_i,tau_kink_j,tau_anti_j;
@@ -5476,6 +5475,7 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
     dest_low = paths[flat_idx].dest;
 
     next_kink = paths[flat_idx].next;
+    if (next_kink==-1){return;} // no antikink above sampled kink
 
     src_high = paths[next_kink].src;   
     dest_high = paths[next_kink].dest;
@@ -5522,7 +5522,10 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         dest_replica = paths[flat_idx].dest_replica; 
 
         n_before_i = paths[prev_i].n;
-        tau_next_i = paths[next_i].tau;
+        if (next_i!=-1)
+            tau_next_i = paths[next_i].tau;
+        else
+            tau_next_i = beta;
         kink_idx_i = flat_idx;
         anti_idx_i = paths[flat_idx].next;
 
@@ -5540,7 +5543,9 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
             tau = paths[prev].tau;
         }
         kink_idx_j = prev; // this could possibly be the trivial kink at tau=0
+        if (kink_idx_j==-1){cout<<"PJUPJUPJUPJU";exit(1);}
         anti_idx_j = paths[kink_idx_j].next; // this could be -1 WARNING
+        if (anti_idx_j==-1){cout<<"PJUPJUPJUPJU (anti)";exit(1);}
         next_j = paths[anti_idx_j].next; 
     }
     else if (j == src_low && i == dest_low){
@@ -5554,7 +5559,10 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         dest_replica = paths[flat_idx].dest_replica;
 
         n_before_j = paths[prev_j].n;
-        tau_next_j = paths[next_j].tau;
+        if (next_j!=-1)
+            tau_next_j = paths[next_j].tau;
+        else
+            tau_next_j = beta;        
         kink_idx_j = flat_idx;
         anti_idx_j = paths[flat_idx].next;
 
@@ -5572,11 +5580,13 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
             tau = paths[prev].tau;
         }
         kink_idx_i = prev;
+        if (kink_idx_i==-1){cout<<"PIUPIUPIUPIU";exit(1);}
         anti_idx_i = paths[kink_idx_i].next;
+        if (anti_idx_j==-1){cout<<"PIUPIUPIUPIU (anti)";exit(1);}
         next_i = paths[anti_idx_i].next; 
     }
     else {
-        cout << "ERROR: Debigging" << endl;
+        cout << "ERROR: Debugging" << endl;
         exit(1);
     }
 
@@ -5601,24 +5611,42 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
     delete_kink_antikink_attempts+=1;
 
     if (i == src_low && j == dest_low){
-        cout << "sampled possible kink-antikink pair on i = " << i << endl;
+        cout << "sampled kink-antikink pair on i = " << i << " connecting to j = " << j << endl;
     }
     else {
-        cout << "sampled possible kink-antikink pair on j = " << j << endl;
+        cout << "sampled kink-antikink pair on j = " << j << " connecting to i = " << i << endl;
     }
     cout << "----- i -----" << endl;
-    cout << paths[prev_i].tau << " "<< paths[prev_i].n << endl;
-    cout << paths[kink_idx_i].tau << " "<< paths[kink_idx_i].n << endl;
-    cout << paths[anti_idx_i].tau << " "<< paths[anti_idx_i].n << endl;
-    if (next_i!=-1){cout << paths[next_i].tau << " " << paths[next_i].n << endl;}
+    cout << paths[prev_i] << endl;
+    cout << paths[kink_idx_i] << endl;
+    cout << paths[anti_idx_i] << endl;
+    if (next_i!=-1){cout << paths[next_i] << endl;}
     else {cout << beta << endl;}
     cout << "----- j -----" << endl;
-    cout << paths[prev_j].tau << " "<< paths[prev_j].n << endl;
-    cout << paths[kink_idx_j].tau << " "<< paths[kink_idx_j].n << endl;
-    cout << paths[anti_idx_j].tau << " "<< paths[anti_idx_j].n << endl;
-    if (next_j!=-1){cout << paths[next_j].tau << " " << paths[next_j].n << endl;}
+    cout << paths[prev_j] << endl;
+    cout << paths[kink_idx_j] << endl;
+    cout << paths[anti_idx_j] << endl;
+    if (next_j!=-1){cout << paths[next_j] << endl;}
     else {cout << beta << endl;}
+    cout << "num_kinks = " << num_kinks << endl;
     cout << endl;
+
+    // cout << "--- paths (zeroth call)---" << endl;
+    // for (int i=0; i<num_kinks; i++){
+    //     cout << "i: " << i << " " << paths[i] << endl;
+    // }
+    // cout << N_tracker << endl;
+    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
+    // cout << endl;
+
+    // if (paths[prev_i].n==paths[kink_idx_i].n-1 && paths[kink_idx_i].n==paths[anti_idx_i].n-1){
+    //     cout << "i ERROR: Broken kink/antikink pattern" << endl;
+    //     exit(1);
+    // }
+    // if (paths[prev_j].n==paths[kink_idx_j].n+1 && paths[kink_idx_j].n==paths[anti_idx_j].n+1){
+    //     cout << "j ERROR: Broken kink/antikink pattern" << endl;
+    //     exit(1);
+    // }
     
     // Compute probability of inverse update (insertion) having chosen n.n site
     if (boundary=="pbc")
@@ -5658,14 +5686,33 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
     n_after_i = paths[kink_idx_i].n;
     n_before_j = paths[prev_j].n;
     n_after_j = paths[kink_idx_j].n;
+    n_after_anti_i = paths[anti_idx_i].n;
+    n_after_anti_j = paths[anti_idx_j].n;
 
-    if (abs(n_before_i-n_after_i)!=1){cout<<"Error 3"<<endl;
-        cout<<"| dn_i | = " << abs(n_before_i-n_after_i)<<endl;
-        exit(1);}
-    if (abs(n_before_j-n_after_j)!=1){
-        cout<<"Error 4"<<endl;
-        cout<<"| dn_j | = " << abs(n_before_j-n_after_j)<<endl;
-        exit(1);}
+    // Particles before kink and after antikink should be the same
+    // Otherwise not a kink/antikink pair
+    if (n_before_i!=n_after_anti_i || n_before_j!=n_after_anti_j)
+        return;
+
+    // cout << "--- paths (first call)---" << endl;
+    // for (int i=0; i<num_kinks; i++){
+    //     cout << "i: " << i << " " << paths[i] << endl;
+    // }
+    // cout << N_tracker << endl;
+    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
+    // cout << endl;
+    
+
+    // if (abs(n_after_i-n_before_i)!=1){
+    //     cout<<"Error 3"<<endl;
+    //     cout<< n_after_i << " " << n_before_i <<endl;
+    //     cout<<" dn_i = " << n_after_i-n_before_i <<endl;
+    //     exit(1);}
+    // if (abs(n_after_j-n_before_j)!=1){
+    //     cout<<"Error 4"<<endl;
+    //     cout<< n_after_j << " " << n_before_j <<endl;
+    //     cout<<" dn_j = " << n_after_j-n_before_j <<endl;
+    //     exit(1);}
 
     // cout << N_tracker << endl;
 
@@ -5704,32 +5751,35 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         paths[paths[num_kinks-1].prev].next = anti_idx_i;
 
         swap(paths[anti_idx_i],paths[num_kinks-1]);
+        // As a test, actually deactivate the kink
+        paths[num_kinks-1] = Kink(-1.0,-1,-1,-1,-1,-1,-1,-1);
 
         // Important kinks might've been moved around in the linked list
-        if (prev_i==num_kinks-1){prev_i=anti_idx_i;}
+        if      (prev_i==num_kinks-1){prev_i=anti_idx_i;}
         else if (next_i==num_kinks-1){next_i=anti_idx_i;}
         else if (prev_j==num_kinks-1){prev_j=anti_idx_i;}
         else if (next_j==num_kinks-1){next_j=anti_idx_i;}
         else if (kink_idx_i==num_kinks-1){kink_idx_i=anti_idx_i;}
-        else if (kink_idx_j==num_kinks-1){kink_idx_j=anti_idx_i;}
         else if (anti_idx_j==num_kinks-1){anti_idx_j=anti_idx_i;}
+        else if (kink_idx_j==num_kinks-1){kink_idx_j=anti_idx_i;}
         else {;}
 
         if (head_idx==num_kinks-1){head_idx=anti_idx_i;}
         else if (tail_idx==num_kinks-1){tail_idx=anti_idx_i;}
         else {;}
 
+        // The kink sent to where deleted kink was might be last on its site
         // note: this "anti_idx" leads to the kink that took the antikink place
         if (paths[anti_idx_i].next==-1){
             last_kinks[paths[anti_idx_i].src]=anti_idx_i;
         }
 
-        // connect kink that superceded the antikink to kink on i
+        // Connect upper bound of flat to kink on i
         if (next_i!=-1)
             paths[next_i].prev = kink_idx_i;
         paths[kink_idx_i].next = next_i;
 
-        // kink preceding antikink might now be last kink on flat
+        // kink might now be last kink on site i
         if (next_i==-1){last_kinks[i]=kink_idx_i;}
 
         // Stage 2: Delete kink on i
@@ -5738,14 +5788,14 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         paths[paths[num_kinks-2].prev].next = kink_idx_i;
 
         swap(paths[kink_idx_i],paths[num_kinks-2]);
+        paths[num_kinks-2] = Kink(-1.0,-1,-1,-1,-1,-1,-1,-1);
 
-        if (prev_i==num_kinks-2){prev_i=kink_idx_i;}
+        if      (prev_i==num_kinks-2){prev_i=kink_idx_i;}
         else if (next_i==num_kinks-2){next_i=kink_idx_i;}
         else if (prev_j==num_kinks-2){prev_j=kink_idx_i;}
         else if (next_j==num_kinks-2){next_j=kink_idx_i;}
-        else if (anti_idx_i==num_kinks-2){anti_idx_i=kink_idx_i;}
-        else if (kink_idx_j==num_kinks-2){kink_idx_j=kink_idx_i;}
         else if (anti_idx_j==num_kinks-2){anti_idx_j=kink_idx_i;}
+        else if (kink_idx_j==num_kinks-2){kink_idx_j=kink_idx_i;}
         else {;}
 
         if (head_idx==num_kinks-2){head_idx=kink_idx_i;}
@@ -5771,15 +5821,16 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         paths[paths[num_kinks-3].prev].next = anti_idx_j;
 
         swap(paths[anti_idx_j],paths[num_kinks-3]);
+        paths[num_kinks-3] = Kink(-1.0,-1,-1,-1,-1,-1,-1,-1);
 
         // Important kinks might've been moved around in the linked list
-        if (prev_i==num_kinks-3){prev_i=anti_idx_j;}
+        if      (prev_i==num_kinks-3){prev_i=anti_idx_j;}
         else if (next_i==num_kinks-3){next_i=anti_idx_j;}
         else if (prev_j==num_kinks-3){prev_j=anti_idx_j;}
         else if (next_j==num_kinks-3){next_j=anti_idx_j;}
-        else if (kink_idx_i==num_kinks-3){kink_idx_i=anti_idx_j;}
+        // else if (kink_idx_i==num_kinks-3){kink_idx_i=anti_idx_j;}
+        // else if (anti_idx_i==num_kinks-3){anti_idx_i=anti_idx_j;}
         else if (kink_idx_j==num_kinks-3){kink_idx_j=anti_idx_j;}
-        else if (anti_idx_i==num_kinks-3){anti_idx_i=anti_idx_j;}
         else {;}
 
         if (head_idx==num_kinks-3){head_idx=anti_idx_j;}
@@ -5791,7 +5842,7 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
             last_kinks[paths[anti_idx_j].src]=anti_idx_j;
         }
 
-        // connect kink that superceded the antikink to kink on j
+        // connect upper bound kink and kink on j
         if (next_j!=-1)
             paths[next_j].prev = kink_idx_j;
         paths[kink_idx_j].next = next_j;
@@ -5805,14 +5856,15 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         paths[paths[num_kinks-4].prev].next = kink_idx_j;
 
         swap(paths[kink_idx_j],paths[num_kinks-4]);
+        paths[num_kinks-4] = Kink(-1.0,-1,-1,-1,-1,-1,-1,-1);
 
-        if (prev_i==num_kinks-4){prev_i=kink_idx_j;}
+        if      (prev_i==num_kinks-4){prev_i=kink_idx_j;}
         else if (next_i==num_kinks-4){next_i=kink_idx_j;}
         else if (prev_j==num_kinks-4){prev_j=kink_idx_j;}
         else if (next_j==num_kinks-4){next_j=kink_idx_j;}
-        else if (anti_idx_i==num_kinks-4){anti_idx_i=kink_idx_j;}
-        else if (kink_idx_i==num_kinks-4){kink_idx_i=kink_idx_j;}
-        else if (anti_idx_j==num_kinks-4){anti_idx_j=kink_idx_j;}
+        // else if (anti_idx_i==num_kinks-4){anti_idx_i=kink_idx_j;}
+        // else if (kink_idx_i==num_kinks-4){kink_idx_i=kink_idx_j;}
+        // else if (anti_idx_j==num_kinks-4){anti_idx_j=kink_idx_j;}
         else {;}
 
         if (head_idx==num_kinks-4){head_idx=kink_idx_j;}
@@ -5824,7 +5876,7 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
             last_kinks[paths[kink_idx_j].src]=kink_idx_j;
         }
 
-        // connect kink that superceded the kink to the lower bound
+        // connect upper and lower bound kinks
         if (next_j!=-1)
             paths[next_j].prev = prev_j;
         paths[prev_j].next = next_j;
@@ -5833,23 +5885,32 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         if (next_j==-1){last_kinks[j]=prev_j;}
 
         // Update number of kinks tracker
-        num_kinks += 4;
+        num_kinks -= 4;
 
         cout << "New flats:" << endl;
         cout << "----- i -----" << endl;
-        cout << paths[prev_i].tau << " "<< paths[prev_i].n << endl;
-        // cout << paths[kink_idx_i].tau << " "<< paths[kink_idx_i].n << endl;
-        // cout << paths[anti_idx_i].tau << " "<< paths[anti_idx_i].n << endl;
-        if (next_i!=-1){cout << paths[next_i].tau << " " << paths[next_i].n << endl;}
+        cout << "prev_i = " << prev_i << " " << paths[prev_i] << endl;
+        // cout << paths[kink_idx_i] << endl;
+        // cout << paths[anti_idx_i] << endl;
+        if (next_i!=-1){cout << "next_i = " << next_i << " " << paths[next_i] << endl;}
         else {cout << beta << endl;}
         cout << "----- j -----" << endl;
-        cout << paths[prev_j].tau << " "<< paths[prev_j].n << endl;
-        // cout << paths[kink_idx_j].tau << " "<< paths[kink_idx_j].n << endl;
-        // cout << paths[anti_idx_j].tau << " "<< paths[anti_idx_j].n << endl;
-        if (next_j!=-1){cout << paths[next_j].tau << " " << paths[next_j].n << endl;}
+        cout << "prev_j = " << prev_j << " " << paths[prev_j] << endl;
+        // cout << paths[kink_idx_j] << endl;
+        // cout << paths[anti_idx_j] << endl;
+        if (next_j!=-1){cout << "next_j = " << next_j << " " << paths[next_j] << endl;}
         else {cout << beta << endl;}
+        cout << "num_kinks = " << num_kinks << endl;
         cout << endl;
-        
+
+        // cout << "--- paths (second call) ---" << endl;
+        // for (int i=0; i<num_kinks; i++){
+        //     cout << "i: " << i << " " << paths[i] << endl;
+        // }
+        // cout << N_tracker << endl;
+        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
+        // cout << endl;
+
         return;
     }
     else{ // Reject
@@ -6004,6 +6065,142 @@ void timeshift_kink(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
 /*--------------------------------------------------------------------*/
 
+// void timeshift_kink_uniform_buggy(vector<Kink> &paths, int &num_kinks, int &head_idx,
+//                 int &tail_idx, int M, int N, double U, double mu, double t,
+//                 double beta, double eta, bool canonical,
+//                 int &N_zero, int &N_beta, vector<int> &last_kinks,
+//                 unsigned long long int &advance_kink_attempts,
+//                 unsigned long long int &advance_kink_accepts,
+//                 unsigned long long int &recede_kink_attempts,
+//                 unsigned long long int &recede_kink_accepts,
+//                 RNG &rng){
+    
+//     // Variable declarations
+//     int prev,src,dest,n_i,n_j,next_dest,prev_dest,next_src,prev_src,n_src,n_dest,
+//     kink_idx_dest,kink_idx_src,i,j;
+//     double l_path,dN,dV,tau_new,R,tau_dest,tau_kink,
+//     tau_min,tau_max,tau_next_dest,tau_prev_dest,tau_next_src,tau_prev_src;
+//     long double Z;
+    
+//     // Reject update if there are no kinks present
+//     if (num_kinks==M){return;}
+
+//     // Randomly choose which regular kink to move
+//     kink_idx_src = rng.randInt(num_kinks-M-1)+M;
+    
+//     // Extract src kink attributes
+//     tau_kink = paths[kink_idx_src].tau;
+//     n_src = paths[kink_idx_src].n;
+//     prev_src = paths[kink_idx_src].prev;
+//     next_src = paths[kink_idx_src].next;
+//     src = paths[kink_idx_src].src;
+//     dest = paths[kink_idx_src].dest;
+
+//     // Reject update if proposed kink is a worm end
+//     if (src==dest){return;}
+    
+//     // Determine index of lower/upper kinks of the connecting kink
+//     tau_dest = 0.0;     // tau_prev_dest candidate
+//     prev = dest;        // prev_dest candidate
+//     prev_dest = dest;   // this avoids "variable maybe not initialized" warning
+//     while (tau_dest<tau_kink){
+//         // Set the lower bound index
+//         prev_dest = prev;
+        
+//         // Update lower bound index and tau candidates for next iteration
+//         prev = paths[prev].next;
+//         if (prev==-1){break;}
+//         tau_dest = paths[prev].tau;
+//     }
+//     next_dest=prev;
+//     kink_idx_dest = paths[prev_dest].next;
+
+//     // Extract dest kink attributes
+//     n_dest = paths[kink_idx_dest].n;
+//     prev_dest = paths[kink_idx_dest].prev;
+//     next_dest = paths[kink_idx_dest].next;
+
+//     // Fix "i" as site that losses particle; "j" the one that gains.
+//     // This is for consistency with derivation of weight ratios in notes.
+//     if (n_dest>n_src){
+//         j = dest; 
+//         i = src;
+//         n_j = n_dest;
+//         n_i = n_src;
+//     }
+//     else{
+//         j = src;
+//         i = dest;
+//         n_j = n_src;
+//         n_i = n_dest;
+//     }
+        
+//     // Determine the lower and upper bound times of the kink ends to be shifted
+//     if (next_dest==-1)
+//         tau_next_dest = beta;
+//     else
+//         tau_next_dest = paths[next_dest].tau;
+//     tau_prev_dest = paths[prev_dest].tau;
+
+//     if (next_src==-1)
+//         tau_next_src = beta;
+//     else
+//         tau_next_src = paths[next_src].tau;
+//     tau_prev_src = paths[prev_src].tau;
+
+//     // Determine lowest time at which kink could've been inserted
+//     if (tau_prev_src>tau_prev_dest){tau_min=tau_prev_src;}
+//     else {tau_min=tau_prev_dest;}
+
+//     // Determine largest time at which kink could've been inserted
+//     if (tau_next_src<tau_next_dest){tau_max=tau_next_src;}
+//     else {tau_max=tau_next_dest;}
+
+//     // Diagonal energy difference in simplified form
+//     // dV=U*(n-!shift_head)-mu;
+//     dV=U*(n_i-n_j+1);
+
+//     tau_new = tau_min + rng.rand()*(tau_max-tau_min);
+    
+//     // Add to PROPOSAL counter
+//         if (tau_new > tau_kink){advance_kink_attempts+=1;}
+//         else{recede_kink_attempts+=1;}
+    
+//     // Determine the length of path to be modified
+//     // l_path = tau_new - tau_kink;
+    
+//     // Determine the total particle change based on wormend to be shifted
+//     // if (src!=dest){ // Shifting regular kinks will not change total N
+//     //     dN = 0;
+//     // }
+    
+//     // // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+//     // if (canonical)
+//     //     if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+    
+//     // Build the Metropolis condition (R)
+//     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
+//     R = expl(-dV*(tau_new-tau_kink));
+
+//     // Metropolis sampling
+//     if (rng.rand() < R){
+        
+//         // Add to acceptance counters
+//         if (tau_new > tau_kink){advance_kink_accepts+=1;}
+//         else{recede_kink_accepts+=1;}
+
+//         // Modify the kink times
+//         paths[kink_idx_src].tau = tau_new;
+//         paths[kink_idx_dest].tau = tau_new;
+        
+//         // Modify total particle number tracker
+//         // N_tracker += dN;
+        
+//         return;
+//     }
+//     else // Reject
+//         return;
+// }
 
 /*------------------------------- SWAP updates -------------------------------*/
 
