@@ -677,7 +677,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-        else if (label==15){
+        else if (label==-15){
             timeshift_kink(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                 M,N,U,mu,t,beta,eta,canonical,
                 N_zero[0],N_beta[0],last_kinks[0],
@@ -1409,7 +1409,7 @@ int main(int argc, char** argv){
                         N_zero[r],N_beta[r],last_kinks[r],
                         dkat_attempts,dkat_accepts,*rng_ptr,boundary);
          }
-        else if (label==15){
+        else if (label==-15){
             timeshift_kink(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                 M,N,U,mu,t,beta,eta,canonical,
                 N_zero[r],N_beta[r],last_kinks[r],

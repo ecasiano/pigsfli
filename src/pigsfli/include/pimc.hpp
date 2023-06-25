@@ -5300,7 +5300,8 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
     // Extract attributes of the lower bound kink of the flat region
     tau_prev_i = paths[flat_idx_i].tau;
     n_i = paths[flat_idx_i].n;
-    prev_i = paths[flat_idx_i].prev;
+    prev_i = flat_idx_i;
+    // if (prev_i==-1){cout << "ahhhhhhh explosion" << endl; exit(1);}
     next_i = paths[flat_idx_i].next;
     i = paths[flat_idx_i].src;
     src_replica = paths[flat_idx_i].src_replica;
@@ -5319,10 +5320,10 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
     }
 
     // Determine the lower and upper bound times of the flat interval on site i
-    if (next_i==-1)
-        tau_next_i = beta;
-    else
+    if (next_i!=-1)
         tau_next_i = paths[next_i].tau;
+    else
+        tau_next_i = beta;
     tau_prev_i = paths[prev_i].tau;
     
     // Determine index of lower/upper kinks of flat where particle hops (site j)
@@ -5343,10 +5344,10 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
     next_j=prev;
 
     // Determine the lower and upper bound times of the flat interval on site j
-    if (next_j==-1)
-        tau_next_j = beta;
-    else
+    if (next_j!=-1)
         tau_next_j = paths[next_j].tau;
+    else
+        tau_next_j = beta;
     tau_prev_j = paths[prev_j].tau;
         
     // Determine lowest time at which kink/antikink pair can been inserted
@@ -5361,6 +5362,12 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
     tau_flat = tau_max-tau_min;
 
     // Label the relevant particle numbers for dV calculation
+    if (prev_i==-1 or prev_j==-1){
+        cout << "KAKAROTO NO!" << endl;
+        cout << "prev_i = " << prev_i << endl;
+        cout << "prev_j = " << prev_j << endl;
+        exit(1);
+    }
     n_before_i = paths[prev_i].n;
     n_after_i = n_before_i-1;
     n_before_j = paths[prev_j].n;
@@ -5403,27 +5410,39 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
     // Build the Metropolis condition (R)
     R = W*P; // Sampling worm end time from truncated exponential makes R unity.
 
+    // cout << "sampled flat on site i = " << paths[flat_idx_i].n << endl;
+    // cout << "which has flat_idx_i = " << flat_idx_i << endl;
+    // cout << "and has next element idx of next = " << paths[flat_idx_i].next << endl;
+    // cout << "--- paths (before kink_antikink insertion) ---" << endl;
+    // for (int i=0; i<num_kinks; i++){
+    //     cout << "i: " << i << " " << paths[i] << endl;
+    // }
+    // cout << N_tracker << endl;
+    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
+    // cout << "num_kinks (before inserting kink-antikink pair): " << num_kinks << endl;
+    // cout << endl;
+
     // Metropolis sampling
     if (rng.rand() < R){
 
         // Add to acceptance counters
         insert_kink_antikink_accepts+=1;       
         
-        // Create the kink and antikink on source site
+        // Create the kink and antikink on site where particle hops from
         paths[num_kinks]=Kink(tau_kink,n_after_i,i,j,
                                 prev_i,num_kinks+1,src_replica,dest_replica);
         paths[num_kinks+1]=Kink(tau_anti,n_before_i,i,j,
                                 num_kinks,next_i,src_replica,dest_replica);
 
-        // Create the kink and antikink on destination site
+        // Create the kink and antikink on site where particle hops to
         paths[num_kinks+2]=Kink(tau_kink,n_after_j,j,i,
                                 prev_j,num_kinks+3,src_replica,dest_replica);
         paths[num_kinks+3]=Kink(tau_anti,n_before_j,j,i,
                                 num_kinks+2,next_j,src_replica,dest_replica);
 
-        // "Connect" lower bounds of original flat to all the new kinks
-        paths[prev_i].next = num_kinks;                       // kink
-        if(next_i!=-1){paths[next_i].prev = num_kinks+1;}     // antikink
+        // "Connect" bounds of original flat to the new kinks/antikinks
+        paths[prev_i].next = num_kinks;                      // kink
+        if(next_i!=-1){paths[next_i].prev = num_kinks+1;}    // antikink
         paths[prev_j].next = num_kinks+2;                    // kink
         if(next_j!=-1){paths[next_j].prev = num_kinks+3;}    // antikink
 
@@ -5437,7 +5456,17 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
         if (next_j==-1){
             last_kinks[j]=num_kinks+3;
         }
-        
+
+        cout << "--- paths (after kink_antikink insertion) ---" << endl;
+        for (int i=0; i<num_kinks; i++){
+            cout << "i: " << i << " " << paths[i] << endl;
+        }
+        cout << N_tracker << endl;
+        cout << "head & tail: " << head_idx << " " << tail_idx << endl;
+        cout << "num_kinks (after inserting kink-antikink pair): " << num_kinks << endl;
+        if (head_idx!=-1){cout<< "HEAD PRESENT " << endl;}
+        cout << endl;
+
         return;
     }
     else // Reject
@@ -5507,12 +5536,20 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         i = dest_low;
     }
 
-
     // i: where particle hops from ; j: where particle hops to
     // src_low and dest_low are more like site and connecting site (directionless)
 
+    // cout << "--- paths (minus one-th) ---" << endl;
+    // for (int i=0; i<num_kinks; i++){
+    //     cout << "i: " << i << " " << paths[i] << endl;
+    // }
+    // cout << N_tracker << endl;
+    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
+    // cout << endl;
+
     // 
     if (i == src_low && j == dest_low){
+        // cout << "sampled flat on site i = " << src_low << endl;
         // Extract attributes of the lower bound kink of the flat region (of site i)
         tau_kink = paths[flat_idx].tau;
         n_after_i = paths[flat_idx].n;
@@ -5543,12 +5580,13 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
             tau = paths[prev].tau;
         }
         kink_idx_j = prev; // this could possibly be the trivial kink at tau=0
-        if (kink_idx_j==-1){cout<<"PJUPJUPJUPJU";exit(1);}
+        if (kink_idx_j==-1){cout<<"PJUPJUPJUPJU (kink_idx_j = -1)";exit(1);}
         anti_idx_j = paths[kink_idx_j].next; // this could be -1 WARNING
-        if (anti_idx_j==-1){cout<<"PJUPJUPJUPJU (anti)";exit(1);}
+        if (anti_idx_j==-1){cout<<"PJUPJUPJUPJU (anti_idx_j = -1)";exit(1);}
         next_j = paths[anti_idx_j].next; 
     }
     else if (j == src_low && i == dest_low){
+    // cout << "sampled flat on site j = " << src_low << endl;
     // else {
         // Extract attributes of the lower bound kink of the flat region
         tau_kink = paths[flat_idx].tau;
@@ -5580,9 +5618,9 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
             tau = paths[prev].tau;
         }
         kink_idx_i = prev;
-        if (kink_idx_i==-1){cout<<"PIUPIUPIUPIU";exit(1);}
+        if (kink_idx_i==-1){cout<<"PIUPIUPIUPIU (kink_idx_i = -1)";exit(1);}
         anti_idx_i = paths[kink_idx_i].next;
-        if (anti_idx_j==-1){cout<<"PIUPIUPIUPIU (anti)";exit(1);}
+        if (anti_idx_i==-1){cout<<"PIUPIUPIUPIU (anti_idx_i = -1)";exit(1);}
         next_i = paths[anti_idx_i].next; 
     }
     else {
@@ -5609,44 +5647,6 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
 
     // Add to PROPOSAL counter
     delete_kink_antikink_attempts+=1;
-
-    if (i == src_low && j == dest_low){
-        cout << "sampled kink-antikink pair on i = " << i << " connecting to j = " << j << endl;
-    }
-    else {
-        cout << "sampled kink-antikink pair on j = " << j << " connecting to i = " << i << endl;
-    }
-    cout << "----- i -----" << endl;
-    cout << paths[prev_i] << endl;
-    cout << paths[kink_idx_i] << endl;
-    cout << paths[anti_idx_i] << endl;
-    if (next_i!=-1){cout << paths[next_i] << endl;}
-    else {cout << beta << endl;}
-    cout << "----- j -----" << endl;
-    cout << paths[prev_j] << endl;
-    cout << paths[kink_idx_j] << endl;
-    cout << paths[anti_idx_j] << endl;
-    if (next_j!=-1){cout << paths[next_j] << endl;}
-    else {cout << beta << endl;}
-    cout << "num_kinks = " << num_kinks << endl;
-    cout << endl;
-
-    // cout << "--- paths (zeroth call)---" << endl;
-    // for (int i=0; i<num_kinks; i++){
-    //     cout << "i: " << i << " " << paths[i] << endl;
-    // }
-    // cout << N_tracker << endl;
-    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-    // cout << endl;
-
-    // if (paths[prev_i].n==paths[kink_idx_i].n-1 && paths[kink_idx_i].n==paths[anti_idx_i].n-1){
-    //     cout << "i ERROR: Broken kink/antikink pattern" << endl;
-    //     exit(1);
-    // }
-    // if (paths[prev_j].n==paths[kink_idx_j].n+1 && paths[kink_idx_j].n==paths[anti_idx_j].n+1){
-    //     cout << "j ERROR: Broken kink/antikink pattern" << endl;
-    //     exit(1);
-    // }
     
     // Compute probability of inverse update (insertion) having chosen n.n site
     if (boundary=="pbc")
@@ -5694,28 +5694,6 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
     if (n_before_i!=n_after_anti_i || n_before_j!=n_after_anti_j)
         return;
 
-    // cout << "--- paths (first call)---" << endl;
-    // for (int i=0; i<num_kinks; i++){
-    //     cout << "i: " << i << " " << paths[i] << endl;
-    // }
-    // cout << N_tracker << endl;
-    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-    // cout << endl;
-    
-
-    // if (abs(n_after_i-n_before_i)!=1){
-    //     cout<<"Error 3"<<endl;
-    //     cout<< n_after_i << " " << n_before_i <<endl;
-    //     cout<<" dn_i = " << n_after_i-n_before_i <<endl;
-    //     exit(1);}
-    // if (abs(n_after_j-n_before_j)!=1){
-    //     cout<<"Error 4"<<endl;
-    //     cout<< n_after_j << " " << n_before_j <<endl;
-    //     cout<<" dn_j = " << n_after_j-n_before_j <<endl;
-    //     exit(1);}
-
-    // cout << N_tracker << endl;
-
     // Diagonal energy difference in simplified form
     // dV=U*(n_i-n_j+1);
     dV_i = 0.5*U*(n_after_i*(n_after_i-1)-n_before_i*(n_before_i-1));
@@ -5741,7 +5719,7 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
 
     // Metropolis sampling
     if (rng.rand() < R){
-        cout << "kink-antikink pair DELETED" << endl << endl;
+        // cout << "kink-antikink pair DELETED" << endl << endl;
         // Add to acceptance counters
         delete_kink_antikink_accepts+=1;       
 
@@ -5887,34 +5865,17 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         // Update number of kinks tracker
         num_kinks -= 4;
 
-        cout << "New flats:" << endl;
-        cout << "----- i -----" << endl;
-        cout << "prev_i = " << prev_i << " " << paths[prev_i] << endl;
-        // cout << paths[kink_idx_i] << endl;
-        // cout << paths[anti_idx_i] << endl;
-        if (next_i!=-1){cout << "next_i = " << next_i << " " << paths[next_i] << endl;}
-        else {cout << beta << endl;}
-        cout << "----- j -----" << endl;
-        cout << "prev_j = " << prev_j << " " << paths[prev_j] << endl;
-        // cout << paths[kink_idx_j] << endl;
-        // cout << paths[anti_idx_j] << endl;
-        if (next_j!=-1){cout << "next_j = " << next_j << " " << paths[next_j] << endl;}
-        else {cout << beta << endl;}
-        cout << "num_kinks = " << num_kinks << endl;
+        cout << "--- paths (after deleting kink-antikink pair) ---" << endl;
+        for (int i=0; i<num_kinks; i++){
+            cout << "i: " << i << " " << paths[i] << endl;
+        }
+        cout << N_tracker << endl;
+        cout << "head & tail: " << head_idx << " " << tail_idx << endl;
         cout << endl;
-
-        // cout << "--- paths (second call) ---" << endl;
-        // for (int i=0; i<num_kinks; i++){
-        //     cout << "i: " << i << " " << paths[i] << endl;
-        // }
-        // cout << N_tracker << endl;
-        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-        // cout << endl;
 
         return;
     }
     else{ // Reject
-        cout << "kink-antikink pair NOT DELETED" << endl << endl;
         return;
     }
 }
