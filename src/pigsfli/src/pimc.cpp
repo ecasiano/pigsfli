@@ -270,9 +270,6 @@ int main(int argc, char** argv){
     unsigned long long int advance_kink_attempts=0,advance_kink_accepts=0;
     unsigned long long int recede_kink_attempts=0,recede_kink_accepts=0;
     
-    unsigned long long int  insert_kink_antikink_attempts=0,insert_kink_antikink_accepts=0;
-    unsigned long long int delete_kink_antikink_attempts=0,delete_kink_antikink_accepts=0;
-
     unsigned long long int ikbh_attempts=0,ikbh_accepts=0;
     unsigned long long int dkbh_attempts=0,dkbh_accepts=0;
     
@@ -555,7 +552,7 @@ int main(int argc, char** argv){
 
         bool print_it = false;
             
-        label = rng_ptr->randInt(17);
+        label = rng_ptr->randInt(15);
 
          if (label==0){     // worm_insert
               insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -677,32 +674,12 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-        else if (label==-15){
+        else if (label==15){
             timeshift_kink(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
                 M,N,U,mu,t,beta,eta,canonical,
                 N_zero[0],N_beta[0],last_kinks[0],
                 dummy_counter,dummy_counter,
                 dummy_counter,dummy_counter,*rng_ptr);
-        }
-        else if (label==-16){ // insert kink-antikink pair
-            insert_kink_antikink(paths[0], num_kinks[0],
-                            head_idx[0],tail_idx[0],
-                            M,N,U,mu,t,
-                            adjacency_matrix,total_nn,
-                            beta,eta,canonical,N_tracker[0],
-                            N_zero[0],N_beta[0],last_kinks[0],
-                            dummy_counter,dummy_counter,
-                            *rng_ptr,boundary);
-        }
-        else if (label==17){ // delete kink-antikink pair
-            delete_kink_antikink(paths[0], num_kinks[0],
-                            head_idx[0],tail_idx[0],
-                            M,N,U,mu,t,
-                            adjacency_matrix,total_nn,
-                            beta,eta,canonical,N_tracker[0],
-                            N_zero[0],N_beta[0],last_kinks[0],
-                            dummy_counter,dummy_counter,
-                            *rng_ptr,boundary);
         }
               else{
                   // lol
@@ -1294,7 +1271,7 @@ int main(int argc, char** argv){
 
     for (int r=0;r<num_replicas;r++){
         
-        label = rng_ptr->randInt(17);
+        label = rng_ptr->randInt(15);
 
         // These versions of the updates sample taus directly
          if (label==0){     // worm_insert
@@ -1409,35 +1386,13 @@ int main(int argc, char** argv){
                         N_zero[r],N_beta[r],last_kinks[r],
                         dkat_attempts,dkat_accepts,*rng_ptr,boundary);
          }
-        else if (label==-15){
+        else if (label==15){
             timeshift_kink(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                 M,N,U,mu,t,beta,eta,canonical,
                 N_zero[r],N_beta[r],last_kinks[r],
                 advance_kink_attempts,advance_kink_accepts,
                 recede_kink_attempts,recede_kink_accepts,
                 *rng_ptr);
-        }
-        else if (label==-16){ // insert kink-antikink pair
-            insert_kink_antikink(paths[r], num_kinks[r],
-                            head_idx[r],tail_idx[r],
-                            M,N,U,mu,t,
-                            adjacency_matrix,total_nn,
-                            beta,eta,canonical,N_tracker[r],
-                            N_zero[r],N_beta[r],last_kinks[r],
-                            insert_kink_antikink_attempts,
-                            insert_kink_antikink_accepts,
-                            *rng_ptr,boundary);
-        }
-        else if (label==17){ // delete kink-antikink pair
-            delete_kink_antikink(paths[r], num_kinks[r],
-                            head_idx[r],tail_idx[r],
-                            M,N,U,mu,t,
-                            adjacency_matrix,total_nn,
-                            beta,eta,canonical,N_tracker[r],
-                            N_zero[r],N_beta[r],last_kinks[r],
-                            delete_kink_antikink_attempts,
-                            delete_kink_antikink_accepts,
-                            *rng_ptr,boundary);
         }
         else{
             // lol
@@ -2090,11 +2045,6 @@ int main(int argc, char** argv){
     cout <<"DKAT: "<<dkat_accepts<<"/"<<
                                dkat_attempts<<endl;
 
-    cout<< endl <<"Insert Kink-Antikink: "<<insert_kink_antikink_accepts<<"/"<<
-                               insert_kink_antikink_attempts<<endl;
-    cout<<"Delete  Kink-Antikink: "<<delete_kink_antikink_accepts<<"/"<<
-                               delete_kink_antikink_attempts<<endl;
-                               
     cout<< endl <<"Advance Kink: "<<advance_kink_accepts<<"/"<<
                                advance_kink_attempts<<endl;
     cout<<"Recede  Kink: "<<recede_kink_accepts<<"/"<<
