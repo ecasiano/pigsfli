@@ -84,7 +84,7 @@ int main(int argc, char** argv){
         ("dZ","Size of half-window around desired Z",cxxopts::value<double>()->default_value("3"))
         ("t","Tunneling parameter",cxxopts::value<double>()->default_value("1.0"))
         ("canonical", "set to false for grand canonical simulation",
-            cxxopts::value<bool>()->default_value("false"))
+            cxxopts::value<bool>()->default_value("true"))
         ("seed","Random seed value",cxxopts::value<int>()->default_value("0"))
         ("sweeps-pre","Number sweeps for each pre-equilibration step",
             cxxopts::value<unsigned long long int>()->default_value("1000000"))
@@ -270,6 +270,9 @@ int main(int argc, char** argv){
     unsigned long long int advance_kink_attempts=0,advance_kink_accepts=0;
     unsigned long long int recede_kink_attempts=0,recede_kink_accepts=0;
     
+    unsigned long long int  insert_kink_antikink_attempts=0,insert_kink_antikink_accepts=0;
+    unsigned long long int delete_kink_antikink_attempts=0,delete_kink_antikink_accepts=0;
+
     unsigned long long int ikbh_attempts=0,ikbh_accepts=0;
     unsigned long long int dkbh_attempts=0,dkbh_accepts=0;
     
@@ -610,7 +613,7 @@ int main(int argc, char** argv){
                             dummy_counter,dummy_counter,
                             dummy_counter,dummy_counter,*rng_ptr);
             }
-            else if (label==7){ // insert kink before head
+            else if (label==+7){ // insert kink before head
                 insert_kink_before_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -618,7 +621,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==8){ // delete kink before head
+            else if (label==+8){ // delete kink before head
                 delete_kink_before_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -626,7 +629,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==9){ // insert kink after head
+            else if (label==+9){ // insert kink after head
                 insert_kink_after_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -634,7 +637,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==10){ // delete kink after head
+            else if (label==+10){ // delete kink after head
                 delete_kink_after_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -642,7 +645,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
                     }
-            else if (label==11){ // insert kink before tail
+            else if (label==+11){ // insert kink before tail
                 insert_kink_before_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -650,7 +653,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==12){ // delete kink before tail
+            else if (label==+12){ // delete kink before tail
                 delete_kink_before_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -658,7 +661,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==13){ // insert kink after tail
+            else if (label==+13){ // insert kink after tail
                 insert_kink_after_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -666,7 +669,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==14){ // delete kink after tail
+            else if (label==+14){ // delete kink after tail
                 delete_kink_after_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -680,6 +683,26 @@ int main(int argc, char** argv){
                 N_zero[0],N_beta[0],last_kinks[0],
                 dummy_counter,dummy_counter,
                 dummy_counter,dummy_counter,*rng_ptr);
+        }
+        else if (label==16){ // insert kink-antikink pair
+            insert_kink_antikink(paths[0], num_kinks[0],
+                            head_idx[0],tail_idx[0],
+                            M,N,U,mu,t,
+                            adjacency_matrix,total_nn,
+                            beta,eta,canonical,N_tracker[0],
+                            N_zero[0],N_beta[0],last_kinks[0],
+                            dummy_counter,dummy_counter,
+                            *rng_ptr,boundary);
+        }
+        else if (label==17){ // delete kink-antikink pair
+            delete_kink_antikink(paths[0], num_kinks[0],
+                            head_idx[0],tail_idx[0],
+                            M,N,U,mu,t,
+                            adjacency_matrix,total_nn,
+                            beta,eta,canonical,N_tracker[0],
+                            N_zero[0],N_beta[0],last_kinks[0],
+                            dummy_counter,dummy_counter,
+                            *rng_ptr,boundary);
         }
               else{
                   // lol
@@ -1330,56 +1353,56 @@ int main(int argc, char** argv){
                        advance_tail_attempts,advance_tail_accepts,
                        recede_tail_attempts,recede_tail_accepts,*rng_ptr);
         }
-        else if (label==7){ // insert kink before head
+        else if (label==+7){ // insert kink before head
             insert_kink_before_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        ikbh_attempts,ikbh_accepts,*rng_ptr,boundary);
         }
-        else if (label==8){ // delete kink before head
+        else if (label==+8){ // delete kink before head
             delete_kink_before_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        dkbh_attempts,dkbh_accepts,*rng_ptr,boundary);
         }
-        else if (label==9){ // insert kink after head
+        else if (label==+9){ // insert kink after head
             insert_kink_after_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        ikah_attempts,ikah_accepts,*rng_ptr,boundary);
         }
-        else if (label==10){ // delete kink after head
+        else if (label==+10){ // delete kink after head
             delete_kink_after_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        dkah_attempts,dkah_accepts,*rng_ptr,boundary);
         }
-        else if (label==11){ // insert kink before tail
+        else if (label==+11){ // insert kink before tail
             insert_kink_before_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        ikbt_attempts,ikbt_accepts,*rng_ptr,boundary);
         }
-        else if (label==12){ // delete kink before tail
+        else if (label==+12){ // delete kink before tail
             delete_kink_before_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        dkbt_attempts,dkbt_accepts,*rng_ptr,boundary);
         }
-        else if (label==13){ // insert kink after tail
+        else if (label==+13){ // insert kink after tail
              insert_kink_after_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,adjacency_matrix,total_nn,
                         beta,eta,canonical,N_tracker[r],
                         N_zero[r],N_beta[r],last_kinks[r],
                         ikat_attempts,ikat_accepts,*rng_ptr,boundary);
          }
-         else if (label==14){ // delete kink after tail
+         else if (label==+14){ // delete kink after tail
              delete_kink_after_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,adjacency_matrix,total_nn,
                         beta,eta,canonical,N_tracker[r],
@@ -1393,6 +1416,28 @@ int main(int argc, char** argv){
                 advance_kink_attempts,advance_kink_accepts,
                 recede_kink_attempts,recede_kink_accepts,
                 *rng_ptr);
+        }
+        else if (label==16){ // insert kink-antikink pair
+            insert_kink_antikink(paths[r], num_kinks[r],
+                            head_idx[r],tail_idx[r],
+                            M,N,U,mu,t,
+                            adjacency_matrix,total_nn,
+                            beta,eta,canonical,N_tracker[r],
+                            N_zero[r],N_beta[r],last_kinks[r],
+                            insert_kink_antikink_attempts,
+                            insert_kink_antikink_accepts,
+                            *rng_ptr,boundary);
+        }
+        else if (label==17){ // delete kink-antikink pair
+            delete_kink_antikink(paths[r], num_kinks[r],
+                            head_idx[r],tail_idx[r],
+                            M,N,U,mu,t,
+                            adjacency_matrix,total_nn,
+                            beta,eta,canonical,N_tracker[r],
+                            N_zero[r],N_beta[r],last_kinks[r],
+                            delete_kink_antikink_attempts,
+                            delete_kink_antikink_accepts,
+                            *rng_ptr,boundary);
         }
         else{
             // lol
@@ -2045,6 +2090,11 @@ int main(int argc, char** argv){
     cout <<"DKAT: "<<dkat_accepts<<"/"<<
                                dkat_attempts<<endl;
 
+    cout<< endl <<"Insert Kink-Antikink: "<<insert_kink_antikink_accepts<<"/"<<
+                               insert_kink_antikink_attempts<<endl;
+    cout<<"Delete Kink-Antikink: "<<delete_kink_antikink_accepts<<"/"<<
+                               delete_kink_antikink_attempts<<endl;
+                               
     cout<< endl <<"Advance Kink: "<<advance_kink_accepts<<"/"<<
                                advance_kink_attempts<<endl;
     cout<<"Recede  Kink: "<<recede_kink_accepts<<"/"<<
@@ -2073,6 +2123,24 @@ int main(int argc, char** argv){
     cout << endl << "Elapsed time: " << duration << " seconds" << endl;
     
     cout << "num_kinks: " << num_kinks[0] << endl;
+
+
+    cout << endl;
+    cout << "--- paths (end of simulation) ---" << endl;
+    for (int i=0; i<num_kinks[0]; i++){
+        cout << "i: " << i << " " << paths[0][i] << endl;
+    }
+    cout << "N_tracker = " << N_tracker[0] << endl;
+    cout << "head & tail: " << head_idx[0] << " " << tail_idx[0] << endl;
+    cout << "last_kinks = ";
+    for (int i=0; i<M; i++){
+        cout << last_kinks[0][i] << " ";
+    }
+    cout << endl;
+    cout << "num_kinks = " << num_kinks[0] << endl;
+    cout << "N_beta = " << N_beta[0] << endl;
+    cout << "N_zero = " << N_zero[0] << endl;
+    cout << endl;
 
     return 0;
     
