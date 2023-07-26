@@ -5284,10 +5284,10 @@ void timeshift_kink(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 RNG &rng){
     
     // Variable declarations
-    int prev,src,dest,n_i,n_j,next_dest,prev_dest,next_src,prev_src,n_src,n_dest,
+    int prev,n_i,n_j,
     kink_idx_j,kink_idx_i,i,j,prev_i,next_i,prev_j,next_j,n_before_i,
     n_before_j,n_after_i,n_after_j;
-    double l_path,dN,dV,tau_new,R,tau_j,tau,
+    double dV,tau_new,R,tau,
     tau_min,tau_max,tau_next_j,tau_prev_j,tau_next_i,tau_prev_i,dV_i,dV_j;
     long double Z;
     
@@ -5420,142 +5420,141 @@ void timeshift_kink(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
 /*--------------------------------------------------------------------*/
 
-void timeshift_kink_uniform_buggy(vector<Kink> &paths, int &num_kinks, int &head_idx,
-                int &tail_idx, int M, int N, double U, double mu, double t,
-                double beta, double eta, bool canonical,
-                int &N_zero, int &N_beta, vector<int> &last_kinks,
-                unsigned long long int &advance_kink_attempts,
-                unsigned long long int &advance_kink_accepts,
-                unsigned long long int &recede_kink_attempts,
-                unsigned long long int &recede_kink_accepts,
-                RNG &rng){
+// void timeshift_kink_uniform_buggy(vector<Kink> &paths, int &num_kinks, int &head_idx,
+//                 int &tail_idx, int M, int N, double U, double mu, double t,
+//                 double beta, double eta, bool canonical,
+//                 int &N_zero, int &N_beta, vector<int> &last_kinks,
+//                 unsigned long long int &advance_kink_attempts,
+//                 unsigned long long int &advance_kink_accepts,
+//                 unsigned long long int &recede_kink_attempts,
+//                 unsigned long long int &recede_kink_accepts,
+//                 RNG &rng){
     
-    // Variable declarations
-    int prev,src,dest,n_i,n_j,next_dest,prev_dest,next_src,prev_src,n_src,n_dest,
-    kink_idx_dest,kink_idx_src,i,j;
-    double l_path,dN,dV,tau_new,R,tau_dest,tau_kink,
-    tau_min,tau_max,tau_next_dest,tau_prev_dest,tau_next_src,tau_prev_src;
-    long double Z;
+//     // Variable declarations
+//     int prev,src,dest,n_i,n_j,next_dest,prev_dest,next_src,prev_src,n_src,n_dest,
+//     kink_idx_dest,kink_idx_src,i,j;
+//     double dV,tau_new,R,tau_dest,tau_kink,
+//     tau_min,tau_max,tau_next_dest,tau_prev_dest,tau_next_src,tau_prev_src;
     
-    // Reject update if there are no kinks present
-    if (num_kinks==M){return;}
+//     // Reject update if there are no kinks present
+//     if (num_kinks==M){return;}
 
-    // Randomly choose which regular kink to move
-    kink_idx_src = rng.randInt(num_kinks-M-1)+M;
+//     // Randomly choose which regular kink to move
+//     kink_idx_src = rng.randInt(num_kinks-M-1)+M;
     
-    // Extract src kink attributes
-    tau_kink = paths[kink_idx_src].tau;
-    n_src = paths[kink_idx_src].n;
-    prev_src = paths[kink_idx_src].prev;
-    next_src = paths[kink_idx_src].next;
-    src = paths[kink_idx_src].src;
-    dest = paths[kink_idx_src].dest;
+//     // Extract src kink attributes
+//     tau_kink = paths[kink_idx_src].tau;
+//     n_src = paths[kink_idx_src].n;
+//     prev_src = paths[kink_idx_src].prev;
+//     next_src = paths[kink_idx_src].next;
+//     src = paths[kink_idx_src].src;
+//     dest = paths[kink_idx_src].dest;
 
-    // Reject update if proposed kink is a worm end
-    if (src==dest){return;}
+//     // Reject update if proposed kink is a worm end
+//     if (src==dest){return;}
     
-    // Determine index of lower/upper kinks of the connecting kink
-    tau_dest = 0.0;     // tau_prev_dest candidate
-    prev = dest;        // prev_dest candidate
-    prev_dest = dest;   // this avoids "variable maybe not initialized" warning
-    while (tau_dest<tau_kink){
-        // Set the lower bound index
-        prev_dest = prev;
+//     // Determine index of lower/upper kinks of the connecting kink
+//     tau_dest = 0.0;     // tau_prev_dest candidate
+//     prev = dest;        // prev_dest candidate
+//     prev_dest = dest;   // this avoids "variable maybe not initialized" warning
+//     while (tau_dest<tau_kink){
+//         // Set the lower bound index
+//         prev_dest = prev;
         
-        // Update lower bound index and tau candidates for next iteration
-        prev = paths[prev].next;
-        if (prev==-1){break;}
-        tau_dest = paths[prev].tau;
-    }
-    next_dest=prev;
-    kink_idx_dest = paths[prev_dest].next;
+//         // Update lower bound index and tau candidates for next iteration
+//         prev = paths[prev].next;
+//         if (prev==-1){break;}
+//         tau_dest = paths[prev].tau;
+//     }
+//     next_dest=prev;
+//     kink_idx_dest = paths[prev_dest].next;
 
-    // Extract dest kink attributes
-    n_dest = paths[kink_idx_dest].n;
-    prev_dest = paths[kink_idx_dest].prev;
-    next_dest = paths[kink_idx_dest].next;
+//     // Extract dest kink attributes
+//     n_dest = paths[kink_idx_dest].n;
+//     prev_dest = paths[kink_idx_dest].prev;
+//     next_dest = paths[kink_idx_dest].next;
 
-    // Fix "i" as site that losses particle; "j" the one that gains.
-    // This is for consistency with derivation of weight ratios in notes.
-    if (n_dest>n_src){
-        j = dest; 
-        i = src;
-        n_j = n_dest;
-        n_i = n_src;
-    }
-    else{
-        j = src;
-        i = dest;
-        n_j = n_src;
-        n_i = n_dest;
-    }
+//     // Fix "i" as site that losses particle; "j" the one that gains.
+//     // This is for consistency with derivation of weight ratios in notes.
+//     if (n_dest>n_src){
+//         j = dest; 
+//         i = src;
+//         n_j = n_dest;
+//         n_i = n_src;
+//     }
+//     else{
+//         j = src;
+//         i = dest;
+//         n_j = n_src;
+//         n_i = n_dest;
+//     }
         
-    // Determine the lower and upper bound times of the kink ends to be shifted
-    if (next_dest==-1)
-        tau_next_dest = beta;
-    else
-        tau_next_dest = paths[next_dest].tau;
-    tau_prev_dest = paths[prev_dest].tau;
+//     // Determine the lower and upper bound times of the kink ends to be shifted
+//     if (next_dest==-1)
+//         tau_next_dest = beta;
+//     else
+//         tau_next_dest = paths[next_dest].tau;
+//     tau_prev_dest = paths[prev_dest].tau;
 
-    if (next_src==-1)
-        tau_next_src = beta;
-    else
-        tau_next_src = paths[next_src].tau;
-    tau_prev_src = paths[prev_src].tau;
+//     if (next_src==-1)
+//         tau_next_src = beta;
+//     else
+//         tau_next_src = paths[next_src].tau;
+//     tau_prev_src = paths[prev_src].tau;
 
-    // Determine lowest time at which kink could've been inserted
-    if (tau_prev_src>tau_prev_dest){tau_min=tau_prev_src;}
-    else {tau_min=tau_prev_dest;}
+//     // Determine lowest time at which kink could've been inserted
+//     if (tau_prev_src>tau_prev_dest){tau_min=tau_prev_src;}
+//     else {tau_min=tau_prev_dest;}
 
-    // Determine largest time at which kink could've been inserted
-    if (tau_next_src<tau_next_dest){tau_max=tau_next_src;}
-    else {tau_max=tau_next_dest;}
+//     // Determine largest time at which kink could've been inserted
+//     if (tau_next_src<tau_next_dest){tau_max=tau_next_src;}
+//     else {tau_max=tau_next_dest;}
 
-    // Diagonal energy difference in simplified form
-    // dV=U*(n-!shift_head)-mu;
-    dV=U*(n_i-n_j+1);
+//     // Diagonal energy difference in simplified form
+//     // dV=U*(n-!shift_head)-mu;
+//     dV=U*(n_i-n_j+1);
 
-    tau_new = tau_min + rng.rand()*(tau_max-tau_min);
+//     tau_new = tau_min + rng.rand()*(tau_max-tau_min);
     
-    // Add to PROPOSAL counter
-        if (tau_new > tau_kink){advance_kink_attempts+=1;}
-        else{recede_kink_attempts+=1;}
+//     // Add to PROPOSAL counter
+//         if (tau_new > tau_kink){advance_kink_attempts+=1;}
+//         else{recede_kink_attempts+=1;}
     
-    // Determine the length of path to be modified
-    // l_path = tau_new - tau_kink;
+//     // Determine the length of path to be modified
+//     // l_path = tau_new - tau_kink;
     
-    // Determine the total particle change based on wormend to be shifted
-    // if (src!=dest){ // Shifting regular kinks will not change total N
-    //     dN = 0;
-    // }
+//     // Determine the total particle change based on wormend to be shifted
+//     // if (src!=dest){ // Shifting regular kinks will not change total N
+//     //     dN = 0;
+//     // }
     
-    // // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
-    // if (canonical)
-    //     if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
+//     // // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
+//     // if (canonical)
+//     //     if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
     
-    // Build the Metropolis condition (R)
-    R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
-    R = expl(-dV*(tau_new-tau_kink));
+//     // Build the Metropolis condition (R)
+//     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
+//     R = expl(-dV*(tau_new-tau_kink));
 
-    // Metropolis sampling
-    if (rng.rand() < R){
+//     // Metropolis sampling
+//     if (rng.rand() < R){
         
-        // Add to acceptance counters
-        if (tau_new > tau_kink){advance_kink_accepts+=1;}
-        else{recede_kink_accepts+=1;}
+//         // Add to acceptance counters
+//         if (tau_new > tau_kink){advance_kink_accepts+=1;}
+//         else{recede_kink_accepts+=1;}
 
-        // Modify the kink times
-        paths[kink_idx_src].tau = tau_new;
-        paths[kink_idx_dest].tau = tau_new;
+//         // Modify the kink times
+//         paths[kink_idx_src].tau = tau_new;
+//         paths[kink_idx_dest].tau = tau_new;
         
-        // Modify total particle number tracker
-        // N_tracker += dN;
+//         // Modify total particle number tracker
+//         // N_tracker += dN;
         
-        return;
-    }
-    else // Reject
-        return;
-}
+//         return;
+//     }
+//     else // Reject
+//         return;
+// }
 
 /*------------------------------- SWAP updates -------------------------------*/
 
