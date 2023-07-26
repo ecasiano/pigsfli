@@ -106,7 +106,8 @@ If you want to perform a quick test-run for a small one-dimensional Bose-Hubbard
 All options, including lists of possible values and default values can be seen
 by using the `--help flag`.
 
-The output of the above command should yield something like:
+Terminal output example:
+
 ```bash
         _            __ _ _
        (_)          / _| (_)
