@@ -109,10 +109,12 @@ int main(int argc, char** argv){
         cxxopts::value<bool>()->default_value("false"))
         ("get-n", "compute subregion-size-resolved local particle number density (and squared)",
         cxxopts::value<bool>()->default_value("false"))
-        ("no-sample-directly", "sample imaginary times directly by inverting probability distributions",
-        cxxopts::value<bool>()->default_value("false"))
+        // ("no-sample-directly", "sample imaginary times directly by inverting probability distributions",
+        // cxxopts::value<bool>()->default_value("false"))
         ("boundary","Boundary condition: pbc or obc",
             cxxopts::value<string>()->default_value("pbc"))
+        ("no-worms", "Do simulation with only non-worm moves.",
+        cxxopts::value<bool>()->default_value("false"))
     ;
 
     auto result = options.parse(argc, argv);
@@ -131,6 +133,8 @@ int main(int argc, char** argv){
     bool get_Pn=result["get-Pn"].as<bool>();
     bool get_PN=result["get-PN"].as<bool>();
     bool get_n=result["get-n"].as<bool>();
+
+    bool no_worms=result["no-worms"].as<bool>();
 
     // bool no_sample_directly=result["no-sample-directly"].as<bool>();
 
@@ -555,7 +559,7 @@ int main(int argc, char** argv){
 
         bool print_it = false;
             
-        label = rng_ptr->randInt(15);
+        label = rng_ptr->randInt(17);
 
          if (label==0){     // worm_insert
               insert_worm(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -613,7 +617,7 @@ int main(int argc, char** argv){
                             dummy_counter,dummy_counter,
                             dummy_counter,dummy_counter,*rng_ptr);
             }
-            else if (label==+7){ // insert kink before head
+            else if (label==-7){ // insert kink before head
                 insert_kink_before_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -621,7 +625,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==+8){ // delete kink before head
+            else if (label==-8){ // delete kink before head
                 delete_kink_before_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -629,7 +633,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==+9){ // insert kink after head
+            else if (label==-9){ // insert kink after head
                 insert_kink_after_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -637,7 +641,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==+10){ // delete kink after head
+            else if (label==-10){ // delete kink after head
                 delete_kink_after_head_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -645,7 +649,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
                     }
-            else if (label==+11){ // insert kink before tail
+            else if (label==-11){ // insert kink before tail
                 insert_kink_before_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -653,7 +657,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==+12){ // delete kink before tail
+            else if (label==-12){ // delete kink before tail
                 delete_kink_before_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -661,7 +665,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==+13){ // insert kink after tail
+            else if (label==-13){ // insert kink after tail
                 insert_kink_after_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -669,7 +673,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,*rng_ptr,boundary);
             }
-            else if (label==+14){ // delete kink after tail
+            else if (label==-14){ // delete kink after tail
                 delete_kink_after_tail_2(paths[0],num_kinks[0],
                             head_idx[0],tail_idx[0],
                             M,N,U,mu,t,adjacency_matrix,total_nn,
@@ -753,8 +757,6 @@ int main(int argc, char** argv){
 
         // Get the index of the target N in the support of the distribution
         N_idx = N - N_min;
-        // cout << "N_idx = " << N_idx << endl;
-        // cout << P_N[N_idx+1] << endl;
 
         // Fill out the histogram
         for (size_t i=0;i<N_data.size();i++){
@@ -772,7 +774,6 @@ int main(int argc, char** argv){
                 P_N_peak=P_N[peak_idx];
             }
         }
-        // cout << "P_N.size() = " << P_N.size() << endl; 
 
         // Print out current mu and draw the particle probability distribution
         cout << "mu: " << mu;
@@ -780,9 +781,6 @@ int main(int argc, char** argv){
         cout << "N        P(N)"<<endl;
         for (size_t i=0;i<N_bins.size();i++){
             cout << setw(6) << left << N_bins[i] << "   " << P_N[i];
-            // for (int j=0;j<=static_cast<int>(100*P_N[i]);j++){
-            //     cout<<"*";
-            // }
             cout<<endl;
             N_mean_pre+=N_bins[i]*P_N[i];
         }
@@ -792,7 +790,7 @@ int main(int argc, char** argv){
         
         // Eta equilibration
         // if (!eta_fine_tuning_stage){ // Coarse calibration
-        if (0){ // Coarse calibration. Off for now. Slow.
+        if (0){ // Coarse calibration of eta. Off for now. Slow.
             N_flats_mean/=N_flats_samples;
             eta=1/sqrt(N_flats_mean);
         }
@@ -803,7 +801,7 @@ int main(int argc, char** argv){
         }
 
         if (N_target_in_bins){
-            // Stop the loop if the peak is at P(N)
+            // Stop the loop if the peak is at P(N) & eta has desired value
             if (peak_idx==N_idx
                 && P_N.size() > 0
                 && P_N[peak_idx-1]/P_N[peak_idx] < 0.66
@@ -812,15 +810,25 @@ int main(int argc, char** argv){
                 && at_least_one_iteration){
                 // cout << "LOL 0" << endl;
                 //     cout << P_N[N_idx-1] << " " << P_N[N_idx] << " " << P_N[N_idx+1] << endl << endl;
-                if (!eta_fine_tuning_stage){
-                    cout<<"Fine tuning eta... (Want: " << (Z-dZ)*100.0 << 
-                    "% < diagonal fraction < " << (Z+dZ)*100.0 << "%)"<<endl
-                    <<endl;
-                    eta_fine_tuning_stage = true;
-                    break;}
-                else{
-                    if (eta_fine_tuning_complete){break;}
+
+                // If worms in simulation, check if diagonal fraction is in window.
+                if (!no_worms){
+                    if (!eta_fine_tuning_stage){
+                        cout<<"Fine tuning eta... (Want: " << (Z-dZ)*100.0 << 
+                        "% < diagonal fraction < " << (Z+dZ)*100.0 << "%)"<<endl
+                        <<endl;
+                        eta_fine_tuning_stage = true;
+                        break;}
+                    else{
+                        if (eta_fine_tuning_complete){break;}
+                    }
                 }
+                else {
+                    cout << "Simulation with no worms. Skipping eta calibration..."
+                    << endl;
+                }
+
+
             }
 
             else{
@@ -1294,7 +1302,7 @@ int main(int argc, char** argv){
 
     for (int r=0;r<num_replicas;r++){
         
-        label = rng_ptr->randInt(15);
+        label = rng_ptr->randInt(17);
 
         // These versions of the updates sample taus directly
          if (label==0){     // worm_insert
@@ -1353,56 +1361,56 @@ int main(int argc, char** argv){
                        advance_tail_attempts,advance_tail_accepts,
                        recede_tail_attempts,recede_tail_accepts,*rng_ptr);
         }
-        else if (label==+7){ // insert kink before head
+        else if (label==-7){ // insert kink before head
             insert_kink_before_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        ikbh_attempts,ikbh_accepts,*rng_ptr,boundary);
         }
-        else if (label==+8){ // delete kink before head
+        else if (label==-8){ // delete kink before head
             delete_kink_before_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        dkbh_attempts,dkbh_accepts,*rng_ptr,boundary);
         }
-        else if (label==+9){ // insert kink after head
+        else if (label==-9){ // insert kink after head
             insert_kink_after_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        ikah_attempts,ikah_accepts,*rng_ptr,boundary);
         }
-        else if (label==+10){ // delete kink after head
+        else if (label==-10){ // delete kink after head
             delete_kink_after_head_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        dkah_attempts,dkah_accepts,*rng_ptr,boundary);
         }
-        else if (label==+11){ // insert kink before tail
+        else if (label==-11){ // insert kink before tail
             insert_kink_before_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        ikbt_attempts,ikbt_accepts,*rng_ptr,boundary);
         }
-        else if (label==+12){ // delete kink before tail
+        else if (label==-12){ // delete kink before tail
             delete_kink_before_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                        M,N,U,mu,t,adjacency_matrix,total_nn,
                        beta,eta,canonical,N_tracker[r],
                        N_zero[r],N_beta[r],last_kinks[r],
                        dkbt_attempts,dkbt_accepts,*rng_ptr,boundary);
         }
-        else if (label==+13){ // insert kink after tail
+        else if (label==-13){ // insert kink after tail
              insert_kink_after_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,adjacency_matrix,total_nn,
                         beta,eta,canonical,N_tracker[r],
                         N_zero[r],N_beta[r],last_kinks[r],
                         ikat_attempts,ikat_accepts,*rng_ptr,boundary);
          }
-         else if (label==+14){ // delete kink after tail
+         else if (label==-14){ // delete kink after tail
              delete_kink_after_tail_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,adjacency_matrix,total_nn,
                         beta,eta,canonical,N_tracker[r],
