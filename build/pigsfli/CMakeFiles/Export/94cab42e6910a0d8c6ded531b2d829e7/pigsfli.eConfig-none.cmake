@@ -11,8 +11,8 @@ set_target_properties(pigsfli.e PROPERTIES
   IMPORTED_LOCATION_NONE "${_IMPORT_PREFIX}/bin/pigsfli.e"
   )
 
-list(APPEND _IMPORT_CHECK_TARGETS pigsfli.e )
-list(APPEND _IMPORT_CHECK_FILES_FOR_pigsfli.e "${_IMPORT_PREFIX}/bin/pigsfli.e" )
+list(APPEND _cmake_import_check_targets pigsfli.e )
+list(APPEND _cmake_import_check_files_for_pigsfli.e "${_IMPORT_PREFIX}/bin/pigsfli.e" )
 
 # Commands beyond this point should not need to know the version.
 set(CMAKE_IMPORT_FILE_VERSION)

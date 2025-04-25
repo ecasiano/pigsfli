@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/ecasiano/Desktop/WorkingCopies/pigsfli/build/cmake_install.cmake",
+		"/Users/ecasiano/Desktop/WorkingCopies/pigsfli/build/pigsfli/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

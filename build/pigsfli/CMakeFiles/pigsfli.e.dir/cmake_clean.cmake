@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/pigsfli.e.dir/src/RNG.cpp.o"
+  "CMakeFiles/pigsfli.e.dir/src/RNG.cpp.o.d"
   "CMakeFiles/pigsfli.e.dir/src/pimc.cpp.o"
+  "CMakeFiles/pigsfli.e.dir/src/pimc.cpp.o.d"
   "pigsfli.e"
   "pigsfli.e.pdb"
 )

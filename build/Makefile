@@ -142,14 +142,14 @@ install/strip/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(CMAKE_COMMAND) -E cmake_progress_start /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build/CMakeFiles /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build/pigsfli//CMakeFiles/progress.marks
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pigsfli/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build/CMakeFiles /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build//CMakeFiles/progress.marks
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pigsfli/clean
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 clean
 .PHONY : clean
 
 # The main clean target
@@ -158,80 +158,31 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pigsfli/preinstall
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pigsfli/preinstall
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
-# Convenience name for target.
-pigsfli/CMakeFiles/pigsfli.e.dir/rule:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pigsfli/CMakeFiles/pigsfli.e.dir/rule
-.PHONY : pigsfli/CMakeFiles/pigsfli.e.dir/rule
+#=============================================================================
+# Target rules for targets named pigsfli.e
 
-# Convenience name for target.
-pigsfli.e: pigsfli/CMakeFiles/pigsfli.e.dir/rule
+# Build rule for target.
+pigsfli.e: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pigsfli.e
 .PHONY : pigsfli.e
 
 # fast build rule for target.
 pigsfli.e/fast:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f pigsfli/CMakeFiles/pigsfli.e.dir/build.make pigsfli/CMakeFiles/pigsfli.e.dir/build
+	$(MAKE) $(MAKESILENT) -f pigsfli/CMakeFiles/pigsfli.e.dir/build.make pigsfli/CMakeFiles/pigsfli.e.dir/build
 .PHONY : pigsfli.e/fast
-
-src/RNG.o: src/RNG.cpp.o
-.PHONY : src/RNG.o
-
-# target to build an object file
-src/RNG.cpp.o:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f pigsfli/CMakeFiles/pigsfli.e.dir/build.make pigsfli/CMakeFiles/pigsfli.e.dir/src/RNG.cpp.o
-.PHONY : src/RNG.cpp.o
-
-src/RNG.i: src/RNG.cpp.i
-.PHONY : src/RNG.i
-
-# target to preprocess a source file
-src/RNG.cpp.i:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f pigsfli/CMakeFiles/pigsfli.e.dir/build.make pigsfli/CMakeFiles/pigsfli.e.dir/src/RNG.cpp.i
-.PHONY : src/RNG.cpp.i
-
-src/RNG.s: src/RNG.cpp.s
-.PHONY : src/RNG.s
-
-# target to generate assembly for a file
-src/RNG.cpp.s:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f pigsfli/CMakeFiles/pigsfli.e.dir/build.make pigsfli/CMakeFiles/pigsfli.e.dir/src/RNG.cpp.s
-.PHONY : src/RNG.cpp.s
-
-src/pimc.o: src/pimc.cpp.o
-.PHONY : src/pimc.o
-
-# target to build an object file
-src/pimc.cpp.o:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f pigsfli/CMakeFiles/pigsfli.e.dir/build.make pigsfli/CMakeFiles/pigsfli.e.dir/src/pimc.cpp.o
-.PHONY : src/pimc.cpp.o
-
-src/pimc.i: src/pimc.cpp.i
-.PHONY : src/pimc.i
-
-# target to preprocess a source file
-src/pimc.cpp.i:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f pigsfli/CMakeFiles/pigsfli.e.dir/build.make pigsfli/CMakeFiles/pigsfli.e.dir/src/pimc.cpp.i
-.PHONY : src/pimc.cpp.i
-
-src/pimc.s: src/pimc.cpp.s
-.PHONY : src/pimc.s
-
-# target to generate assembly for a file
-src/pimc.cpp.s:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(MAKE) $(MAKESILENT) -f pigsfli/CMakeFiles/pigsfli.e.dir/build.make pigsfli/CMakeFiles/pigsfli.e.dir/src/pimc.cpp.s
-.PHONY : src/pimc.cpp.s
 
 # Help Target
 help:
@@ -247,12 +198,6 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... pigsfli.e"
-	@echo "... src/RNG.o"
-	@echo "... src/RNG.i"
-	@echo "... src/RNG.s"
-	@echo "... src/pimc.o"
-	@echo "... src/pimc.i"
-	@echo "... src/pimc.s"
 .PHONY : help
 
 
@@ -264,6 +209,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /Users/ecasiano/Desktop/WorkingCopies/pigsfli/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 
