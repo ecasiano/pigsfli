@@ -140,17 +140,12 @@ int main(int argc, char** argv){
 
     string trial_state=result["trial-state"].as<string>();
     double kappa=result["kappa"].as<double>();
-    double v_old=result["v"].as<double>();
     if (trial_state=="gutzwiller" && kappa==-12345.6789){
         cout<<"ERROR: Gutzwiller state chosen; specify kappa"<<endl;
         exit(1);
     }
-    if (trial_state=="jastrow" && v_old==-12345.6789){
-        cout<<"ERROR: Jastrow state chosen; specify v"<<endl;
-        exit(1);
-    }
     if (trial_state!="constant" && trial_state!="non-interacting"
-    && trial_state!="gutzwiller" && trial_state!="jastrow"){
+    && trial_state!="gutzwiller"){
         cout<<"ERROR: Invalid trial state chosen."<<endl;
         exit(1);
     }
@@ -348,11 +343,7 @@ int main(int argc, char** argv){
     initial_fock_state = random_boson_config(M,N,*rng_ptr,restart);
     
     // Simulation parameters
-    // eta=1/sqrt(M);
-    eta=1E-05;
-    // eta=9.87;
-    // mu = 0.0000000000000001;
-    // eta=1.0;
+    eta=1/sqrt(M);
     beta=result["beta"].as<double>();
     canonical=result["canonical"].as<bool>();
     sweeps=result["sweeps"].as<unsigned long long int>();
@@ -594,7 +585,7 @@ int main(int argc, char** argv){
                          N_zero[0],N_beta[0],last_kinks[0],
                          dummy_counter,dummy_counter,
                          dummy_counter,dummy_counter,*rng_ptr,trial_state,
-                         kappa,v_old,fock_state_at_zero);
+                         kappa,fock_state_at_zero);
 
               }
             else if (label==3){ // deleteZero
@@ -603,7 +594,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
                             dummy_counter,dummy_counter,*rng_ptr,trial_state,
-                            kappa,v_old,fock_state_at_zero);
+                            kappa,fock_state_at_zero);
             }
             else if (label==4){ // insertBeta
                 insertBeta_2(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -611,7 +602,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
                             dummy_counter,dummy_counter,*rng_ptr,
-                            trial_state,kappa,v_old,fock_state_at_beta);
+                            trial_state,kappa,fock_state_at_beta);
             }
             else if (label==5){ // deleteBeta
                 deleteBeta_2(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -619,7 +610,7 @@ int main(int argc, char** argv){
                             N_zero[0],N_beta[0],last_kinks[0],
                             dummy_counter,dummy_counter,
                             dummy_counter,dummy_counter,*rng_ptr,
-                            trial_state,kappa,v_old,fock_state_at_beta);
+                            trial_state,kappa,fock_state_at_beta);
             }
             else if (label==6){ // timeshift
                 timeshift(paths[0],num_kinks[0],head_idx[0],tail_idx[0],
@@ -724,8 +715,6 @@ int main(int argc, char** argv){
               else{
                   // lol
               }   
-
-           //   cout << label << " " << paths[0][num_kinks[0]-1].tau << endl;
 
             // Measure the total number of particles
             if (m_pre%(sweep*measurement_frequency)==0 && m_pre>=0.25*sweeps_pre){
@@ -1343,7 +1332,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertZero_worm_attempts,insertZero_worm_accepts,
                        insertZero_anti_attempts,insertZero_anti_accepts,*rng_ptr,
-                       trial_state,kappa,v_old,fock_state_at_zero);
+                       trial_state,kappa,fock_state_at_zero);
             
         }
         else if (label==3){ // deleteZero
@@ -1352,7 +1341,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteZero_worm_attempts,deleteZero_worm_accepts,
                        deleteZero_anti_attempts,deleteZero_anti_accepts,*rng_ptr,
-                       trial_state,kappa,v_old,fock_state_at_zero);
+                       trial_state,kappa,fock_state_at_zero);
         }
         else if (label==4){ // insertBeta
             insertBeta_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -1360,7 +1349,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        insertBeta_worm_attempts,insertBeta_worm_accepts,
                        insertBeta_anti_attempts,insertBeta_anti_accepts,*rng_ptr,
-                       trial_state,kappa,v_old,fock_state_at_beta);
+                       trial_state,kappa,fock_state_at_beta);
         }
         else if (label==5){ // deleteBeta
             deleteBeta_2(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -1368,7 +1357,7 @@ int main(int argc, char** argv){
                        N_zero[r],N_beta[r],last_kinks[r],
                        deleteBeta_worm_attempts,deleteBeta_worm_accepts,
                        deleteBeta_anti_attempts,deleteBeta_anti_accepts,*rng_ptr,
-                       trial_state,kappa,v_old,fock_state_at_beta);
+                       trial_state,kappa,fock_state_at_beta);
         }
         else if (label==6){ // timeshift
             timeshift(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
@@ -1567,12 +1556,6 @@ int main(int argc, char** argv){
                 measurement_attempts[r]+=1;
                 if (head_idx[r]==-1 and tail_idx[r]==-1){ // if no worm
 
-                    // Round out N_tracker since it might have
-                    // floating point errors after a while
-                    // for (int r=0; r<num_replicas; r++){
-                    //     N_tracker[r] = round(N_tracker[r]);
-                    // }
-
                     N_sum[r] += N_tracker[r];
                     Z_ctr[r] += 1;
 
@@ -1635,23 +1618,10 @@ int main(int argc, char** argv){
                     }
 
                     if (N_zero[r]==N && N_beta[r]==N && canonical){ // canonical measurement
-
-                    // Round out N_tracker since it might have
-                    // floating point errors after a while
-                    // for (int r=0; r<num_replicas; r++){
-                    //     N_tracker[r] = round(N_tracker[r]);
-                    // }
                         
                     // Get fock state at desired measurement center
                     get_fock_state(measurement_center,M,fock_state_at_slice,
                                    paths[r]);
-
-                    // get_fock_state(0.00,M,fock_state_at_zero,
-                    //                paths[r]);
-
-                    // get_fock_state(beta,M,fock_state_at_beta,
-                    //                paths[r]);
-
                                        
                     // Measure and accumulate <K>
                     kinetic_energy+=pimc_kinetic_energy(paths[r],num_kinks[r],measurement_center,
@@ -1717,28 +1687,6 @@ int main(int argc, char** argv){
                     for (int r=0; r<num_replicas; r++){
                         N_tracker[r] = round(N_tracker[r]);
                     }
-
-                    //     cout << "fock state at zero = ";
-                    //     for (int p=0; p<M; p++){
-                    //         cout << fock_state_at_zero[p] << " ";
-                    //     }
-                    //     cout << endl;
-                    // cout << "fock state at mid  = ";
-                    // for (int p=0; p<M; p++){
-                    //     cout << fock_state_at_slice[p] << " ";
-                    // }
-                    // cout << endl;
-                    //     cout << "fock state at beta = ";
-                    //     for (int p=0; p<M; p++){
-                    //         cout << fock_state_at_beta[p] << " ";
-                    //     }
-                    //     cout << endl << endl;
-                        
-                        // Round out N_tracker since it might have
-                        // floating point errors after a while
-                        // for (int r=0; r<num_replicas; r++){
-                        //     N_tracker[r] = round(N_tracker[r]);
-                        // }
                         
                         // Write energies to disk
                         kinetic_energy_file<<fixed<<setprecision(17)<<
