@@ -9,7 +9,6 @@
 #include "pimc.hpp"
 #include "cxxopts.hpp"
 #include <assert.h>
-// #include "uuid.hpp"
 
 /**************************************************************************//**
  * Create a comma separated list from a vector of strings
@@ -48,23 +47,6 @@ return rng_ptr ;
 // Main
 int main(int argc, char** argv){
     
-    // Related to UUID
-    // std::random_device rd;
-    // auto seed_data = std::array<int, std::mt19937::state_size> {};
-    // std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
-    // std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
-    // std::mt19937 generator(seq);
-    // uuids::uuid_random_generator gen{generator};
-
-    // uuids::uuid const id = gen();
-    // assert(!id.is_nil());
-    // assert(id.as_bytes().size() == 16);
-    // assert(id.version() == uuids::uuid_version::random_number_based);
-    // assert(id.variant() == uuids::uuid_variant::rfc);
-
-    // std::string uuid_str = uuids::to_string(id);
-    // std::cout << "uuid: " << uuid_str << std::endl;
-
   /*------------------------- Command line arguments -----------------------------*/
 
     cxxopts::Options options("test", "A brief description");
@@ -135,8 +117,6 @@ int main(int argc, char** argv){
     bool get_n=result["get-n"].as<bool>();
 
     bool no_worms=result["no-worms"].as<bool>();
-
-    // bool no_sample_directly=result["no-sample-directly"].as<bool>();
 
     string trial_state=result["trial-state"].as<string>();
     double kappa=result["kappa"].as<double>();
@@ -446,12 +426,6 @@ int main(int argc, char** argv){
 
 /*------------------- Try drawing a pretty welcome message -------------------*/
 
-// for (int i=0; i<sub_sites.size(); i++){
-//     cout << sub_sites[i] << " ";
-// }
-// cout << endl;
-// cout << "U: " << U << endl;
-
     cout << R"(
         
         _            __ _ _ 
@@ -511,8 +485,6 @@ int main(int argc, char** argv){
         
     while (true){
         
-        // if (!canonical){break;}
-
         // Restart data structure and trackers
         num_kinks.clear();
         N_tracker.clear();
@@ -541,7 +513,6 @@ int main(int argc, char** argv){
                                                     paths[0]);
         get_fock_state_at_beta(M,last_kinks[0],fock_state_at_beta,
                                                     paths[0]);
-
         
         N_data.clear();
         N_hist.clear();
@@ -725,7 +696,6 @@ int main(int argc, char** argv){
                 }
             }
 
-
             // Measure the number of flats
             N_flats_mean+=num_kinks[0]; // Actually accumulator, will average later
             N_flats_samples+=1;
@@ -735,7 +705,6 @@ int main(int argc, char** argv){
         Z_frac/=measurement_attempts[0]; 
 
         // Not enough N samples collected;decrease eta and try again.
-        // if (N_data.size()<sweeps_pre/(beta*M)/10){eta*=0.5;continue;}
         if (!eta_fine_tuning_stage){
             if (N_data.size()<5){eta*=0.5;continue;}
         }
@@ -746,7 +715,6 @@ int main(int argc, char** argv){
         // Find the minimum and maximum number of particles measured
         N_min=*min_element(N_data.begin(),N_data.end());
         N_max=*max_element(N_data.begin(),N_data.end());
-        // cout << "N_min " << N_min << " N_max " << N_max << endl;
 
         // Generate the support of the distribution & initialize the histogram
         N_target_in_bins=false;
@@ -815,7 +783,6 @@ int main(int argc, char** argv){
                 && P_N[peak_idx+1]/P_N[peak_idx] < 0.66
                 && abs(N_mean_pre-N)/N<0.33
                 && at_least_one_iteration){
-                //     cout << P_N[N_idx-1] << " " << P_N[N_idx] << " " << P_N[N_idx+1] << endl << endl;
 
                 // If worms in simulation, check if diagonal fraction is in window.
                 if (!no_worms){
@@ -1166,9 +1133,6 @@ int main(int argc, char** argv){
     
     // Time main function execution
     auto start = high_resolution_clock::now();
-
-    // eta = 0.001;
-    // cout << "Manually setting eta = 1.0" << endl;
     
     // Restart data structure and trackers
     if (!restart){
@@ -1300,7 +1264,7 @@ int main(int argc, char** argv){
         m = get_iteration_idx(D,L,N,l_A,U,t,beta,bin_size,bins_wanted,
                           seed,subgeometry,num_replicas,boundary);
     }
-    bins_written=0; // tracks how many beens have been written
+    bins_written=0; // tracks how many bins have been written
     
     while(bins_written<bins_wanted){
     
@@ -1311,7 +1275,6 @@ int main(int argc, char** argv){
         else
             label = rng_ptr->randInt(2)+15;
 
-        // These versions of the updates sample taus directly
          if (label==0){     // worm_insert
             insert_worm(paths[r],num_kinks[r],head_idx[r],tail_idx[r],
                         M,N,U,mu,t,beta,eta,canonical,N_tracker[r],
@@ -1857,7 +1820,6 @@ int main(int argc, char** argv){
                                 n_A[1][num_swaps-1]){ // Not necessary. When there are SWAPs, n0 and n1 are the same.
                                 SWAPn_histograms[num_swaps-1][n_A[0][num_swaps-1]]+=1;
                                 if (num_swaps==m_A){writing_ctr+=1;}
-//                                 SWAPn_histograms[num_swaps-1][number of particles in the subregion]+=1;
                             }
                             else{cout << "ERROR!" << endl;}
                         }
