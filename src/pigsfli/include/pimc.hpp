@@ -1025,345 +1025,7 @@ void get_fock_state_at_beta(int M, vector<int> &last_kinks,
 
 /*------------------------- Wavefunction coefficients ------------------------*/
 
-long double extended_jastrow_ratio(bool is_worm,vector<int> &fock_state_at_edge, 
-                   int M, int insertion_site,
-                   int N, int N_zero, int N_beta, string tau_edge){
-
-    long double J,J_exponent_0,J_exponent_1,J_exponent_2,gamma_ratio;
-    int i,delta;
-    vector<double> v_new,v_old;
-    double v_diff;
-    
-    i = insertion_site;
-    J_exponent_0 = 0.0;
-    J_exponent_1 = 0.0;
-    J_exponent_2 = 0.0;
-
-    // set the variational parameters based on particle number at edges
-    if (tau_edge=="zero"){
-        if (N_zero==N){
-            v_old = v;
-            if (is_worm){v_new=v_plus;}
-            else {v_new=v_minus;}
-            gamma_ratio=sqrt(18);
-        }
-        else if (N_zero==N-1){
-            v_old = v_minus;
-            v_new = v;
-            gamma_ratio=1/sqrt(18);
-        }
-        else if (N_zero==N+1){
-            v_old = v_plus;
-            v_new = v;
-            gamma_ratio=1/sqrt(18);
-        }
-        else{
-            cout << "ERROR 1: We should not have visited this N-sector." << endl;
-            exit(1);
-        }
-    }
-    else if (tau_edge=="beta"){
-        if (N_beta==N){
-            v_old = v;
-            // cout << "3 " << is_worm << endl;
-            if (is_worm){v_new=v_plus;}
-            else {v_new=v_minus;}
-            gamma_ratio=sqrt(18);
-        }
-        else if (N_beta==N-1){
-            // cout << "1 " << is_worm << endl;
-            v_old = v_minus;
-            v_new = v;
-            gamma_ratio=1/sqrt(18);
-        }
-        else if (N_beta==N+1){
-            // cout << "2 " << !is_worm << endl;
-            v_old = v_plus;
-            v_new = v;
-            gamma_ratio=1/sqrt(18);
-        }
-        else{
-            cout << "ERROR 2: We should not have visited this N-sector." << endl;
-            exit(1);
-        }
-    }
-    else{
-        cout << "tau_edge (insert) = " << tau_edge << endl;
-        cout << "ERROR: Invalid tau edge. Should be zero or beta" << endl;
-        exit(1);
-    }
-
-    // On-site term (i.e, v_kk in notes)
-    J_exponent_0 = v_new[0];
-
-    if (is_worm){ // edge worm insertion
-        for (int j=0; j<M; j++){
-
-            // Single sum term
-            delta = abs(i-j); 
-            if (delta > M/2){delta = (M-delta);}   
-            J_exponent_1 += v_new[delta]*fock_state_at_edge[j];
-
-            // Double sum term
-            for (int p=0; p<M; p++){
-                delta = abs(j-p);
-                if (delta > M/2){delta = (M-delta);}   
-                v_diff = v_new[delta]-v_old[delta];
-                J_exponent_2 += fock_state_at_edge[j]*fock_state_at_edge[p]*v_diff;
-            }
-        }
-    }
-    else{ // edge antiworm insertion
-        for (int j=0; j<M; j++){
-
-            // Single sum term
-            delta = abs(i-j); 
-            if (delta > M/2){delta = (M-delta);}   
-            J_exponent_1 -= v_new[delta]*fock_state_at_edge[j];
-
-            // Double sum term
-            for (int p=0; p<M; p++){
-                delta = abs(j-p);
-                if (delta > M/2){delta = (M-delta);}  
-                v_diff = v_new[delta]-v_old[delta];
-                J_exponent_2 += fock_state_at_edge[j]*fock_state_at_edge[p]*v_diff;
-            }
-        }
-    }
-
-    J = expl(-0.5*(J_exponent_0 + 2*J_exponent_1 + J_exponent_2));
-
-    return J * gamma_ratio;
-
-}
-
-
-/*--------------------------------------------------------------------*/
-
-long double extended_jastrow_ratio_delete(bool is_worm,
-                   vector<int> &fock_state_at_edge, int M, int deletion_site,
-                   int N, int N_zero, int N_beta, string tau_edge){
-
-    long double J,J_exponent_0,J_exponent_1,J_exponent_2,gamma_ratio;
-    int i,delta;
-    vector<double> v_old,v_new;
-    double v_diff;
-    
-    i = deletion_site;
-    J_exponent_0 = 0.0;
-    J_exponent_1 = 0.0;
-    J_exponent_2 = 0.0;
-
-    // set the variational parameters based on particle number at edges
-    if (tau_edge=="zero"){
-        if (N_zero==N){
-            v_new = v;
-            if (is_worm){v_old=v_minus;} // maybe these are not true
-            else {v_old=v_plus;}
-            gamma_ratio=1/sqrt(18);
-        }
-        else if (N_zero==N-1){
-            v_new = v_minus;
-            v_old = v;
-            gamma_ratio=sqrt(18);
-        }
-        else if (N_zero==N+1){
-            v_new = v_plus;
-            v_old = v;
-            gamma_ratio=sqrt(18);
-        }
-        else{
-            cout << "ERROR 3: We should not have visited this N-sector." << endl;
-            exit(1);
-        }
-    }
-    else if (tau_edge=="beta"){
-        if (N_beta==N){
-            v_new = v;
-            if (is_worm){v_old=v_minus;}
-            else {v_old=v_plus;}
-            gamma_ratio=1/sqrt(18);
-        }
-        else if (N_beta==N-1){
-            v_new = v_minus;
-            v_old = v;
-            gamma_ratio=sqrt(18);
-        }
-        else if (N_beta==N+1){
-            v_new = v_plus;
-            v_old = v;
-            gamma_ratio=sqrt(18);
-        }
-        else{
-            cout << "ERROR 4: We should not have visited this N-sector." << endl;
-            cout << "N_beta = " << N_beta << endl;
-            cout << "N_zero = " << N_zero << endl;
-            // cout << "N_tracker = " << N_tracker << endl;
-            exit(1);
-        }
-    }
-    else{
-        cout << "tau_edge (delete) = " << tau_edge << endl;
-        cout << "ERROR: Invalid tau edge. Should be zero or beta" << endl;
-        exit(1);
-    }
-
-    // On site term (i.e, v_kk in notes)
-    J_exponent_0 = v_new[0];
-
-    if (is_worm){ // edge worm deletion
-        for (int j=0; j<M; j++){
-
-            // Single sum term
-            delta = abs(i-j);    
-            if (delta > M/2){delta = (M-delta);} 
-
-            if (i!=j)
-                J_exponent_1 += v_new[delta]*fock_state_at_edge[j];
-            else
-                J_exponent_1 += v_new[delta]*(fock_state_at_edge[i]-1);
-
-            // Double sum term
-            for (int p=0; p<M; p++){
-                delta = abs(j-p);
-                if (delta > M/2){delta = (M-delta);} 
-                v_diff = v_new[delta]-v_old[delta];
-
-                if (delta > M/2){delta = (M-delta);} 
-                if (j!=i && p!=i){  
-                    J_exponent_2 += fock_state_at_edge[j]*fock_state_at_edge[p]*v_diff;
-                }
-                else if (j!=i && p==i){
-                     J_exponent_2 += fock_state_at_edge[j]*(fock_state_at_edge[p]-1)*v_diff;                   
-                }
-                else if (j==i && p!=i){
-                     J_exponent_2 += (fock_state_at_edge[j]-1)*fock_state_at_edge[p]*v_diff;                   
-                }
-                else{
-                     J_exponent_2 += (fock_state_at_edge[j]-1)*(fock_state_at_edge[p]-1)*v_diff;    
-                }        
-            }
-        }
-    }
-    else{ // edge antiworm deletion
-        for (int j=0; j<M; j++){
-
-                    // Single sum term
-                    delta = abs(i-j);    
-                    if (delta > M/2){delta = (M-delta);} 
-
-                    if (i!=j)
-                        J_exponent_1 -= v_new[delta]*fock_state_at_edge[j];
-                    else
-                        J_exponent_1 -= v_new[delta]*(fock_state_at_edge[i]+1);
-
-                    // Double sum term
-                    for (int p=0; p<M; p++){
-                        delta = abs(j-p);
-                        if (delta > M/2){delta = (M-delta);} 
-                        v_diff = v_new[delta]-v_old[delta];
-                        // cout << v_new[delta]-v_old[delta] << endl;
-                        // if (v_new[delta]-v_old[delta]!=0){exit(1);} 
-
-                        if (j!=i && p!=i){  
-                            J_exponent_2 += fock_state_at_edge[j]*fock_state_at_edge[p]*v_diff;
-                        }
-                        else if (j!=i && p==i){
-                            J_exponent_2 += fock_state_at_edge[j]*(fock_state_at_edge[p]+1)*v_diff;                   
-                        }
-                        else if (j==i && p!=i){
-                            J_exponent_2 += (fock_state_at_edge[j]+1)*fock_state_at_edge[p]*v_diff;                   
-                        }
-                        else{
-                            // cout << j << p << i << endl;
-                            J_exponent_2 += (fock_state_at_edge[j]+1)*(fock_state_at_edge[p]+1)*v_diff;    
-                        }     
-                    }
-                }
-            }
-
-    J = expl(-0.5*(J_exponent_0 + 2*J_exponent_1 + J_exponent_2));
-
-    return J * gamma_ratio;
-
-}
-
-/*--------------------------------------------------------------------*/
-
-long double jastrow_ratio(bool is_worm,vector<int> &fock_state_at_edge, 
-                   int M, int insertion_site){
-
-    long double J,J_exponent;
-    int i,delta;
-    
-    i = insertion_site;
-    J_exponent = 0.0;
-    if (is_worm){ // edge worm insertion
-        for (int j=0; j<M; j++){
-            delta = abs(i-j); 
-            if (delta > M/2){delta = (M-delta);}           
-            J_exponent -= v[delta]*fock_state_at_edge[j];
-        }
-        // cout << "(insert worm)" << endl << endl;
-    }
-    else{ // edge antiworm insertion
-        for (int j=0; j<M; j++){
-            delta = abs(i-j); 
-            if (delta > M/2){delta = (M-delta);}   
-            J_exponent += v[delta]*fock_state_at_edge[j];
-        }
-    }
-    J_exponent -= 0.5*v[0];
-    J = exp(J_exponent);
-
-    return J;
-}
-/*--------------------------------------------------------------------*/
-
-long double jastrow_ratio_delete(bool is_worm,vector<int> &fock_state_at_edge, 
-                   int M, int deletion_site){
-
-    long double J,J_exponent;
-    int i,delta;
-    
-    i = deletion_site;
-
-    J_exponent = 0.0;
-    if (is_worm){ // edge worm deletion
-        // cout << "C" << endl;
-        for (int j=0; j<M; j++){
-            delta = abs(i-j);
-            if (delta > M/2){delta = (M-delta);}        
-            if (i!=j)
-                J_exponent -= v[delta]*fock_state_at_edge[j];
-            else
-                J_exponent -= v[delta]*(fock_state_at_edge[i]-1);
-        }
-        // cout << "(delete worm)" << endl << endl;
-    }
-    else{ // edge antiworm deletion
-        // cout << "D" << endl;
-        for (int j=0; j<M; j++){
-            delta = abs(i-j); 
-            if (delta > M/2){delta = (M-delta);}  
-            // cout << "delta = " << delta << "---> ";
-            // cout << fock_state_at_edge[j] << " "; 
-            // cout << delta << " | k = " << i << endl;   
-            if (i!=j)
-                J_exponent += v[delta]*fock_state_at_edge[j];
-            else
-                J_exponent += v[delta]*(fock_state_at_edge[i]+1);
-        }
-        // cout << "(delete anti)" << endl << endl;
-    }
-    J_exponent -= 0.5*v[0];
-    // cout << "J_exponent (delete) = " << J_exponent << endl;
-    J = exp(J_exponent);
-
-    // std::rotate(v.begin(),v.begin()+i,v.end()); // shift v's back
-
-    return J;
-}
+// Can make this its own header file with all wafefunction implementations.
 
 /*------------------------------ Worm updates --------------------------------*/
 
@@ -2257,14 +1919,8 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertZero_worm_accepts,
                 unsigned long long int &insertZero_anti_attempts,
                 unsigned long long int &insertZero_anti_accepts,
-                RNG &rng, string trial_state, double kappa, double v_old,
+                RNG &rng, string trial_state, double kappa,
                 vector<int> &fock_state_at_zero){
-
-    // cout << "fock state at zero = ";
-    // for (int p=0; p<M; p++){
-    //     cout << fock_state_at_zero[p] << " ";
-    // }
-    // cout << "(initial) " << endl;
 
     // Variable declarations
     int n,src,next,n_head,n_tail,i,dest_replica;
@@ -2412,40 +2068,14 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
         }
     }
-    else if (trial_state=="jastrow"){
-        if (is_worm){ // worm
-            J = extended_jastrow_ratio(is_worm,fock_state_at_zero,M,i,
-            N,N_zero,N_beta,"zero");
-            // J = jastrow_ratio(is_worm,fock_state_at_zero,M,i)  
-            C = J * sqrt((N_zero+1)*1.0/n_tail);
-        }
-        else { // antiworm
-            J = extended_jastrow_ratio(is_worm,fock_state_at_zero,M,i,
-            N,N_zero,N_beta,"zero");
-            // J = jastrow_ratio(is_worm,fock_state_at_zero,M,i)  
-            C = J * sqrt(n_tail*1.0/N_zero);
-        }
-    }
     else { // trial_state=="constant"
         C = 1.0;
     }
-
-    // Build the weight ratio W'/W
-//     if (is_worm){
-// //        C = sqrt(N_b+1)/sqrt(n+1);
-//         W = eta * sqrt(n_tail) * C * exp(-dV*tau_new);
-//     }
-//     else{
-// //        C = sqrt(n)/sqrt(N_b);
-//         W = eta * sqrt(n_tail) * C * exp(dV*tau_new);
-//     }
     
     // Build the Metropolis Ratio (R)
     p_dz = 0.5;
     p_iz = 0.5;
     R = eta * sqrt(n_tail) * C * (p_dz/p_iz) * M * p_wormend * (Z/dV) / p_type;
-    // cout << J << " " << C << " " << R << endl;
-    // if (!is_worm){cout << R << " " << Z << " " << dV << endl;}
 
     // Metropolis sampling
     if (rng.rand() < R){ // Accept
@@ -2506,13 +2136,6 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             else {last_kinks[src]=tail_idx;}
         }
 
-    //     cout << "fock state at zero = ";
-    // for (int p=0; p<M; p++){
-    //     cout << fock_state_at_zero[p] << " ";
-    // }
-    // cout << "(zero edge insertion at k= " << i << ")" << endl << endl;
-    // // exit(1);
-
         return;
     }
     else // Reject
@@ -2529,14 +2152,8 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteZero_worm_accepts,
                 unsigned long long int &deleteZero_anti_attempts,
                 unsigned long long int &deleteZero_anti_accepts,
-                RNG &rng, string trial_state, double kappa, double v_old,
+                RNG &rng, string trial_state, double kappa,
                 vector<int> &fock_state_at_zero){
-
-    // cout << "fock state at zero = ";
-    // for (int p=0; p<M; p++){
-    //     cout << fock_state_at_zero[p] << " ";
-    // }
-    // cout << "(initial) " << endl;
 
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx,i;
@@ -2668,36 +2285,9 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
         }
     }
-    else if (trial_state=="jastrow"){
-        if (is_worm){ // worm
-            J = extended_jastrow_ratio_delete(is_worm,fock_state_at_zero,M,i,
-            N,N_zero,N_beta,"zero");
-            C = J * sqrt((N_zero-1)*1.0/n_tail);
-            // cout << "deleteZero_2 (worm) J = " << J << endl;
-        }
-        else { // antiworm
-            J = extended_jastrow_ratio_delete(is_worm,fock_state_at_zero,M,i,
-            N,N_zero,N_beta,"zero");            
-            C = J * sqrt(n_tail*1.0/(N_zero+1));
-            // cout << "deleteZero_2 (anti) J = " << J << endl;
-        }
-    }
     else { // trial_state=="constant"
         C = 1.0;
     }
-
-    // cout << J << endl;
-
-  
-//     // Build the weigh ratio W'/W
-//     if (delete_head){ // delete worm
-// //        C = sqrt(N_b+1)/sqrt(n+1);
-//         W = eta * sqrt(n_tail) * C * exp(-dV*tau);
-//     }
-//     else{ // delete antiworm
-// //        C = sqrt(n)/sqrt(N_b);
-//         W = eta * sqrt(n_tail) * C * exp(dV*tau);
-//     }
 
     // Inverse move (insertZero) truncated sampling
     if (!delete_head){dV *= -1;}
@@ -2792,14 +2382,8 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &insertBeta_worm_accepts,
                 unsigned long long int &insertBeta_anti_attempts,
                 unsigned long long int &insertBeta_anti_accepts,
-                RNG &rng, string trial_state, double kappa, double v_old,
+                RNG &rng, string trial_state, double kappa,
                 vector<int> &fock_state_at_beta){
-
-    // cout << "fock state at beta = ";
-    // for (int p=0; p<M; p++){
-    //     cout << fock_state_at_beta[p] << " ";
-    // }
-    // cout << "(initial) " << endl;
 
     // Variable declarations
     int n,src,next,n_head,n_tail,i,src_replica;
@@ -2855,9 +2439,6 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // Add to worm/antiworm insertion attempt counters
     if (is_worm){insertBeta_worm_attempts += 1;}
     else {insertBeta_anti_attempts += 1;}
-    
-    // Randomly choose where to insert worm end on the flat interval
-    // tau_new = tau_prev + tau_flat*rng.rand();
     
     // Determine the no. of particles after each worm end
     if (is_worm){
@@ -2942,36 +2523,9 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
         }
     }
-    else if (trial_state=="jastrow"){
-        if (is_worm){ // worm
-            J = extended_jastrow_ratio(is_worm,fock_state_at_beta,M,i,
-            N,N_zero,N_beta,"beta");
-            // J = jastrow_ratio(is_worm,fock_state_at_beta,M,i)  
-            C = J * sqrt((N_beta+1)*1.0/n_tail);
-            // cout << "insertBeta_2 (worm) J = " << J << endl;
-        }
-        else { // antiworm
-            J = extended_jastrow_ratio(is_worm,fock_state_at_beta,M,i,
-            N,N_zero,N_beta,"beta");
-            // J = jastrow_ratio(is_worm,fock_state_at_beta,M,i)  
-            C = J * sqrt(n_tail*1.0/(N_beta));
-            // cout << "insertBeta_2 (anti) J = " << J << endl;
-        }
-    }
     else { // trial_state=="constant"
         C = 1.0;
     }
-
-//     // Build the weight ratio W'/W
-//     //  C = 1.0; // C_pre/C_post
-//     if (is_worm){
-// //        C = sqrt(N_b+1)/sqrt(n+1);
-//         // W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau_new));
-//     }
-//     else{
-// //        C = sqrt(n)/sqrt(N_b);
-//         // W = eta * sqrt(n_tail) * C * exp(dV*(beta-tau_new));
-//     }
     
     // Build the Metropolis Ratio (R)
     p_db = 0.5;
@@ -2980,17 +2534,6 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
 
     // Metropolis sampling
     if (rng.rand() < R){ // Accept
-
-        // cout << "before insertBeta" << endl;
-
-        // cout << "--- paths (before insertBeta) ---" << endl;
-        // for (int i=0; i<num_kinks; i++){
-        //     cout << "i: " << i << " " << paths[i] << endl;
-        // }
-        // cout << N_tracker << endl;
-        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-        // cout << "num_kinks = " << num_kinks << endl;
-        // cout << endl;
         
         // Activate the first available kink
         if (is_worm){
@@ -3041,28 +2584,6 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             else {last_kinks[src]=head_idx;}
         }
 
-        // cout << "after insertBeta" << endl;
-
-        // cout << "--- paths (after insertBeta) ---" << endl;
-        // for (int i=0; i<num_kinks; i++){
-        //     cout << "i: " << i << " " << paths[i] << endl;
-        // }
-        // cout << N_tracker << endl;
-        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-        // cout << "num_kinks = " << num_kinks << endl;
-        // cout << "last_kinks = ";
-        // for (int i=0; i<M; i++){
-        //     cout << last_kinks[i] << " ";
-        // }
-        // cout << endl;
-        // cout << endl;
-
-    //     cout << "fock state at beta = ";
-    // for (int p=0; p<M; p++){
-    //     cout << fock_state_at_beta[p] << " ";
-    // }
-    // cout << "(beta edge insertion at k= " << i << ")" << endl << endl;
-
         return;
     }
     else // Reject
@@ -3079,14 +2600,8 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
                 unsigned long long int &deleteBeta_worm_accepts,
                 unsigned long long int &deleteBeta_anti_attempts,
                 unsigned long long int &deleteBeta_anti_accepts,
-                RNG &rng, string trial_state, double kappa, double v_old,
+                RNG &rng, string trial_state, double kappa,
                 vector<int> &fock_state_at_beta){
-
-    // cout << "fock state at beta = ";
-    // for (int p=0; p<M; p++){
-    //     cout << fock_state_at_beta[p] << " ";
-    // }
-    // cout << "(initial) " << endl;
     
     // Variable declarations
     int n,src,prev,next,n_head,n_tail,worm_end_idx,i;
@@ -3217,36 +2732,9 @@ void deleteBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
             C = sqrt(n_tail)*expl((-kappa/2.0)*(1-2*n_tail));
         }
     }
-    else if (trial_state=="jastrow"){
-        if (is_worm){ // worm
-            J = extended_jastrow_ratio_delete(is_worm,fock_state_at_beta,M,i,
-            N,N_zero,N_beta,"beta");
-            C = J * sqrt((N_beta-1)*1.0/n_tail);
-            // cout << "deleteBeta_2 (worm) J = " << J << endl;
-        }
-        else { // antiworm
-            J = extended_jastrow_ratio_delete(is_worm,fock_state_at_beta,M,i,
-            N,N_zero,N_beta,"beta");            
-            C = J * sqrt(n_tail*1.0/(N_beta+1));
-            // cout << "deleteBeta_2 (anti) J = " << J << endl;
-        }
-    }
     else { // trial_state=="constant"
         C = 1.0;
     }
-
-    // cout << J << endl;
-
-//     // Build the weigh ratio W'/W
-//     // C = 1.0;
-//     if (!delete_head){ // delete worm
-// //        C = sqrt(N_b+1)/sqrt(n);
-//         // W = eta * sqrt(n_tail) * C * exp(-dV*(beta-tau));
-//     }
-//     else{ // delete antiworm
-// //        C = sqrt(n+1)/sqrt(N_b);
-//         // W = eta * sqrt(n_tail) * C * exp(-dV*(tau-beta));
-//     }
     
     // inverse move (insertBeta) truncated exponential sampling
     double a,b,c;
