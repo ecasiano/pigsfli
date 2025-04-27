@@ -1114,181 +1114,6 @@ void insert_worm(vector<Kink> &paths, int &num_kinks, int &head_idx,
     p_iw = 0.5;
     R = eta * eta * n_tail * expl(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
     num_kinks * tau_flat * tau_flat;
-    // if (!is_worm){
-    //     cout << "eta^2: " << eta*eta << endl;
-    //     cout << "n_tail: " << n_tail << endl;
-    //     cout << "expl(-dV*(tau_h-tau_t)): " << expl(-dV*(tau_h-tau_t)) << endl;
-    //     cout << "num_kinks: " << num_kinks << endl;
-    //     cout << "tau_flat^2: " << tau_flat*tau_flat<< endl << endl;
-    // }
-    // if (is_worm){cout << "R (insert worm) = " << R << endl;}
-    // else{cout << "R (insert anti) = " << R << endl;}
-
-    // Metropolis sampling
-    if (rng.rand() < R){ // Accept
-
-        // Activate the first two available kinks
-        if (is_worm){
-            paths[num_kinks]=Kink(tau_t,n_tail,src,src,k,num_kinks+1,
-                                  src_replica,src_replica);
-            paths[num_kinks+1]=Kink(tau_h,n_head,src,src,num_kinks,next,
-                                    src_replica,src_replica);
-            
-            // Save indices of head & tail kinks
-            head_idx = num_kinks+1;
-            tail_idx = num_kinks;
-            
-            // Add to Acceptance counter
-            insert_worm_accepts += 1;
-        }
-        else{ // Antiworm
-            paths[num_kinks]=Kink(tau_h,n_head,src,src,k,num_kinks+1,
-                                  src_replica,src_replica);
-            paths[num_kinks+1]=Kink(tau_t,n_tail,src,src,num_kinks,next,
-                                    src_replica,src_replica);
-            
-            // Save indices of head & tail kinks
-            head_idx = num_kinks;
-            tail_idx = num_kinks+1;
-            
-            // Add to Acceptance counter
-            insert_anti_accepts += 1;
-        }
-        
-        // "Connect" next of lower bound kink to nearest worm end
-        paths[k].next = num_kinks;
-        
-        // "Connect" prev of next kink to nearest worm end
-        if(next!=-1){paths[next].prev = num_kinks+1;}
-        
-        // Update trackers for: no of active kinks, total particles
-        num_kinks += 2;
-        N_tracker += dN;
-        
-        // If later worm end is last kink on site, update last kinks tracker vec
-        if (next==-1){
-            if (is_worm){last_kinks[src]=head_idx;}
-            else {last_kinks[src]=tail_idx;}
-        }
-        
-        return;
-    }
-    else // Reject
-        return;
-}
-
-/*--------------------------------------------------------------------*/
-
-void insert_worm_4(vector<Kink> &paths, int &num_kinks, int &head_idx,
-                 int &tail_idx, int M, int N, double U, double mu, double t,
-                 double beta, double eta, bool canonical, double &N_tracker,
-                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-                 unsigned long long int &insert_worm_attempts,
-                 unsigned long long int &insert_worm_accepts,
-                 unsigned long long int &insert_anti_attempts,
-                 unsigned long long int &insert_anti_accepts,
-                 RNG &rng){
-    
-    // Variable declarations
-    int k,n,src,next,n_head,n_tail,src_replica;
-    double tau,tau_h,tau_t,tau_prev,tau_next,tau_flat,l_path,dN,dV,p_iw,p_dw,
-    tau_high;
-    bool is_worm;
-    long double R;
-    
-    // Can only perform update if there are no worm ends
-    if (head_idx != -1 || tail_idx != -1){return;}
-        
-    // Randomly sample a flat interval (or kink if you like)
-    //boost::random::uniform_int_distribution<> flats(0, num_kinks-1);
-    k = rng.randInt(num_kinks-1);
-    
-    // Extract the attributes of the kink at the bottom of the flat interval
-    tau = paths[k].tau;
-    n = paths[k].n;
-    src = paths[k].src;
-    next = paths[k].next;
-    src_replica = paths[k].src_replica; //due to way replica indices are coded
-    
-    // Calculate the length of the flat interval
-    tau_prev = tau;
-    if (next != -1) // tau_next extractable iff sampled kink is not the last
-        tau_next = paths[next].tau;
-    else
-        tau_next = beta;
-    tau_flat = tau_next - tau_prev;
-    
-    if (rng.rand()<0.5){
-        is_worm=true;
-        tau_t = tau_prev + tau_flat*rng.rand();
-        tau_h = tau_t + (tau_next-tau_t)*rng.rand();
-        insert_worm_attempts += 1; // Attempts counter
-        tau_high = tau_h;
-        }
-    else{
-        is_worm=false;
-        tau_h = tau_prev + tau_flat*rng.rand();
-        tau_t = tau_h + (tau_next-tau_h)*rng.rand();  
-        insert_anti_attempts += 1;
-        tau_high = tau_t;
-    }
-
-    // Randomly choose where to insert worm ends in the flat interval
-    //boost::random::uniform_real_distribution<double> rnum(0.0, 1.0);
-    // tau_h = tau_prev + tau_flat*rng.rand();
-    // tau_t = tau_prev + tau_flat*rng.rand();
-    
-    // Based on worm end time, determine worm type: antiworm or worm
-    // if (tau_h > tau_t){
-    //     is_worm = true;
-    //     insert_worm_attempts += 1; // Attempts counter
-    // }
-    // else{
-    //     is_worm = false;
-    //     insert_anti_attempts += 1;
-    // }
-    
-    // Determine the no. of particles after each worm end
-    if (is_worm){
-        n_tail = n + 1;
-        n_head = n;
-    }
-    else{
-        n_tail = n;
-        n_head = n - 1;
-    }
-    
-    // Reject update if illegal worm insertion is proposed
-    if (n == 0 && !(is_worm)){insert_anti_attempts-=1;return;}
-    if (tau_h == tau_prev || tau_t == tau_prev){return;}
-    if (tau_h == tau_t){return;}
-    if (tau_h == 0 || tau_t == 0){return;}
-    
-    // Determine length of modified path and particle change
-    l_path = tau_h - tau_t;
-    dN = l_path/beta;
-    
-    // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
-    if (canonical)
-        if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
-    
-    // Calculate the difference in diagonal energy dV = \epsilon_w - \epsilon
-    dV = (U/2.0)*(n_tail*(n_tail-1)-n_head*(n_head-1)) - mu*(n_tail-n_head);
-    
-    // Build the Metropolis ratio (R)
-    p_dw = 0.5;
-    p_iw = 0.5;
-    R = eta * eta * n_tail * expl(-dV*(tau_h-tau_t))* (p_dw/p_iw) *
-    num_kinks * tau_flat * (tau_next - tau_high) * 2 / 14;
-    // if (!is_worm){
-    //     cout << "eta^2: " << eta*eta << endl;
-    //     cout << "n_tail: " << n_tail << endl;
-    //     cout << "expl(-dV*(tau_h-tau_t)): " << expl(-dV*(tau_h-tau_t)) << endl;
-    //     cout << "num_kinks: " << num_kinks << endl;
-    //     cout << "tau_flat^2: " << tau_flat*tau_flat<< endl << endl;
-    // }
-    // if (is_worm){cout << "R (insert worm) = " << R << endl;}
-    // else{cout << "R (insert anti) = " << R << endl;}
 
     // Metropolis sampling
     if (rng.rand() < R){ // Accept
@@ -2015,7 +1840,6 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     Z = 1.0 - expl(-c*(b-a)); //
     tau_new = a - log(1.0-Z*x)  / c;
     if (tau_new==a){return;}
-    // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
     // deleteZero (reverse update) might've had to choose either head or tail
@@ -2073,8 +1897,8 @@ void insertZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     }
     
     // Build the Metropolis Ratio (R)
-    p_dz = 0.5;
-    p_iz = 0.5;
+    p_dz = 1.0;
+    p_iz = 1.0;
     R = eta * sqrt(n_tail) * C * (p_dz/p_iz) * M * p_wormend * (Z/dV) / p_type;
 
     // Metropolis sampling
@@ -2294,8 +2118,8 @@ void deleteZero_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     Z = 1.0 - expl(-dV*(tau_next));
     
     // Build the Metropolis Ratio  (R)
-    p_dz = 0.5;
-    p_iz = 0.5;
+    p_dz = 1.0;
+    p_iz = 1.0;
     // R = W * (p_dz/p_iz) * M * p_wormend * (Z/dV) / p_type;
     R = eta * sqrt(n_tail) * C * (p_dz/p_iz) * M * p_wormend * (Z/dV) / p_type;
     R = 1.0/R;
@@ -2470,7 +2294,6 @@ void insertBeta_2(vector<Kink> &paths, int &num_kinks, int &head_idx,
     Z = 1.0 - expl(-c*(b-a)); //
     tau_new = b + log(1.0-Z*x)  / c;
     if (tau_new==b){return;}
-    // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
     // deleteBeta (reverse update) might've had to choose either head or tail
@@ -2896,8 +2719,6 @@ void timeshift(vector<Kink> &paths, int &num_kinks, int &head_idx,
     // cout<<Z<<"::"<<-dV*(tau_next-tau_prev)<<"::"<<tau_new<<"::"<<tau_next<<"::"<<tau_prev<<endl;
     /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     
-//    cout << tau << " " << tau_new << endl;
-
     // Add to PROPOSAL counter
     if (shift_head){
         if (tau_new > tau){advance_head_attempts+=1;}
@@ -3055,7 +2876,6 @@ void insert_kink_before_head_2(vector<Kink> &paths, int &num_kinks,
     else // dV == 0
         tau_kink = b + x*(a-b); // L'hopitale was used
     if (tau_kink==b){return;}
-    // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
     // Calculate the weight ratio W'/W
@@ -3463,7 +3283,6 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     else // dV == 0
         tau_kink = a - x*(a-b); // L'Hopitale
     if (tau_kink==a){return;}
-    // if (!is_worm){cout << tau_new << endl;}
     /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     
     // Calculate the weight ratio W'/W
@@ -3476,9 +3295,6 @@ void insert_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
         R = t * n_wj * (p_dkah/p_ikah) * (Z/dV) / p_site;
     else
         R = t * n_wj * (p_dkah/p_ikah) * (b-a) / p_site; // L'Hopitale
-
-
-    // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
     
     // Metropolis Sampling
     if (rng.rand() < R){ // Accept
@@ -3621,7 +3437,6 @@ void delete_kink_after_head_2(vector<Kink> &paths, int &num_kinks,
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     dV = dV_i - dV_j;
-    // if (dV == 0){cout << "NOOOO" << endl;}
 
     // Calculate the weight ratio W'/W
     // W = t * n_wj * exp((-dV_i+dV_j)*(tau_kink-tau_h));
@@ -3870,10 +3685,6 @@ void insert_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
         R = t * n_wj * (p_dkbt/p_ikbt) * (Z/dV) /p_site;
     else
         R = t * n_wj * (p_dkbt/p_ikbt) * (b-a) /p_site; // L'hopitale was used
-    // R = W * (p_dkbt/p_ikbt) * (tau_t-tau_min)/p_site;
-
-    // cout << a << " " << b << " " << c << " " << dV << " " << Z << " " << R << " " << tau_kink << endl;
-
     
     // Metropolis Sampling
     if (rng.rand() < R){ // Accept
@@ -4014,7 +3825,6 @@ void delete_kink_before_tail_2(vector<Kink> &paths, int &num_kinks,
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     dV = dV_i - dV_j;
-    // if (dV == 0){cout << "NOOOO" << endl;}
 
     // Calculate the weight ratio W'/W
     // W = t * n_wj * exp((-dV_i+dV_j)*(tau_t-tau_kink));
@@ -4412,7 +4222,6 @@ void delete_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
     dV_i = (U/2.0)*(n_wi*(n_wi-1)-n_i*(n_i-1)) - mu*(n_wi-n_i);
     dV_j = (U/2.0)*(n_wj*(n_wj-1)-n_j*(n_j-1)) - mu*(n_wj-n_j);
     dV = dV_j - dV_i;
-    // if (dV == 0){cout << "NOOOO" << endl;}
 
     // Calculate the weight ratio W'/W
     // W = t * n_wj * exp((dV_i-dV_j)*(tau_kink-tau_t));
@@ -4432,7 +4241,6 @@ void delete_kink_after_tail_2(vector<Kink> &paths, int &num_kinks,
         R = t * n_wj * (p_dkat/p_ikat) * (Z/dV) / p_site;
     else
         R = t * n_wj * (p_dkat/p_ikat) * (b-a) / p_site;
-    // R = W * (p_dkat/p_ikat) * (tau_max-tau_t)/p_site;
     R = 1.0/R;
 
     // Metropolis Sampling
@@ -4626,25 +4434,6 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
     if (tau_next_i<tau_next_j){tau_max=tau_next_i;}
     else {tau_max=tau_next_j;}
 
-    // cout << "--- paths (are max/min times what you expected?) ---" << endl;
-    // cout << "insertion site & flat time: " << i << " " << tau_prev_i << endl;
-    // for (int i=0; i<num_kinks; i++){
-    //     cout << "i: " << i << " " << paths[i] << endl;
-    // }
-    // cout << "N_tracker: " << N_tracker << endl;
-    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-    // cout << "last_kinks = ";
-    // for (int i=0; i<M; i++){
-    //     cout << last_kinks[i] << " ";
-    // }
-    // cout << endl;
-    // cout << "num_kinks = " << num_kinks << endl;
-    // cout << "beta = " << beta << endl;
-    // cout << "tau_max = " << tau_max << endl;
-    // cout << "tau_min = " << tau_min << endl;
-    // cout << endl;
-    // // if (head_idx!=-1 || tail_idx!=-1){exit(1);}
-
     // Compute length of "capped" flat interval
     tau_flat = tau_max-tau_min;
 
@@ -4655,14 +4444,11 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
     n_after_j = n_before_j+1;
 
     // Diagonal energy difference in simplified form
-    // dV=U*(n_i-n_j+1);
     dV_i = 0.5*U*(n_before_i*(n_before_i-1)-n_after_i*(n_after_i-1))
     - mu*(n_before_i-n_after_i);
     dV_j = 0.5*U*(n_after_j*(n_after_j-1)-n_before_j*(n_before_j-1))
     - mu*(n_after_j-n_before_j);
     dV = -dV_i + dV_j; // Is this correct?
-
-    // cout << "dV (insertion) = " << dV << endl;
 
     // Sample times of kink and antikink
     tau_1 = tau_min + rng.rand()*(tau_max-tau_min);
@@ -4679,17 +4465,8 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
         return;
     }
 
-    // tau_kink = tau_min + rng.rand()*(tau_max-tau_min);
-    // tau_anti = tau_kink + rng.rand()*(tau_max-tau_kink);
-
     // Compute kinetic matrix element squared
     H1_squared = t*t*n_before_i*(n_before_j+1);
-
-    // cout << "INSERTION:" << endl;
-    // cout << "n_before_i = " << n_before_i << endl;
-    // cout << "n_after_i = " << n_after_i << endl;
-    // cout << "n_before_j = " << n_before_j << endl;
-    // cout << "n_after_ = " << n_after_j << endl;
 
     // Compute weight ratio W'/W
     W = expl(-dV*(tau_anti-tau_kink))*H1_squared;
@@ -4734,38 +4511,6 @@ void insert_kink_antikink(vector<Kink> &paths, int &num_kinks,
 
         // Update number of kinks tracker
         num_kinks += 4;
-
-        // cout << "--- paths (after kink-antikink pair insertion) ---" << endl;
-        // for (int i=0; i<num_kinks; i++){
-        //     cout << "i: " << i << " " << paths[i] << endl;
-        // }
-        // cout << N_tracker << endl;
-        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-        // cout << "last_kinks = ";
-        // for (int i=0; i<M; i++){
-        //     cout << last_kinks[i] << " ";
-        // }
-        // cout << "num_kinks = " << num_kinks << endl;
-        // cout << endl;
-                
-        // cout << "--- paths (everything good after insertion?) ---" << endl;
-        // cout << "insertion site & flat time: " << i << " " << tau_prev_i << endl;
-        // for (int i=0; i<num_kinks; i++){
-        //     cout << "i: " << i << " " << paths[i] << endl;
-        // }
-        // cout << "N_tracker: " << N_tracker << endl;
-        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-        // cout << "last_kinks = ";
-        // for (int i=0; i<M; i++){
-        //     cout << last_kinks[i] << " ";
-        // }
-        // cout << endl;
-        // cout << "num_kinks = " << num_kinks << endl;
-        // cout << "beta = " << beta << endl;
-        // cout << "tau_max = " << tau_max << endl;
-        // cout << "tau_min = " << tau_min << endl;
-        // cout << endl;
-        // if (head_idx!=-1 && tail_idx!=-1){exit(1);}
 
         return;
     }
@@ -4856,7 +4601,6 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         cout << "num_kinks = " << num_kinks << endl;
         cout << "beta = " << beta << endl;
         cout << endl;
-        // if (head_idx!=-1 && tail_idx!=-1){exit(1);}
         exit(1);
     }
 
@@ -4882,9 +4626,9 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         anti_idx_i = next_kink;
 
         // Determine index of lower/upper bounds of flat where kink connects to (j)
-        tau = 0.0;            // tau_prev_j candidate
-        prev = j;           // prev_j candidate
-        prev_j = j;         // this avoids "variable maybe not initialized" warning
+        tau = 0.0;           // tau_prev_j candidate
+        prev = j;            // prev_j candidate
+        prev_j = j;          // this avoids "variable maybe not initialized" warning
         while (tau<tau_kink){
             // Set the lower bound index
             prev_j = prev;
@@ -5008,54 +4752,10 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
     if (n_before_i!=n_after_anti_i || n_before_j!=n_after_anti_j)
         return;
 
-    // cout << "--- paths (are max/min times what you expected?) ---" << endl;
-    // cout << "insertion site & flat time: " << i << " " << tau_prev_i << endl;
-    // for (int i=0; i<num_kinks; i++){
-    //     cout << "i: " << i << " " << paths[i] << endl;
-    // }
-    // cout << "N_tracker: " << N_tracker << endl;
-    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-    // cout << "last_kinks = ";
-    // for (int i=0; i<M; i++){
-    //     cout << last_kinks[i] << " ";
-    // }
-    // cout << endl;
-    // cout << "num_kinks = " << num_kinks << endl;
-    // cout << "beta = " << beta << endl;
-    // cout << "tau_max = " << tau_max << endl;
-    // cout << "tau_min = " << tau_min << endl;
-    // cout << endl;
-    // // if (head_idx!=-1 || tail_idx!=-1){exit(1);}
-
-    // cout << "--- paths ---" << endl;
-    //         for (int i=0; i<num_kinks; i++){
-    //             cout << "i: " << i << " " << paths[i] << endl;
-    //         }
-    //         cout << N_tracker << endl;
-    //         cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-    //         cout << "last_kinks = ";
-    //         for (int i=0; i<M; i++){
-    //             cout << last_kinks[i] << " ";
-    //         }
-    //         cout << "num_kinks = " << num_kinks << endl;
-    //         cout << endl;
-
-    // cout << "n_before_i: " << n_before_i << endl;
-    // cout << "n_after_i: " << n_after_i << endl;
-    // cout << "n_after_anti_i: " << n_after_anti_i << endl;
-    // cout << "n_before_j: " << n_before_j << endl;
-    // cout << "n_after_j: " << n_after_j << endl;
-    // cout << "n_after_anti_j: " << n_after_anti_j << endl;
-
-    // cout << "tau_max = " << tau_max << endl;
-    // cout << "tau_min = " << tau_min << endl;
-    // cout << endl;
-
     // Add to PROPOSAL counter
     delete_kink_antikink_attempts+=1;
 
     // Diagonal energy difference in simplified form
-    // dV=U*(n_i-n_j+1);
     dV_i = 0.5*U*(n_before_i*(n_before_i-1)-n_after_i*(n_after_i-1))
     - mu*(n_before_i-n_after_i);
     dV_j = 0.5*U*(n_after_j*(n_after_j-1)-n_before_j*(n_before_j-1))
@@ -5068,12 +4768,6 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
 
     // Compute kinetic matrix element squared
     H1_squared = t*t*n_before_i*(n_before_j+1);
-
-    // cout << "DELETION:" << endl;
-    // cout << "n_before_i = " << n_before_i << endl;
-    // cout << "n_after_i = " << n_after_i << endl;
-    // cout << "n_before_j = " << n_before_j << endl;
-    // cout << "n_after_ = " << n_after_j << endl;
 
     // Compute weight ratio W'/W
     W = expl(-dV*(tau_anti-tau_kink))*H1_squared;
@@ -5090,15 +4784,6 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
 
         // Add to acceptance counters
         delete_kink_antikink_accepts+=1;       
-
-    // cout << "--- paths (before kink-antikink pair deletion) ---" << endl;
-    // for (int i=0; i<num_kinks; i++){
-    //     cout << "i: " << i << " " << paths[i] << endl;
-    // }
-    // cout << N_tracker << endl;
-    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-    // cout << "num_kinks = " << num_kinks << endl;
-    // cout << endl;
 
         // Stage 1: Delete antikink on site i
         if (paths[num_kinks-1].next!=-1)
@@ -5179,8 +4864,6 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         else if (next_i==num_kinks-3){next_i=anti_idx_j;}
         else if (prev_j==num_kinks-3){prev_j=anti_idx_j;}
         else if (next_j==num_kinks-3){next_j=anti_idx_j;}
-        // else if (kink_idx_i==num_kinks-3){kink_idx_i=anti_idx_j;}
-        // else if (anti_idx_i==num_kinks-3){anti_idx_i=anti_idx_j;}
         else if (kink_idx_j==num_kinks-3){kink_idx_j=anti_idx_j;}
         else {;}
 
@@ -5212,9 +4895,6 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
         else if (next_i==num_kinks-4){next_i=kink_idx_j;}
         else if (prev_j==num_kinks-4){prev_j=kink_idx_j;}
         else if (next_j==num_kinks-4){next_j=kink_idx_j;}
-        // else if (anti_idx_i==num_kinks-4){anti_idx_i=kink_idx_j;}
-        // else if (kink_idx_i==num_kinks-4){kink_idx_i=kink_idx_j;}
-        // else if (anti_idx_j==num_kinks-4){anti_idx_j=kink_idx_j;}
         else {;}
 
         if (head_idx==num_kinks-4){head_idx=kink_idx_j;}
@@ -5236,38 +4916,6 @@ void delete_kink_antikink(vector<Kink> &paths, int &num_kinks,
 
         // Update number of kinks tracker
         num_kinks -= 4;
-
-        // cout << "--- paths (after kink-antikink pair deletion) ---" << endl;
-        // for (int i=0; i<num_kinks; i++){
-        //     cout << "i: " << i << " " << paths[i] << endl;
-        // }
-        // cout << N_tracker << endl;
-        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-        // cout << "last_kinks = ";
-        // for (int i=0; i<M; i++){
-        //     cout << last_kinks[i] << " ";
-        // }
-        // cout << "num_kinks = " << num_kinks << endl;
-        // cout << endl;
-
-        // cout << "--- paths (everything good after deletion?) ---" << endl;
-        // cout << "insertion site & flat time: " << i << " " << tau_prev_i << endl;
-        // for (int i=0; i<num_kinks; i++){
-        //     cout << "i: " << i << " " << paths[i] << endl;
-        // }
-        // cout << "N_tracker: " << N_tracker << endl;
-        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-        // cout << "last_kinks = ";
-        // for (int i=0; i<M; i++){
-        //     cout << last_kinks[i] << " ";
-        // }
-        // cout << endl;
-        // cout << "num_kinks = " << num_kinks << endl;
-        // cout << "beta = " << beta << endl;
-        // cout << "tau_max = " << tau_max << endl;
-        // cout << "tau_min = " << tau_min << endl;
-        // cout << endl;
-        // if (head_idx!=-1 && tail_idx!=-1){exit(1);}
 
         return;
     }
@@ -5360,25 +5008,6 @@ void insertZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
     if (tau_next_i<tau_next_j){tau_max=tau_next_i;}
     else {tau_max=tau_next_j;}
 
-    // cout << "--- paths (are max/min times what you expected?) ---" << endl;
-    // cout << "insertion site & flat time: " << i << " " << tau_prev_i << endl;
-    // for (int i=0; i<num_kinks; i++){
-    //     cout << "i: " << i << " " << paths[i] << endl;
-    // }
-    // cout << "N_tracker: " << N_tracker << endl;
-    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-    // cout << "last_kinks = ";
-    // for (int i=0; i<M; i++){
-    //     cout << last_kinks[i] << " ";
-    // }
-    // cout << endl;
-    // cout << "num_kinks = " << num_kinks << endl;
-    // cout << "beta = " << beta << endl;
-    // cout << "tau_max = " << tau_max << endl;
-    // cout << "tau_min = " << tau_min << endl;
-    // cout << endl;
-    // // if (head_idx!=-1 || tail_idx!=-1){exit(1);}
-
     // Compute length of "capped" flat interval
     tau_flat = tau_max-tau_min;
 
@@ -5396,20 +5025,12 @@ void insertZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
     - mu*(n_after_j-n_before_j);
     dV = -dV_i + dV_j; // Is this correct?
 
-    // cout << "dV (insertion) = " << dV << endl;
-
     // Sample time of antikink
     tau_kink = 0.0;
     tau_anti = tau_min + rng.rand()*(tau_max-tau_min);
 
     // Compute kinetic matrix element squared
     H_1 = sqrt(t*n_before_i*(n_before_j+1));
-
-    // cout << "INSERTION:" << endl;
-    // cout << "n_before_i = " << n_before_i << endl;
-    // cout << "n_after_i = " << n_after_i << endl;
-    // cout << "n_before_j = " << n_before_j << endl;
-    // cout << "n_after_ = " << n_after_j << endl;
 
     // Set ratio trial wavefunction coefficients
     C = 1.0; // constant for now
@@ -5457,38 +5078,6 @@ void insertZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
 
         // Update number of kinks tracker
         num_kinks += 2;
-
-        // cout << "--- paths (after kink-antikink pair insertion) ---" << endl;
-        // for (int i=0; i<num_kinks; i++){
-        //     cout << "i: " << i << " " << paths[i] << endl;
-        // }
-        // cout << N_tracker << endl;
-        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-        // cout << "last_kinks = ";
-        // for (int i=0; i<M; i++){
-        //     cout << last_kinks[i] << " ";
-        // }
-        // cout << "num_kinks = " << num_kinks << endl;
-        // cout << endl;
-                
-        // cout << "--- paths (everything good after insertion?) ---" << endl;
-        // cout << "insertion site & flat time: " << i << " " << tau_prev_i << endl;
-        // for (int i=0; i<num_kinks; i++){
-        //     cout << "i: " << i << " " << paths[i] << endl;
-        // }
-        // cout << "N_tracker: " << N_tracker << endl;
-        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-        // cout << "last_kinks = ";
-        // for (int i=0; i<M; i++){
-        //     cout << last_kinks[i] << " ";
-        // }
-        // cout << endl;
-        // cout << "num_kinks = " << num_kinks << endl;
-        // cout << "beta = " << beta << endl;
-        // cout << "tau_max = " << tau_max << endl;
-        // cout << "tau_min = " << tau_min << endl;
-        // cout << endl;
-        // if (head_idx!=-1 && tail_idx!=-1){exit(1);}
 
         return;
     }
@@ -5579,7 +5168,6 @@ void deleteZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
         cout << "num_kinks = " << num_kinks << endl;
         cout << "beta = " << beta << endl;
         cout << endl;
-        // if (head_idx!=-1 && tail_idx!=-1){exit(1);}
         exit(1);
     }
 
@@ -5640,9 +5228,9 @@ void deleteZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
         anti_idx_j = next_kink;
 
         // Determine index of lower/upper bounds of flat where kink connects to (j)
-        tau = 0.0;            // tau_prev_i candidate
-        prev = i;           // prev_i candidate
-        prev_i = i;         // this avoids "variable maybe not initialized" warning
+        tau = 0.0;           // tau_prev_i candidate
+        prev = i;            // prev_i candidate
+        prev_i = i;          // this avoids "variable maybe not initialized" warning
         while (tau<tau_kink){
             // Set the lower bound index
             prev_i = prev;
@@ -5672,7 +5260,7 @@ void deleteZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
     if (tau_kink_i==tau_kink_j && tau_anti_i==tau_anti_j){
         is_kink_antikink_pair=true;
     }
-    else{ // could there be finite precision errors in comparison?
+    else{ // QUESTION: could there be finite precision errors in "if" comparison?
         // cout << "Warning: Different imaginary times supposedly. Check if finite precision error:" << endl;
         // if (tau_kink_i!=tau_kink_j){
         // cout << "tau_kink_i = " << tau_kink_i << " tau_kink_j = " << tau_kink_j << endl;
@@ -5731,54 +5319,10 @@ void deleteZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
     if (n_before_i!=n_after_anti_i || n_before_j!=n_after_anti_j)
         return;
 
-    // cout << "--- paths (are max/min times what you expected?) ---" << endl;
-    // cout << "insertion site & flat time: " << i << " " << tau_prev_i << endl;
-    // for (int i=0; i<num_kinks; i++){
-    //     cout << "i: " << i << " " << paths[i] << endl;
-    // }
-    // cout << "N_tracker: " << N_tracker << endl;
-    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-    // cout << "last_kinks = ";
-    // for (int i=0; i<M; i++){
-    //     cout << last_kinks[i] << " ";
-    // }
-    // cout << endl;
-    // cout << "num_kinks = " << num_kinks << endl;
-    // cout << "beta = " << beta << endl;
-    // cout << "tau_max = " << tau_max << endl;
-    // cout << "tau_min = " << tau_min << endl;
-    // cout << endl;
-    // // if (head_idx!=-1 || tail_idx!=-1){exit(1);}
-
-    // cout << "--- paths ---" << endl;
-    //         for (int i=0; i<num_kinks; i++){
-    //             cout << "i: " << i << " " << paths[i] << endl;
-    //         }
-    //         cout << N_tracker << endl;
-    //         cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-    //         cout << "last_kinks = ";
-    //         for (int i=0; i<M; i++){
-    //             cout << last_kinks[i] << " ";
-    //         }
-    //         cout << "num_kinks = " << num_kinks << endl;
-    //         cout << endl;
-
-    // cout << "n_before_i: " << n_before_i << endl;
-    // cout << "n_after_i: " << n_after_i << endl;
-    // cout << "n_after_anti_i: " << n_after_anti_i << endl;
-    // cout << "n_before_j: " << n_before_j << endl;
-    // cout << "n_after_j: " << n_after_j << endl;
-    // cout << "n_after_anti_j: " << n_after_anti_j << endl;
-
-    // cout << "tau_max = " << tau_max << endl;
-    // cout << "tau_min = " << tau_min << endl;
-    // cout << endl;
-
     // Add to PROPOSAL counter
     deleteZero_kink_antikink_attempts+=1;
 
     // Diagonal energy difference in simplified form
-    // dV=U*(n_i-n_j+1);
     dV_i = 0.5*U*(n_before_i*(n_before_i-1)-n_after_i*(n_after_i-1))
     - mu*(n_before_i-n_after_i);
     dV_j = 0.5*U*(n_after_j*(n_after_j-1)-n_before_j*(n_before_j-1))
@@ -5791,12 +5335,6 @@ void deleteZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
 
     // Compute kinetic matrix element squared
     H1_squared = t*t*n_before_i*(n_before_j+1);
-
-    // cout << "DELETION:" << endl;
-    // cout << "n_before_i = " << n_before_i << endl;
-    // cout << "n_after_i = " << n_after_i << endl;
-    // cout << "n_before_j = " << n_before_j << endl;
-    // cout << "n_after_ = " << n_after_j << endl;
 
     // Compute weight ratio W'/W
     W = expl(-dV*(tau_anti-tau_kink))*H1_squared;
@@ -5813,15 +5351,6 @@ void deleteZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
 
         // Add to acceptance counters
         deleteZero_kink_antikink_accepts+=1;       
-
-    // cout << "--- paths (before kink-antikink pair deletion) ---" << endl;
-    // for (int i=0; i<num_kinks; i++){
-    //     cout << "i: " << i << " " << paths[i] << endl;
-    // }
-    // cout << N_tracker << endl;
-    // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-    // cout << "num_kinks = " << num_kinks << endl;
-    // cout << endl;
 
         // Stage 1: Delete antikink on site i
         if (paths[num_kinks-1].next!=-1)
@@ -5902,8 +5431,6 @@ void deleteZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
         else if (next_i==num_kinks-3){next_i=anti_idx_j;}
         else if (prev_j==num_kinks-3){prev_j=anti_idx_j;}
         else if (next_j==num_kinks-3){next_j=anti_idx_j;}
-        // else if (kink_idx_i==num_kinks-3){kink_idx_i=anti_idx_j;}
-        // else if (anti_idx_i==num_kinks-3){anti_idx_i=anti_idx_j;}
         else if (kink_idx_j==num_kinks-3){kink_idx_j=anti_idx_j;}
         else {;}
 
@@ -5935,9 +5462,6 @@ void deleteZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
         else if (next_i==num_kinks-4){next_i=kink_idx_j;}
         else if (prev_j==num_kinks-4){prev_j=kink_idx_j;}
         else if (next_j==num_kinks-4){next_j=kink_idx_j;}
-        // else if (anti_idx_i==num_kinks-4){anti_idx_i=kink_idx_j;}
-        // else if (kink_idx_i==num_kinks-4){kink_idx_i=kink_idx_j;}
-        // else if (anti_idx_j==num_kinks-4){anti_idx_j=kink_idx_j;}
         else {;}
 
         if (head_idx==num_kinks-4){head_idx=kink_idx_j;}
@@ -5959,38 +5483,6 @@ void deleteZero_kink_antikink(vector<Kink> &paths, int &num_kinks,
 
         // Update number of kinks tracker
         num_kinks -= 4;
-
-        // cout << "--- paths (after kink-antikink pair deletion) ---" << endl;
-        // for (int i=0; i<num_kinks; i++){
-        //     cout << "i: " << i << " " << paths[i] << endl;
-        // }
-        // cout << N_tracker << endl;
-        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-        // cout << "last_kinks = ";
-        // for (int i=0; i<M; i++){
-        //     cout << last_kinks[i] << " ";
-        // }
-        // cout << "num_kinks = " << num_kinks << endl;
-        // cout << endl;
-
-        // cout << "--- paths (everything good after deletion?) ---" << endl;
-        // cout << "insertion site & flat time: " << i << " " << tau_prev_i << endl;
-        // for (int i=0; i<num_kinks; i++){
-        //     cout << "i: " << i << " " << paths[i] << endl;
-        // }
-        // cout << "N_tracker: " << N_tracker << endl;
-        // cout << "head & tail: " << head_idx << " " << tail_idx << endl;
-        // cout << "last_kinks = ";
-        // for (int i=0; i<M; i++){
-        //     cout << last_kinks[i] << " ";
-        // }
-        // cout << endl;
-        // cout << "num_kinks = " << num_kinks << endl;
-        // cout << "beta = " << beta << endl;
-        // cout << "tau_max = " << tau_max << endl;
-        // cout << "tau_min = " << tau_min << endl;
-        // cout << endl;
-        // if (head_idx!=-1 && tail_idx!=-1){exit(1);}
 
         return;
     }
@@ -6100,25 +5592,11 @@ void timeshift_kink(vector<Kink> &paths, int &num_kinks, int &head_idx,
         // L'hopitale
         tau_new = tau_min + rng.rand()*(tau_max-tau_min);
     }
-    // if (tau_new==tau_min){return;}
-    // cout<<Z<<"::"<<-dV*(tau_next-tau_prev)<<"::"<<tau_new<<"::"<<tau_next<<"::"<<tau_prev<<endl;
     /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     
     // Add to PROPOSAL counter
     if (tau_new > tau){advance_kink_attempts+=1;}
     else{recede_kink_attempts+=1;}
-    
-    // Determine the length of path to be modified
-    // l_path = tau_new - tau_kink;
-    
-    // Determine the total particle change based on wormend to be shifted
-    // if (src!=dest){ // Shifting regular kinks will not change total N
-    //     dN = 0;
-    // }
-    
-    // // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
-    // if (canonical)
-    //     if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
     
     // Build the Metropolis condition (R)
     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
