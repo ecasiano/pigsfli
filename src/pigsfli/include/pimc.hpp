@@ -6143,145 +6143,6 @@ void timeshift_kink(vector<Kink> &paths, int &num_kinks, int &head_idx,
         return;
 }
 
-/*--------------------------------------------------------------------*/
-
-// void timeshift_kink_uniform_buggy(vector<Kink> &paths, int &num_kinks, int &head_idx,
-//                 int &tail_idx, int M, int N, double U, double mu, double t,
-//                 double beta, double eta, bool canonical,
-//                 int &N_zero, int &N_beta, vector<int> &last_kinks,
-//                 unsigned long long int &advance_kink_attempts,
-//                 unsigned long long int &advance_kink_accepts,
-//                 unsigned long long int &recede_kink_attempts,
-//                 unsigned long long int &recede_kink_accepts,
-//                 RNG &rng){
-    
-//     // Variable declarations
-//     int prev,src,dest,n_i,n_j,next_dest,prev_dest,next_src,prev_src,n_src,n_dest,
-//     kink_idx_dest,kink_idx_src,i,j;
-//     double l_path,dN,dV,tau_new,R,tau_dest,tau_kink,
-//     tau_min,tau_max,tau_next_dest,tau_prev_dest,tau_next_src,tau_prev_src;
-//     long double Z;
-    
-//     // Reject update if there are no kinks present
-//     if (num_kinks==M){return;}
-
-//     // Randomly choose which regular kink to move
-//     kink_idx_src = rng.randInt(num_kinks-M-1)+M;
-    
-//     // Extract src kink attributes
-//     tau_kink = paths[kink_idx_src].tau;
-//     n_src = paths[kink_idx_src].n;
-//     prev_src = paths[kink_idx_src].prev;
-//     next_src = paths[kink_idx_src].next;
-//     src = paths[kink_idx_src].src;
-//     dest = paths[kink_idx_src].dest;
-
-//     // Reject update if proposed kink is a worm end
-//     if (src==dest){return;}
-    
-//     // Determine index of lower/upper kinks of the connecting kink
-//     tau_dest = 0.0;     // tau_prev_dest candidate
-//     prev = dest;        // prev_dest candidate
-//     prev_dest = dest;   // this avoids "variable maybe not initialized" warning
-//     while (tau_dest<tau_kink){
-//         // Set the lower bound index
-//         prev_dest = prev;
-        
-//         // Update lower bound index and tau candidates for next iteration
-//         prev = paths[prev].next;
-//         if (prev==-1){break;}
-//         tau_dest = paths[prev].tau;
-//     }
-//     next_dest=prev;
-//     kink_idx_dest = paths[prev_dest].next;
-
-//     // Extract dest kink attributes
-//     n_dest = paths[kink_idx_dest].n;
-//     prev_dest = paths[kink_idx_dest].prev;
-//     next_dest = paths[kink_idx_dest].next;
-
-//     // Fix "i" as site that losses particle; "j" the one that gains.
-//     // This is for consistency with derivation of weight ratios in notes.
-//     if (n_dest>n_src){
-//         j = dest; 
-//         i = src;
-//         n_j = n_dest;
-//         n_i = n_src;
-//     }
-//     else{
-//         j = src;
-//         i = dest;
-//         n_j = n_src;
-//         n_i = n_dest;
-//     }
-        
-//     // Determine the lower and upper bound times of the kink ends to be shifted
-//     if (next_dest==-1)
-//         tau_next_dest = beta;
-//     else
-//         tau_next_dest = paths[next_dest].tau;
-//     tau_prev_dest = paths[prev_dest].tau;
-
-//     if (next_src==-1)
-//         tau_next_src = beta;
-//     else
-//         tau_next_src = paths[next_src].tau;
-//     tau_prev_src = paths[prev_src].tau;
-
-//     // Determine lowest time at which kink could've been inserted
-//     if (tau_prev_src>tau_prev_dest){tau_min=tau_prev_src;}
-//     else {tau_min=tau_prev_dest;}
-
-//     // Determine largest time at which kink could've been inserted
-//     if (tau_next_src<tau_next_dest){tau_max=tau_next_src;}
-//     else {tau_max=tau_next_dest;}
-
-//     // Diagonal energy difference in simplified form
-//     // dV=U*(n-!shift_head)-mu;
-//     dV=U*(n_i-n_j+1);
-
-//     tau_new = tau_min + rng.rand()*(tau_max-tau_min);
-    
-//     // Add to PROPOSAL counter
-//         if (tau_new > tau_kink){advance_kink_attempts+=1;}
-//         else{recede_kink_attempts+=1;}
-    
-//     // Determine the length of path to be modified
-//     // l_path = tau_new - tau_kink;
-    
-//     // Determine the total particle change based on wormend to be shifted
-//     // if (src!=dest){ // Shifting regular kinks will not change total N
-//     //     dN = 0;
-//     // }
-    
-//     // // Canonical simulations: Restrict updates to interval N:(N-1,N+1)
-//     // if (canonical)
-//     //     if ((N_tracker+dN) < (N-1) || (N_tracker+dN) > (N+1)){return;}
-    
-//     // Build the Metropolis condition (R)
-//     R = 1.0; // Sampling worm end time from truncated exponential makes R unity.
-//     R = expl(-dV*(tau_new-tau_kink));
-
-//     // Metropolis sampling
-//     if (rng.rand() < R){
-        
-//         // Add to acceptance counters
-//         if (tau_new > tau_kink){advance_kink_accepts+=1;}
-//         else{recede_kink_accepts+=1;}
-
-//         // Modify the kink times
-//         paths[kink_idx_src].tau = tau_new;
-//         paths[kink_idx_dest].tau = tau_new;
-        
-//         // Modify total particle number tracker
-//         // N_tracker += dN;
-        
-//         return;
-//     }
-//     else // Reject
-//         return;
-// }
-
 /*------------------------------- SWAP updates -------------------------------*/
 
 void insert_swap_kink(vector<vector<Kink> > &paths,
@@ -6904,28 +6765,6 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
                 num_kinks[dest_replica] += 1;
                 N_tracker[dest_replica] += dN_dest;
                 
-//                cout<<"Receded head over swap AFTER (left/right fock state)"<<endl;
-//                for (int i=0; i<1; i++){
-//                    cout<<paths[src_replica][paths[src_replica][prev_src].prev].n;
-//                }
-//                cout << " || ";
-//                for (int i=0; i<1; i++){
-//                    cout<<paths[src_replica][prev_src].n;
-//                }
-//
-//                cout << "    ";
-//
-//                for (int i=0; i<1; i++){
-//                    cout<<paths[dest_replica][num_kinks_dest].n;
-//                }
-//                cout << " || ";
-//                for (int i=0; i<1; i++){
-//                    cout<<paths[dest_replica][kink_out_of_dest].n;
-//                }
-//
-//                cout << endl;
-                
-//                cout << "2 (recede)" << endl;
             }
         }
         return;
@@ -7263,31 +7102,6 @@ paths[src_replica][paths[src_replica][num_kinks_src-1].prev].next=worm_end_idx;
 
 /*------------------------------- Estimators ---------------------------------*/
 
-// // For diagonal estimators around a time slice, Fock State will be needed
-// void get_fock_state(double measurement_center, int M,
-//                     vector<int> &fock_state_at_slice,
-//                     vector<Kink> &paths){
-    
-//     double tau;
-//     int current,n_i;
-    
-//     for (int i=0; i<M; i++){
-//         current=i;
-//         tau = paths[current].tau;
-//         while (tau<measurement_center+1.0E-12 && current!=-1){
-//             n_i=paths[current].n;
-//             fock_state_at_slice[i]=n_i;
-            
-//             current=paths[current].next;
-//             if (current!=-1)
-//                 tau=paths[current].tau;
-//         }
-//     }
-//     return;
-// }
-
-/*--------------------------------------------------------------------*/
-
 vector<double> get_measurement_centers(double beta){
     
     double tau_center;
@@ -7324,8 +7138,6 @@ double pimc_diagonal_energy(vector<int> &fock_state_at_slice, int M,
 
 /*--------------------------------------------------------------------*/
 
-
-/*---------TEST THIS!!!*----------*/
 void tau_resolved_diagonal_energy(vector<Kink> &paths,
                                            int num_kinks, int M, bool canonical,
                                            double U, double mu, double beta,
