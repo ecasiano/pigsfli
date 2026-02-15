@@ -46,54 +46,53 @@ namespace pimc
             Worldline &wl = C.replica(r).worldline();
             const Lattice &lat = C.lattice();
             const System &sys = C.system();
+            const Hamiltonian &H = C.hamiltonian();
 
             int M = lat.size();
             if (M == 0)
                 return false;
 
-            // Choose bond
             int i = rng.randint(0, M - 1);
             const auto &neigh = lat.neighbors(i);
             if (neigh.empty())
                 return false;
             int j = neigh[rng.randint(0, (int)neigh.size() - 1)];
 
-            // Choose times
             double tau1 = rng.uniform() * beta_;
             double tau2 = rng.uniform() * beta_;
             if (tau2 < tau1)
                 std::swap(tau1, tau2);
 
-            // Count BEFORE
-            int Np_old = countHopPairs(wl);
+            // Diagonal action BEFORE on affected sites
+            double S_i_before = diagonalActionSite(wl, H, i, beta_);
+            double S_j_before = diagonalActionSite(wl, H, j, beta_);
 
-            // Insert two hop pairs
-            Kink k1{tau1, 0, i, j, -1, -1, r, r, -1};
-            Kink k2{tau1, 0, i, j, -1, -1, r, r, -1};
+            // Insert two hop pairs mechanically
+            Kink k1{tau1, 0, i, j, -1, -1, r, r, -1, i};
+            Kink k2{tau1, 0, i, j, -1, -1, r, r, -1, j};
             auto [idx1, idx2] = wl.insertHop(k1, k2);
 
-            Kink k3{tau2, 0, i, j, -1, -1, r, r, -1};
-            Kink k4{tau2, 0, i, j, -1, -1, r, r, -1};
+            Kink k3{tau2, 0, i, j, -1, -1, r, r, -1, i};
+            Kink k4{tau2, 0, i, j, -1, -1, r, r, -1, j};
             auto [idx3, idx4] = wl.insertHop(k3, k4);
 
-            // Count AFTER
-            int Np_new = countHopPairs(wl);
+            // Diagonal action AFTER
+            double S_i_after = diagonalActionSite(wl, H, i, beta_);
+            double S_j_after = diagonalActionSite(wl, H, j, beta_);
 
-            // Fake diagonal action (use magnitude of change)
-            double alpha = 0.2;
-            double dS_diag = beta_ * alpha * std::abs(Np_new - Np_old);
+            double dS_diag = (S_i_after + S_j_after) - (S_i_before + S_j_before);
 
-            // Kinetic action (2 pairs inserted)
+            // Kinetic part: 2 pairs = 4 hops
             double t = sys.hopping();
-            double dS_kin = -2.0 * std::log(std::abs(t) + 1e-12);
+            double dS_kin = -4.0 * std::log(std::abs(t) + 1e-12);
 
             double dS = dS_diag + dS_kin;
-
             double log_accept = -dS;
+
             if (std::log(rng.uniform()) < log_accept)
                 return true;
 
-            // Reject
+            // Reject: undo
             wl.deleteHop(idx1);
             wl.deleteHop(idx3);
             return false;
@@ -121,10 +120,10 @@ namespace pimc
             int r = 0;
             Worldline &wl = C.replica(r).worldline();
             const System &sys = C.system();
+            const Hamiltonian &H = C.hamiltonian();
 
             int M = C.latticeSize();
 
-            // Collect hop pairs
             std::vector<int> candidates;
             for (int site = 0; site < M; ++site)
             {
@@ -144,34 +143,37 @@ namespace pimc
             int idx = candidates[rng.randint(0, (int)candidates.size() - 1)];
             int partner = wl[idx].partner;
 
+            int site_i = wl[idx].site;
+            int site_j = wl[partner].site;
+
             // Save for undo
             Kink kA = wl[idx];
             Kink kB = wl[partner];
 
-            // Count BEFORE
-            int Np_old = countHopPairs(wl);
+            // Diagonal action BEFORE
+            double S_i_before = diagonalActionSite(wl, H, site_i, beta_);
+            double S_j_before = diagonalActionSite(wl, H, site_j, beta_);
 
             // Remove one hop pair
             wl.deleteHop(idx);
 
-            // Count AFTER
-            int Np_new = countHopPairs(wl);
+            // Diagonal action AFTER
+            double S_i_after = diagonalActionSite(wl, H, site_i, beta_);
+            double S_j_after = diagonalActionSite(wl, H, site_j, beta_);
 
-            // Fake diagonal action (use magnitude of change)
-            double alpha = 0.2;
-            double dS_diag = beta_ * alpha * std::abs(Np_new - Np_old);
+            double dS_diag = (S_i_after + S_j_after) - (S_i_before + S_j_before);
 
-            // Kinetic action (1 pair removed)
+            // Kinetic: removing 2 hops
             double t = sys.hopping();
-            double dS_kin = +1.0 * std::log(std::abs(t) + 1e-12);
+            double dS_kin = +2.0 * std::log(std::abs(t) + 1e-12);
 
             double dS = dS_diag + dS_kin;
-
             double log_accept = -dS;
+
             if (std::log(rng.uniform()) < log_accept)
                 return true;
 
-            // Reject
+            // Reject: undo
             wl.insertHop(kA, kB);
             return false;
         }

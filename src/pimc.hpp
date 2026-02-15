@@ -458,6 +458,74 @@ namespace pimc
     };
 
     // ============================================================
+    // Diagonal action for a single site (projector, open in tau)
+    // ============================================================
+
+    inline double diagonalActionSite(
+        const Worldline &wl,
+        const Hamiltonian &H,
+        int site,
+        double beta)
+    {
+        int idx = wl.firstKink(site);
+        if (idx == -1)
+            return 0.0;
+
+        double S = 0.0;
+
+        const Kink *cur = &wl[idx];
+        int n = cur->n;
+        double prevTau = 0.0;
+
+        idx = cur->next;
+        while (idx != -1)
+        {
+            const Kink &k = wl[idx];
+
+            double dt = k.tau - prevTau;
+            if (dt < 0.0)
+                throw std::runtime_error("Non-monotonic tau in worldline");
+
+            S += dt * H.onsiteEnergy(n);
+
+            if (k.site == site && k.src != k.dest)
+            {
+                if (site == k.src)
+                    n -= 1;
+                else if (site == k.dest)
+                    n += 1;
+            }
+
+            prevTau = k.tau;
+            idx = k.next;
+        }
+
+        double dt = beta - prevTau;
+        if (dt < 0.0)
+            throw std::runtime_error("beta smaller than last kink tau");
+
+        S += dt * H.onsiteEnergy(n);
+
+        return S;
+    }
+
+    inline double diagonalAction(
+        const Configuration &C,
+        int replica,
+        double beta)
+    {
+        const Hamiltonian &H = C.hamiltonian();
+        const Worldline &wl = C.replica(replica).worldline();
+        int M = C.latticeSize();
+
+        double S = 0.0;
+        for (int site = 0; site < M; ++site)
+            S += diagonalActionSite(wl, H, site, beta);
+
+        return S;
+    }
+
+    // ============================================================
     // SECTION 6 — Simulation parameters
     // ============================================================
 
