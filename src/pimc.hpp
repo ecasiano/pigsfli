@@ -132,11 +132,12 @@ namespace pimc
     {
         double tau;
         int n;
-        int src, dest;
+        int src, dest; // physical hop direction
         int prev, next;
         int src_replica;
         int dest_replica;
         int partner;
+        int site; // which site list this kink belongs to
     };
 
     class Worldline
@@ -146,6 +147,11 @@ namespace pimc
             : M(M), head(M, -1) {}
 
         int latticeSize() const { return M; }
+
+        int kinkCount() const
+        {
+            return kinks.size();
+        }
 
         const Kink &operator[](int idx) const { return kinks.at(idx); }
         Kink &operator[](int idx) { return kinks.at(idx); }
@@ -160,13 +166,42 @@ namespace pimc
             return static_cast<int>(kinks.size()) - 1;
         }
 
+        // ------------------------------------------------------------
+        // Query occupation n_i(tau)
+        // ------------------------------------------------------------
+        int occupationAt(int site, double tau) const
+        {
+            int idx = head.at(site);
+            if (idx == -1)
+                return 0;
+
+            int n = kinks[idx].n;
+
+            idx = kinks[idx].next;
+            while (idx != -1 && kinks[idx].tau <= tau)
+            {
+                const Kink &k = kinks[idx];
+
+                if (k.site == site && k.src != k.dest)
+                {
+                    if (site == k.src)
+                        n -= 1;
+                    else if (site == k.dest)
+                        n += 1;
+                }
+
+                idx = k.next;
+            }
+
+            return n;
+        }
+
     private:
-        // Time-ordered insertion
         int insertKinkOrdered(int site, const Kink &k)
         {
             int idx = addKink(k);
             Kink &nk = kinks[idx];
-            nk.src = site;
+            nk.site = site; // bookkeeping
 
             int h = head[site];
 
@@ -208,8 +243,8 @@ namespace pimc
     public:
         std::pair<int, int> insertHop(const Kink &k1, const Kink &k2)
         {
-            int idx1 = insertKinkOrdered(k1.src, k1);
-            int idx2 = insertKinkOrdered(k2.src, k2);
+            int idx1 = insertKinkOrdered(k1.site, k1);
+            int idx2 = insertKinkOrdered(k2.site, k2);
 
             kinks[idx1].partner = idx2;
             kinks[idx2].partner = idx1;
@@ -220,11 +255,12 @@ namespace pimc
         void removeKink(int idx)
         {
             Kink &k = kinks.at(idx);
+            int site = k.site;
 
             if (k.prev != -1)
                 kinks[k.prev].next = k.next;
             else
-                head[k.src] = k.next;
+                head[site] = k.next;
 
             if (k.next != -1)
                 kinks[k.next].prev = k.prev;
@@ -279,7 +315,7 @@ namespace pimc
     };
 
     // ============================================================
-    // Forward declaration (correct!)
+    // Forward declaration
     // ============================================================
 
     inline void initialize_worldline_from_fock(
@@ -442,7 +478,7 @@ namespace pimc
     };
 
     // ============================================================
-    // SECTION 7 — Monte Carlo Framework
+    // SECTION 7 — Monte Carlo Framework (MECHANICAL ONLY)
     // ============================================================
 
     class Move
@@ -452,6 +488,9 @@ namespace pimc
         virtual bool attempt(Configuration &C, RNG &rng) = 0;
     };
 
+    // ------------------------------
+    // Pure mechanical insertion
+    // ------------------------------
     class KinkAntikinkInsertion : public Move
     {
     public:
@@ -472,7 +511,6 @@ namespace pimc
                 return false;
 
             int i = rng.randint(0, M - 1);
-
             const auto &neigh = lat.neighbors(i);
             if (neigh.empty())
                 return false;
@@ -483,15 +521,15 @@ namespace pimc
             if (tau2 < tau1)
                 std::swap(tau1, tau2);
 
-            Kink k1{tau1, 0, i, j, -1, -1, r, r, -1};
-            Kink k2{tau1, 0, j, i, -1, -1, r, r, -1};
+            // hop i -> j at tau1
+            Kink k1{tau1, 0, i, j, -1, -1, r, r, -1, i}; // stored on site i
+            Kink k2{tau1, 0, i, j, -1, -1, r, r, -1, j}; // stored on site j
+            wl.insertHop(k1, k2);
 
-            auto [idx1, idx2] = wl.insertHop(k1, k2);
-
-            Kink k3{tau2, 0, i, j, -1, -1, r, r, -1};
-            Kink k4{tau2, 0, j, i, -1, -1, r, r, -1};
-
-            auto [idx3, idx4] = wl.insertHop(k3, k4);
+            // hop i -> j at tau2
+            Kink k3{tau2, 0, i, j, -1, -1, r, r, -1, i};
+            Kink k4{tau2, 0, i, j, -1, -1, r, r, -1, j};
+            wl.insertHop(k3, k4);
 
             return true;
         }
@@ -500,6 +538,9 @@ namespace pimc
         double beta_;
     };
 
+    // ------------------------------
+    // Pure mechanical removal
+    // ------------------------------
     class KinkAntikinkRemoval : public Move
     {
     public:
@@ -515,7 +556,6 @@ namespace pimc
             Worldline &wl = C.replica(r).worldline();
             int M = C.latticeSize();
 
-            // Collect candidate kinks that are part of a hop pair
             std::vector<int> candidates;
             for (int site = 0; site < M; ++site)
             {
@@ -523,15 +563,8 @@ namespace pimc
                 while (idx != -1)
                 {
                     const Kink &k = wl[idx];
-
-                    // Skip flat initial kinks at tau=0 with no partner
-                    if (k.partner != -1)
-                    {
-                        // To avoid double-counting pairs, only take one side
-                        if (idx < k.partner)
-                            candidates.push_back(idx);
-                    }
-
+                    if (k.partner != -1 && idx < k.partner)
+                        candidates.push_back(idx);
                     idx = k.next;
                 }
             }
@@ -539,8 +572,7 @@ namespace pimc
             if (candidates.empty())
                 return false;
 
-            int choice = rng.randint(0, (int)candidates.size() - 1);
-            int idx = candidates[choice];
+            int idx = candidates[rng.randint(0, (int)candidates.size() - 1)];
 
             wl.deleteHop(idx);
 
@@ -550,6 +582,10 @@ namespace pimc
     private:
         double beta_;
     };
+
+    // ============================================================
+    // SECTION 8 — Estimators and Simulation
+    // ============================================================
 
     class Estimator
     {
@@ -589,7 +625,7 @@ namespace pimc
     };
 
     // ============================================================
-    // SECTION 8 — initialize_worldline_from_fock (definition)
+    // SECTION 9 — initialize_worldline_from_fock
     // ============================================================
 
     inline void initialize_worldline_from_fock(
@@ -610,6 +646,7 @@ namespace pimc
             k.src_replica = 0;
             k.dest_replica = 0;
             k.partner = -1;
+            k.site = site;
 
             int idx = wl.addKink(k);
             wl.setHead(site, idx);
@@ -617,7 +654,7 @@ namespace pimc
     }
 
     // ============================================================
-    // SECTION 9 — Miscellaneous
+    // SECTION 10 — Miscellaneous
     // ============================================================
 
     inline void test()
