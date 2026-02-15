@@ -52,22 +52,24 @@ namespace pimc
             if (M == 0)
                 return false;
 
+            // pick random bond i-j
             int i = rng.randint(0, M - 1);
             const auto &neigh = lat.neighbors(i);
             if (neigh.empty())
                 return false;
             int j = neigh[rng.randint(0, (int)neigh.size() - 1)];
 
+            // pick two times
             double tau1 = rng.uniform() * beta_;
             double tau2 = rng.uniform() * beta_;
             if (tau2 < tau1)
                 std::swap(tau1, tau2);
 
-            // Diagonal action BEFORE on affected sites
+            // diagonal action BEFORE on affected sites
             double S_i_before = diagonalActionSite(wl, H, i, beta_);
             double S_j_before = diagonalActionSite(wl, H, j, beta_);
 
-            // Insert two hop pairs mechanically
+            // mechanical insertion: two hops at tau1, two at tau2
             Kink k1{tau1, 0, i, j, -1, -1, r, r, -1, i};
             Kink k2{tau1, 0, i, j, -1, -1, r, r, -1, j};
             auto [idx1, idx2] = wl.insertHop(k1, k2);
@@ -76,13 +78,15 @@ namespace pimc
             Kink k4{tau2, 0, i, j, -1, -1, r, r, -1, j};
             auto [idx3, idx4] = wl.insertHop(k3, k4);
 
-            // Diagonal action AFTER
+            wl.checkConsistency();
+
+            // diagonal action AFTER
             double S_i_after = diagonalActionSite(wl, H, i, beta_);
             double S_j_after = diagonalActionSite(wl, H, j, beta_);
 
             double dS_diag = (S_i_after + S_j_after) - (S_i_before + S_j_before);
 
-            // Kinetic part: 2 pairs = 4 hops
+            // kinetic: 4 hops added
             double t = sys.hopping();
             double dS_kin = -4.0 * std::log(std::abs(t) + 1e-12);
 
@@ -92,9 +96,10 @@ namespace pimc
             if (std::log(rng.uniform()) < log_accept)
                 return true;
 
-            // Reject: undo
+            // reject: undo
             wl.deleteHop(idx1);
             wl.deleteHop(idx3);
+            wl.checkConsistency();
             return false;
         }
 
@@ -124,6 +129,7 @@ namespace pimc
 
             int M = C.latticeSize();
 
+            // collect candidate hop pairs
             std::vector<int> candidates;
             for (int site = 0; site < M; ++site)
             {
@@ -146,24 +152,25 @@ namespace pimc
             int site_i = wl[idx].site;
             int site_j = wl[partner].site;
 
-            // Save for undo
-            Kink kA = wl[idx];
-            Kink kB = wl[partner];
-
-            // Diagonal action BEFORE
+            // diagonal BEFORE
             double S_i_before = diagonalActionSite(wl, H, site_i, beta_);
             double S_j_before = diagonalActionSite(wl, H, site_j, beta_);
 
-            // Remove one hop pair
-            wl.deleteHop(idx);
+            // save for undo
+            Kink kA = wl[idx];
+            Kink kB = wl[partner];
 
-            // Diagonal action AFTER
+            // remove pair
+            wl.deleteHop(idx);
+            wl.checkConsistency();
+
+            // diagonal AFTER
             double S_i_after = diagonalActionSite(wl, H, site_i, beta_);
             double S_j_after = diagonalActionSite(wl, H, site_j, beta_);
 
             double dS_diag = (S_i_after + S_j_after) - (S_i_before + S_j_before);
 
-            // Kinetic: removing 2 hops
+            // kinetic: 2 hops removed
             double t = sys.hopping();
             double dS_kin = +2.0 * std::log(std::abs(t) + 1e-12);
 
@@ -173,8 +180,9 @@ namespace pimc
             if (std::log(rng.uniform()) < log_accept)
                 return true;
 
-            // Reject: undo
+            // reject: undo
             wl.insertHop(kA, kB);
+            wl.checkConsistency();
             return false;
         }
 
