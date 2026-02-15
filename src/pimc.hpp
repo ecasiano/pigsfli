@@ -500,6 +500,57 @@ namespace pimc
         double beta_;
     };
 
+    class KinkAntikinkRemoval : public Move
+    {
+    public:
+        KinkAntikinkRemoval(const SimulationParameters &params)
+            : beta_(params.beta()) {}
+
+        bool attempt(Configuration &C, RNG &rng) override
+        {
+            if (C.replicasCount() == 0)
+                return false;
+
+            int r = 0;
+            Worldline &wl = C.replica(r).worldline();
+            int M = C.latticeSize();
+
+            // Collect candidate kinks that are part of a hop pair
+            std::vector<int> candidates;
+            for (int site = 0; site < M; ++site)
+            {
+                int idx = wl.firstKink(site);
+                while (idx != -1)
+                {
+                    const Kink &k = wl[idx];
+
+                    // Skip flat initial kinks at tau=0 with no partner
+                    if (k.partner != -1)
+                    {
+                        // To avoid double-counting pairs, only take one side
+                        if (idx < k.partner)
+                            candidates.push_back(idx);
+                    }
+
+                    idx = k.next;
+                }
+            }
+
+            if (candidates.empty())
+                return false;
+
+            int choice = rng.randint(0, (int)candidates.size() - 1);
+            int idx = candidates[choice];
+
+            wl.deleteHop(idx);
+
+            return true;
+        }
+
+    private:
+        double beta_;
+    };
+
     class Estimator
     {
     public:
