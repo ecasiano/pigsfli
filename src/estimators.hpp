@@ -5,7 +5,31 @@ namespace pimc
 {
 
     // ============================================================
+    // Helper: count physical hops (each hop is one src–dest pair)
+    // ============================================================
+    inline int countPhysicalHops(const Configuration &C)
+    {
+        const Worldline &wl = C.replica(0).worldline();
+        int M = C.latticeSize();
+        int count = 0;
+
+        for (int site = 0; site < M; ++site)
+        {
+            int idx = wl.firstKink(site);
+            while (idx != -1)
+            {
+                const Kink &k = wl[idx];
+                if (k.partner != -1 && idx < k.partner)
+                    count++; // one physical hop
+                idx = k.next;
+            }
+        }
+        return count;
+    }
+
+    // ============================================================
     // Diagonal Energy Estimator
+    // E_diag = S_diag / beta
     // ============================================================
     struct DiagonalEnergyEstimator : public Estimator
     {
@@ -15,7 +39,6 @@ namespace pimc
 
         double measure(const Configuration &C) override
         {
-            // Always use replica 0 for now
             double Sdiag = diagonalAction(C, 0, beta);
             return Sdiag / beta;
         }
@@ -95,7 +118,7 @@ namespace pimc
 
     // ============================================================
     // Kinetic Energy Estimator
-    // E_kin = - N_hops / beta
+    // E_kin = - t * N_hops / beta
     // ============================================================
     struct KineticEnergyEstimator : public Estimator
     {
@@ -105,25 +128,16 @@ namespace pimc
 
         double measure(const Configuration &C) override
         {
-            const Worldline &wl = C.replica(0).worldline();
-
-            int count = 0;
-
-            // Count all kinks (each kink is one hop)
-            for (int site = 0; site < C.latticeSize(); ++site)
-            {
-                int idx = wl.firstKink(site);
-                while (idx != -1)
-                {
-                    count++;
-                    idx = wl[idx].next;
-                }
-            }
-
-            return -double(count) / beta;
+            int N_hops = countPhysicalHops(C);
+            double t = C.system().t();
+            return -t * static_cast<double>(N_hops) / beta;
         }
     };
 
+    // ============================================================
+    // Total Energy Estimator
+    // E_tot = E_diag + E_kin
+    // ============================================================
     struct TotalEnergyEstimator : public Estimator
     {
         double beta;
@@ -136,6 +150,51 @@ namespace pimc
             KineticEnergyEstimator Ek(beta);
             return Ed.measure(C) + Ek.measure(C);
         }
+    };
+
+    // ============================================================
+    // Mid-time Energy Estimator (consistent kinetic definition)
+    // ============================================================
+    class MidTimeEnergyEstimator
+    {
+    public:
+        explicit MidTimeEnergyEstimator(double beta)
+            : beta_(beta) {}
+
+        double measure(const Configuration &C) const
+        {
+            const System &sys = C.system();
+            const Lattice &lat = C.lattice();
+            const Worldline &wl = C.replica(0).worldline();
+
+            double tau_mid = 0.5 * beta_;
+            int M = lat.size();
+
+            // Diagonal energy at mid-time
+            double E_diag = 0.0;
+            for (int i = 0; i < M; ++i)
+            {
+                int n = wl.occupationAt(i, tau_mid);
+
+                double U = sys.U();
+                double mu = sys.mu();
+
+                double e_i = 0.0;
+                e_i += 0.5 * U * n * (n - 1);
+                e_i -= mu * n;
+
+                E_diag += e_i;
+            }
+
+            // Kinetic energy from physical hop count
+            int N_hops = countPhysicalHops(C);
+            double E_kin = -sys.t() * static_cast<double>(N_hops) / beta_;
+
+            return E_diag + E_kin;
+        }
+
+    private:
+        double beta_;
     };
 
 } // namespace pimc

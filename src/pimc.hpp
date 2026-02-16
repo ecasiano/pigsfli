@@ -59,19 +59,23 @@ namespace pimc
     {
     public:
         System(int L, int D, double t, double U, double mu)
-            : L(L), D(D), M(std::pow(L, D)), t(t), U(U), mu(mu) {}
+            : L_(L), D_(D), M_(std::pow(L, D)), t_(t), U_(U), mu_(mu) {}
 
-        int size() const { return M; }
-        int dimension() const { return D; }
-        int linearSize() const { return L; }
+        int size() const { return M_; }
+        int dimension() const { return D_; }
+        int linearSize() const { return L_; }
 
-        double hopping() const { return t; }
-        double interaction() const { return U; }
-        double chemicalPotential() const { return mu; }
+        double hopping() const { return t_; }
+        double interaction() const { return U_; }
+        double chemicalPotential() const { return mu_; }
+
+        double t() const { return t_; }
+        double U() const { return U_; }
+        double mu() const { return mu_; }
 
     private:
-        int L, D, M;
-        double t, U, mu;
+        int L_, D_, M_;
+        double t_, U_, mu_;
     };
 
     class Lattice

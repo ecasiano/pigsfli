@@ -9,34 +9,33 @@
 
 using namespace pimc;
 
+// ============================================================
+// Convergence test using both estimators
+// ============================================================
+
 int main()
 {
-    std::cout << "Running test_convergence_beta...\n";
+    std::cout << "Running test_convergence_midtime...\n";
 
-    // --- System parameters ---
-    int N = 2; // number of bosons
-    int L = 2; // 2-site lattice
+    int N = 2;
+    int L = 2;
     double t = 0.5;
     double U = 1.0;
     double mu = 0.0;
 
-    // --- Exact diagonalization ---
     EDResult2Site ed = exactDiagonalization2Site(N, t, U, mu);
     double E_exact = ed.E0;
 
-    std::cout << "Exact ground state energy (N=" << N << ") = " << E_exact << "\n\n";
-    std::cout << "beta\tE_MC\n";
+    std::cout << "Exact ground state energy = " << E_exact << "\n\n";
+    std::cout << "beta\tE_total\t\tE_mid\n";
 
-    // --- Beta values to test ---
-    std::vector<double> betas = {0.5, 1.0, 2.0, 4.0, 8.0};
+    std::vector<double> betas = {0.5, 1.0, 2.0, 4.0, 8.0, 16.0};
 
     for (double beta : betas)
     {
 
-        // Simulation parameters
         SimulationParameters params(beta);
 
-        // Build system
         System sys(L, N, t, U, mu);
         Lattice lat(L, 1);
         Configuration config(sys, lat, 1);
@@ -44,13 +43,12 @@ int main()
         BoseHubbardHamiltonian H(sys, lat);
         config.setHamiltonian(&H);
 
-        // Initial Fock state (all bosons on site 0)
         std::vector<int> fock = {N, 0};
         config.initialize(fock);
 
         RNG rng(12345 + int(beta * 100));
 
-        // --- Moves ---
+        // Moves
         KinkAntikinkInsertionMC insertMove(params);
         KinkAntikinkRemovalMC removeMove(params);
         BoundaryKinkAntikinkInsertion0MC bInsert0(params);
@@ -58,20 +56,21 @@ int main()
         BoundaryKinkAntikinkInsertionBetaMC bInsertB(params);
         BoundaryKinkAntikinkRemovalBetaMC bRemoveB(params);
 
-        // --- Estimator ---
+        // Estimators
         TotalEnergyEstimator Etot(beta);
+        MidTimeEnergyEstimator Emid(beta);
 
         int nSteps = 2000000;
         int therm = 200000;
 
-        double accumE = 0.0;
+        double accumE_tot = 0.0;
+        double accumE_mid = 0.0;
         int count = 0;
 
         for (int step = 0; step < nSteps; ++step)
         {
             double r = rng.uniform();
 
-            // Mix bulk and boundary moves
             if (r < 0.3)
                 insertMove.attempt(config, rng);
             else if (r < 0.6)
@@ -85,17 +84,18 @@ int main()
             else
                 bRemoveB.attempt(config, rng);
 
-            // Measurements
             if (step >= therm)
             {
-                double e = Etot.measure(config);
-                accumE += e;
+                accumE_tot += Etot.measure(config);
+                accumE_mid += Emid.measure(config);
                 count++;
             }
         }
 
-        double E_mc = accumE / std::max(1, count);
-        std::cout << beta << "\t" << E_mc << "\n";
+        double E_mc_tot = accumE_tot / std::max(1, count);
+        double E_mc_mid = accumE_mid / std::max(1, count);
+
+        std::cout << beta << "\t" << E_mc_tot << "\t" << E_mc_mid << "\n";
     }
 
     std::cout << "\nDone.\n";
