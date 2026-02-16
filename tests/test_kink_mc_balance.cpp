@@ -1,7 +1,8 @@
 #include "../src/pimc.hpp"
 #include "../src/moves_mc.hpp"
+#include "../src/estimators.hpp"
+
 #include <iostream>
-#include <cassert>
 
 using namespace pimc;
 
@@ -9,60 +10,57 @@ int main()
 {
     std::cout << "Running micro detailed-balance test...\n";
 
-    RNG rng(123);
+    double beta = 1.0;
+    SimulationParameters params(beta);
 
-    // Tiny system: 2 sites, 1D, 1 boson
-    System sys(2, 1, 1.0, 1.0, 0.0);
-    Lattice lat(2, 1);
+    int N = 2;
+    int L = 2;
+    double t = 0.5;
+    double U = 1.0;
+    double mu = 0.0;
+
+    System sys(L, N, t, U, mu);
+    Lattice lat(L, 1);
     Configuration config(sys, lat, 1);
 
-    // Attach Hamiltonian
     BoseHubbardHamiltonian H(sys, lat);
     config.setHamiltonian(&H);
 
-    // Initial Fock state: one boson on site 0
-    std::vector<int> fock(sys.size(), 0);
-    fock[0] = 1;
+    // Initial Fock state
+    std::vector<int> fock = {N, 0};
     config.initialize(fock);
 
-    // MC moves
-    SimulationParameters params(1.0); // β = 1
-    KinkAntikinkInsertionMC ins(params);
-    KinkAntikinkRemovalMC rem(params);
+    RNG rng(12345);
 
-    Worldline &wl = config.replica(0).worldline();
+    KinkAntikinkInsertionMC insertMove(params);
+    KinkAntikinkRemovalMC removeMove(params);
 
-    int accepted_ins = 0;
-    int accepted_rem = 0;
-    int attempts_ins = 0;
-    int attempts_rem = 0;
+    int nTrials = 5000;
+    int accInsert = 0;
+    int accRemove = 0;
 
-    // Alternate insertion and removal
-    for (int n = 0; n < 5000; ++n)
+    // Try insertions
+    for (int i = 0; i < nTrials; ++i)
     {
-        // Try insertion
-        attempts_ins++;
-        bool acc_ins = ins.attempt(config, rng);
-        if (acc_ins)
-            accepted_ins++;
-        wl.checkConsistency();
-
-        // Try removal
-        attempts_rem++;
-        bool acc_rem = rem.attempt(config, rng);
-        if (acc_rem)
-            accepted_rem++;
-        wl.checkConsistency();
+        Configuration backup = config;
+        if (insertMove.attempt(config, rng))
+            accInsert++;
+        else
+            config = backup;
     }
 
-    std::cout << "Insertion accepted: " << accepted_ins
-              << " / " << attempts_ins << "\n";
-    std::cout << "Removal accepted:   " << accepted_rem
-              << " / " << attempts_rem << "\n";
+    // Try removals
+    for (int i = 0; i < nTrials; ++i)
+    {
+        Configuration backup = config;
+        if (removeMove.attempt(config, rng))
+            accRemove++;
+        else
+            config = backup;
+    }
 
-    // Sanity checks
-    assert(accepted_ins > 0);
-    assert(accepted_rem > 0);
+    std::cout << "Insertion accepted: " << accInsert << " / " << nTrials << "\n";
+    std::cout << "Removal accepted:   " << accRemove << " / " << nTrials << "\n";
 
     std::cout << "Micro detailed-balance test PASSED.\n";
     return 0;

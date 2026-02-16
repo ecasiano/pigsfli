@@ -11,32 +11,27 @@ using namespace pimc;
 
 int main()
 {
-    std::cout << "Running test_convergence_beta...\n";
+    std::cout << "Running test_convergence_no_tau_beta...\n";
 
-    // --- System parameters ---
-    int N = 2; // number of bosons
-    int L = 2; // 2-site lattice
+    int N = 2;
+    int L = 2;
     double t = 0.5;
     double U = 1.0;
     double mu = 0.0;
 
-    // --- Exact diagonalization ---
     EDResult2Site ed = exactDiagonalization2Site(N, t, U, mu);
     double E_exact = ed.E0;
 
-    std::cout << "Exact ground state energy (N=" << N << ") = " << E_exact << "\n\n";
+    std::cout << "Exact ground state energy = " << E_exact << "\n\n";
     std::cout << "beta\tE_MC\n";
 
-    // --- Beta values to test ---
     std::vector<double> betas = {0.5, 1.0, 2.0, 4.0, 8.0};
 
     for (double beta : betas)
     {
 
-        // Simulation parameters
         SimulationParameters params(beta);
 
-        // Build system
         System sys(L, N, t, U, mu);
         Lattice lat(L, 1);
         Configuration config(sys, lat, 1);
@@ -44,21 +39,16 @@ int main()
         BoseHubbardHamiltonian H(sys, lat);
         config.setHamiltonian(&H);
 
-        // Initial Fock state (all bosons on site 0)
         std::vector<int> fock = {N, 0};
         config.initialize(fock);
 
-        RNG rng(12345 + int(beta * 100));
+        RNG rng(54321 + int(beta * 100));
 
-        // --- Moves ---
         KinkAntikinkInsertionMC insertMove(params);
         KinkAntikinkRemovalMC removeMove(params);
         BoundaryKinkAntikinkInsertion0MC bInsert0(params);
         BoundaryKinkAntikinkRemoval0MC bRemove0(params);
-        BoundaryKinkAntikinkInsertionBetaMC bInsertB(params);
-        BoundaryKinkAntikinkRemovalBetaMC bRemoveB(params);
 
-        // --- Estimator ---
         TotalEnergyEstimator Etot(beta);
 
         int nSteps = 2000000;
@@ -71,25 +61,18 @@ int main()
         {
             double r = rng.uniform();
 
-            // Mix bulk and boundary moves
-            if (r < 0.3)
+            if (r < 0.4)
                 insertMove.attempt(config, rng);
-            else if (r < 0.6)
+            else if (r < 0.8)
                 removeMove.attempt(config, rng);
-            else if (r < 0.75)
-                bInsert0.attempt(config, rng);
             else if (r < 0.9)
-                bRemove0.attempt(config, rng);
-            else if (r < 0.95)
-                bInsertB.attempt(config, rng);
+                bInsert0.attempt(config, rng);
             else
-                bRemoveB.attempt(config, rng);
+                bRemove0.attempt(config, rng);
 
-            // Measurements
             if (step >= therm)
             {
-                double e = Etot.measure(config);
-                accumE += e;
+                accumE += Etot.measure(config);
                 count++;
             }
         }
