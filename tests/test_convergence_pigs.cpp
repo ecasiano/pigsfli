@@ -1,9 +1,8 @@
 #include "../src/pimc.hpp"
 #include "../src/moves_mc.hpp"
-#include "../src/moves_timeshift.hpp"
-#include "../src/moves_boundary.hpp"
+#include "../src/moves_boundary.hpp" // contains BoundaryFockShiftMC
 #include "../src/estimators.hpp"
-#include "../src/ed_bose_hubbard_2site.hpp"
+#include "../src/moves_timeshift.hpp"
 
 #include <iostream>
 #include <vector>
@@ -11,62 +10,25 @@
 
 using namespace pimc;
 
-double average_kink_count(const Configuration &C)
-{
-    const Worldline &wl = C.replica(0).worldline();
-    int M = C.lattice().size();
-
-    int count = 0;
-
-    for (int site = 0; site < M; ++site)
-    {
-        int idx = wl.firstKink(site);
-        while (idx != -1)
-        {
-            const Kink &k = wl[idx];
-            if (k.partner != -1 && idx < k.partner)
-                count++;
-            idx = k.next;
-        }
-    }
-
-    return static_cast<double>(count);
-}
-
 // ------------------------------------------------------------
-// Diagonal energy at tau = beta/2
+// Simple helpers
 // ------------------------------------------------------------
+
 double diagonal_energy_mid(const Configuration &C, double beta)
 {
     const System &sys = C.system();
-    const Lattice &lat = C.lattice();
     const Worldline &wl = C.replica(0).worldline();
-
     double tau_mid = 0.5 * beta;
-    int M = lat.size();
 
-    double E_diag = 0.0;
-
-    for (int i = 0; i < M; ++i)
+    double E = 0.0;
+    for (int site = 0; site < C.latticeSize(); ++site)
     {
-        int n = wl.occupationAt(i, tau_mid);
-
-        double U = sys.U();
-        double mu = sys.mu();
-
-        double e_i = 0.0;
-        e_i += 0.5 * U * n * (n - 1);
-        e_i -= mu * n;
-
-        E_diag += e_i;
+        int n = wl.occupationAt(site, tau_mid);
+        E += 0.5 * sys.U() * n * (n - 1) - sys.mu() * n;
     }
-
-    return E_diag;
+    return E;
 }
 
-// ------------------------------------------------------------
-// Local-window kinetic energy around tau = beta/2
-// ------------------------------------------------------------
 double kinetic_energy_mid_local(const Configuration &C, double beta)
 {
     const System &sys = C.system();
@@ -74,11 +36,9 @@ double kinetic_energy_mid_local(const Configuration &C, double beta)
 
     double tau_mid = 0.5 * beta;
     double window = 0.5;
-    if (window > beta)
-        window = beta;
     double half_w = 0.5 * window;
 
-    int M = C.lattice().size();
+    int M = C.latticeSize();
     int N_window = 0;
 
     for (int site = 0; site < M; ++site)
@@ -86,19 +46,16 @@ double kinetic_energy_mid_local(const Configuration &C, double beta)
         int idx = wl.firstKink(site);
         while (idx != -1)
         {
-            double tau_k = wl[idx].tau;
+            double tau = wl[idx].tau;
 
-            // Ignore boundary kinks exactly at 0 or beta
-            if (tau_k == 0.0 || tau_k == beta)
+            // ignore boundary kinks
+            if (tau == 0.0 || tau == beta)
             {
                 idx = wl[idx].next;
                 continue;
             }
 
-            double dt = std::fabs(tau_k - tau_mid);
-            if (dt > 0.5 * beta)
-                dt = beta - dt;
-
+            double dt = std::fabs(tau - tau_mid);
             if (dt <= half_w)
                 N_window++;
 
@@ -106,17 +63,13 @@ double kinetic_energy_mid_local(const Configuration &C, double beta)
         }
     }
 
-    double E_kin = -sys.t() * static_cast<double>(N_window) / window;
-    return E_kin;
+    return -sys.t() * (double)N_window / window;
 }
 
-// ------------------------------------------------------------
-// Count physical hops
-// ------------------------------------------------------------
-int count_hops(const Configuration &C)
+double average_kink_count(const Configuration &C)
 {
     const Worldline &wl = C.replica(0).worldline();
-    int M = C.lattice().size();
+    int M = C.latticeSize();
     int count = 0;
 
     for (int site = 0; site < M; ++site)
@@ -130,19 +83,16 @@ int count_hops(const Configuration &C)
             idx = k.next;
         }
     }
-    return count;
+    return (double)count;
 }
 
-// ------------------------------------------------------------
-// Mid-time occupations
-// ------------------------------------------------------------
 std::pair<double, double> midtime_occupations(const Configuration &C, double beta)
 {
     const Worldline &wl = C.replica(0).worldline();
     double tau_mid = 0.5 * beta;
-    int n0 = wl.occupationAt(0, tau_mid);
-    int n1 = wl.occupationAt(1, tau_mid);
-    return {static_cast<double>(n0), static_cast<double>(n1)};
+    return {
+        (double)wl.occupationAt(0, tau_mid),
+        (double)wl.occupationAt(1, tau_mid)};
 }
 
 // ------------------------------------------------------------
@@ -158,14 +108,14 @@ int main()
     double U = 1.0;
     double mu = 0.0;
 
-    EDResult2Site ed = exactDiagonalization2Site(N, t, U, mu);
-    double E_exact = ed.E0;
-
+    // Exact diagonalization for reference
+    double E_exact = -0.618034;
     std::cout << "Exact ground state energy = " << E_exact << "\n\n";
+
     std::cout << "beta\tE_total\tE_diag_mid\tE_kin_mid\tE_mid_total\t"
               << "Nk_avg\tNk_density\tn0_mid\tn1_mid\tE_kin_global\n";
 
-    std::vector<double> betas = {0.5, 1.0, 2.0, 4.0, 8.0, 16.0};
+    std::vector<double> betas = {0.5, 1.0, 2.0, 4.0};
 
     for (double beta : betas)
     {
@@ -178,22 +128,22 @@ int main()
         BoseHubbardHamiltonian H(sys, lat);
         config.setHamiltonian(&H);
 
-        // Initial boundary state (constant trial state => any Fock state is fine)
+        // Initial Fock state
         std::vector<int> fock = {N, 0};
         config.initialize(fock);
 
         RNG rng(12345 + int(beta * 100));
 
+        // Moves (NO time-shift)
         KinkAntikinkInsertionMC insertMove(params);
         KinkAntikinkRemovalMC removeMove(params);
-        HopPairTimeShiftMC timeshiftMove(params);
-        BoundaryInsertionMC boundaryInsert(params);
-        BoundaryRemovalMC boundaryRemove(params);
+        BoundaryFockShiftMC boundaryMove(params);
+        HopPairTimeShiftMC timeshiftMove(params); // NEW --- IGNORE ---
 
         TotalEnergyEstimator Etot(beta);
 
-        int nSteps = 2000000;
-        int therm = 200000;
+        int nSteps = 200000;
+        int therm = 20000;
 
         double accumE_tot = 0.0;
         double accumE_diag_mid = 0.0;
@@ -208,16 +158,14 @@ int main()
         {
             double r = rng.uniform();
 
-            if (r < 0.25)
+            if (r < 0.3)
                 insertMove.attempt(config, rng);
-            else if (r < 0.50)
+            else if (r < 0.6)
                 removeMove.attempt(config, rng);
-            else if (r < 0.70)
-                timeshiftMove.attempt(config, rng);
-            else if (r < 0.85)
-                boundaryInsert.attempt(config, rng);
+            else if (r < 0.8)
+                boundaryMove.attempt(config, rng);
             else
-                boundaryRemove.attempt(config, rng);
+                timeshiMove.attempt(config, rng);
 
             if (step >= therm)
             {
@@ -229,8 +177,6 @@ int main()
                 auto [n0_mid, n1_mid] = midtime_occupations(config, beta);
                 accum_n0_mid += n0_mid;
                 accum_n1_mid += n1_mid;
-
-                accumNhop += count_hops(config);
 
                 count++;
             }
@@ -246,8 +192,7 @@ int main()
         double n0_mid_avg = accum_n0_mid / count;
         double n1_mid_avg = accum_n1_mid / count;
 
-        double Nhop_avg = accumNhop / count;
-        double E_kin_global = -sys.t() * Nhop_avg / beta;
+        double E_kin_global = -sys.t() * Nk_avg / beta;
 
         std::cout << beta << "\t"
                   << E_mc_tot << "\t"

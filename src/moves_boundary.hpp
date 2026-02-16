@@ -1,14 +1,49 @@
 #pragma once
 #include "pimc.hpp"
+#include "moves_mc.hpp"
 #include <cmath>
 
 namespace pimc
 {
 
-    class BoundaryInsertionMC : public Move
+    struct BoundaryPair0
+    {
+        int idx_fwd;
+        int idx_bwd;
+        int site_i;
+        int site_j;
+    };
+
+    // enumerate hop pairs where the earlier kink is at tau=0 and the later in (0,beta)
+    inline std::vector<BoundaryPair0> enumerateBoundaryPairs0(const Worldline &wl, double beta)
+    {
+        auto pairs = enumerateHopPairs(wl);
+        std::vector<BoundaryPair0> out;
+
+        double eps = 1e-12;
+        for (const auto &hp : pairs)
+        {
+            double tau_f = wl[hp.idx_fwd].tau;
+            double tau_b = wl[hp.idx_bwd].tau;
+
+            double tau_min = std::min(tau_f, tau_b);
+            double tau_max = std::max(tau_f, tau_b);
+
+            if (std::fabs(tau_min) < eps && tau_max > eps && tau_max < beta - eps)
+            {
+                out.push_back({hp.idx_fwd, hp.idx_bwd, hp.site_i, hp.site_j});
+            }
+        }
+        return out;
+    }
+
+    // ------------------------------------------------------------
+    // Boundary kink pair insertion at tau = 0 (partner in bulk)
+    // ------------------------------------------------------------
+    class BoundaryKinkPairInsertion0MC : public Move
     {
     public:
-        explicit BoundaryInsertionMC(const SimulationParameters &params)
+        explicit BoundaryKinkPairInsertion0MC(const SimulationParameters &params)
             : beta_(params.beta()) {}
 
         bool attempt(Configuration &C, RNG &rng) override
@@ -26,11 +61,9 @@ namespace pimc
             if (M == 0)
                 return false;
 
-            // small epsilon to avoid exact 0 or beta
-            double eps = 1e-9 * beta_;
-
-            // 1. Pick a bond (i,j)
+            // 1. bonds
             std::vector<std::pair<int, int>> bonds;
+            bonds.reserve(M * 2);
             for (int i = 0; i < M; ++i)
                 for (int j : lat.neighbors(i))
                     if (i < j)
@@ -39,49 +72,73 @@ namespace pimc
             if (bonds.empty())
                 return false;
 
-            auto [i, j] = bonds[rng.randint(0, (int)bonds.size() - 1)];
+            int Nb = (int)bonds.size();
+            auto [i, j] = bonds[rng.randint(0, Nb - 1)];
 
-            // 2. Choose boundary: near 0 or near beta
-            bool at_beta = (rng.uniform() < 0.5);
-            double tau = at_beta ? (beta_ - eps) : eps;
+            // 2. times: tau1 = 0, tau2 uniform in (0,beta)
+            double tau1 = 0.0;
+            double tau2 = rng.uniform() * beta_;
+            if (tau2 <= 0.0 || tau2 >= beta_)
+                return false;
 
-            // 3. Occupations just before tau
-            int n_i = wl.occupationAt(i, tau);
-            int n_j = wl.occupationAt(j, tau);
-
-            if (n_i <= 0)
+            // 3. occupations at tau=0
+            int n_i0 = wl.occupationAt(i, 0.0);
+            int n_j0 = wl.occupationAt(j, 0.0);
+            if (n_i0 <= 0)
                 return false;
 
             double t = sys.t();
             double abs_t = std::abs(t);
 
-            double me = abs_t * std::sqrt((double)n_i * (double)(n_j + 1));
-            if (me == 0.0)
+            double me1 = abs_t * std::sqrt((double)n_i0 * (double)(n_j0 + 1));
+            double me2 = abs_t * std::sqrt((double)(n_j0 + 1) * (double)n_i0);
+            if (me1 == 0.0 || me2 == 0.0)
                 return false;
 
-            // 4. Diagonal BEFORE
+            // 4. diagonal BEFORE
             double S_i_before = diagonalActionSite(wl, H, i, beta_);
             double S_j_before = diagonalActionSite(wl, H, j, beta_);
 
-            // 5. Insert hop pair at boundary tau
-            Kink k1{tau, 0, i, j, -1, -1, r, r, -1, i};
-            Kink k2{tau, 0, i, j, -1, -1, r, r, -1, j};
+            // 5. insert kinks: i->j at 0, j->i at tau2
+            Kink k1{tau1, 0, i, j, -1, -1, r, r, -1, i};
+            Kink k2{tau1, 0, i, j, -1, -1, r, r, -1, j};
             auto [idx1, idx2] = wl.insertHop(k1, k2);
+
+            Kink k3{tau2, 0, j, i, -1, -1, r, r, -1, j};
+            Kink k4{tau2, 0, j, i, -1, -1, r, r, -1, i};
+            auto [idx3, idx4] = wl.insertHop(k3, k4);
 
             wl.checkConsistency();
 
-            // 6. Diagonal AFTER
+            // 6. diagonal AFTER
             double S_i_after = diagonalActionSite(wl, H, i, beta_);
             double S_j_after = diagonalActionSite(wl, H, j, beta_);
 
-            double dS = (S_i_after + S_j_after) - (S_i_before + S_j_before);
+            double dS_diag = (S_i_after + S_j_after) - (S_i_before + S_j_before);
+            double logW_ratio = std::log(me1) + std::log(me2) - dS_diag;
 
-            double log_ratio = std::log(me) - dS;
+            // 7. proposal ratio
+            auto boundary_pairs_new = enumerateBoundaryPairs0(wl, beta_);
+            int N_pairs_new = (int)boundary_pairs_new.size();
+            if (N_pairs_new == 0)
+            {
+                wl.deleteHop(idx1);
+                wl.deleteHop(idx3);
+                wl.checkConsistency();
+                return false;
+            }
+
+            double logP_ins = -std::log((double)Nb) - std::log(beta_); // bond * tau2
+            double logP_rem = -std::log((double)N_pairs_new);
+
+            double log_ratio = logW_ratio + (logP_rem - logP_ins);
 
             if (std::log(rng.uniform()) < log_ratio)
                 return true;
 
+            // reject
             wl.deleteHop(idx1);
+            wl.deleteHop(idx3);
             wl.checkConsistency();
             return false;
         }
@@ -90,10 +147,13 @@ namespace pimc
         double beta_;
     };
 
-    class BoundaryRemovalMC : public Move
+    // ------------------------------------------------------------
+    // Boundary kink pair removal at tau = 0 (partner in bulk)
+    // ------------------------------------------------------------
+    class BoundaryKinkPairRemoval0MC : public Move
     {
     public:
-        explicit BoundaryRemovalMC(const SimulationParameters &params)
+        explicit BoundaryKinkPairRemoval0MC(const SimulationParameters &params)
             : beta_(params.beta()) {}
 
         bool attempt(Configuration &C, RNG &rng) override
@@ -111,66 +171,80 @@ namespace pimc
             if (M == 0)
                 return false;
 
-            double eps = 1e-9 * beta_;
-
-            // 1. Find hop pairs whose tau is near 0 or near beta
-            std::vector<int> boundary_pairs;
-            for (int site = 0; site < M; ++site)
-            {
-                int idx = wl.firstKink(site);
-                while (idx != -1)
-                {
-                    const Kink &k = wl[idx];
-                    if (k.partner != -1 && idx < k.partner)
-                    {
-                        double tau = k.tau;
-                        if (tau < eps || tau > beta_ - eps)
-                            boundary_pairs.push_back(idx);
-                    }
-                    idx = k.next;
-                }
-            }
-
-            if (boundary_pairs.empty())
+            auto boundary_pairs = enumerateBoundaryPairs0(wl, beta_);
+            int N_pairs_old = (int)boundary_pairs.size();
+            if (N_pairs_old == 0)
                 return false;
 
-            int idx = boundary_pairs[rng.randint(0, (int)boundary_pairs.size() - 1)];
-            Kink k = wl[idx];
-            int partner_idx = k.partner;
-            Kink k_partner = wl[partner_idx];
+            int k = rng.randint(0, N_pairs_old - 1);
+            BoundaryPair0 bp = boundary_pairs[k];
 
-            int i = k.src;
-            int j = k.dest;
-            double tau = k.tau;
+            int i = bp.site_i;
+            int j = bp.site_j;
 
-            // 3. Diagonal BEFORE
+            // diagonal BEFORE
             double S_i_before = diagonalActionSite(wl, H, i, beta_);
             double S_j_before = diagonalActionSite(wl, H, j, beta_);
 
-            int n_i = wl.occupationAt(i, tau);
-            int n_j = wl.occupationAt(j, tau);
+            // save kinks for undo
+            Kink k_fwd = wl[bp.idx_fwd];
+            Kink k_fwd_partner = wl[k_fwd.partner];
+            Kink k_bwd = wl[bp.idx_bwd];
+            Kink k_bwd_partner = wl[k_bwd.partner];
+
+            // occupations at tau=0 (old config)
+            int n_i0 = wl.occupationAt(i, 0.0);
+            int n_j0 = wl.occupationAt(j, 0.0);
 
             double t = sys.t();
             double abs_t = std::abs(t);
 
-            double me = abs_t * std::sqrt((double)n_i * (double)(n_j + 1));
-            if (me == 0.0)
+            double me1 = abs_t * std::sqrt((double)n_i0 * (double)(n_j0 + 1));
+            double me2 = abs_t * std::sqrt((double)(n_j0 + 1) * (double)n_i0);
+            if (me1 == 0.0 || me2 == 0.0)
                 return false;
 
-            wl.deleteHop(idx);
+            // remove hops
+            wl.deleteHop(bp.idx_fwd);
+            wl.deleteHop(bp.idx_bwd);
             wl.checkConsistency();
 
+            // diagonal AFTER
             double S_i_after = diagonalActionSite(wl, H, i, beta_);
             double S_j_after = diagonalActionSite(wl, H, j, beta_);
 
-            double dS = (S_i_after + S_j_after) - (S_i_before + S_j_before);
+            double dS_diag = (S_i_after + S_j_after) - (S_i_before + S_j_before);
+            double logW_ratio = -std::log(me1) - std::log(me2) - dS_diag;
 
-            double log_ratio = -std::log(me) - dS;
+            // proposal ratio
+            std::vector<std::pair<int, int>> bonds;
+            bonds.reserve(M * 2);
+            for (int s = 0; s < M; ++s)
+                for (int nb : lat.neighbors(s))
+                    if (s < nb)
+                        bonds.emplace_back(s, nb);
+
+            int Nb = (int)bonds.size();
+            if (Nb == 0)
+            {
+                // undo
+                wl.insertHop(k_fwd, k_fwd_partner);
+                wl.insertHop(k_bwd, k_bwd_partner);
+                wl.checkConsistency();
+                return false;
+            }
+
+            double logP_rem = -std::log((double)N_pairs_old);
+            double logP_ins = -std::log((double)Nb) - std::log(beta_);
+
+            double log_ratio = logW_ratio + (logP_ins - logP_rem);
 
             if (std::log(rng.uniform()) < log_ratio)
                 return true;
 
-            wl.insertHop(k, k_partner);
+            // reject: undo
+            wl.insertHop(k_fwd, k_fwd_partner);
+            wl.insertHop(k_bwd, k_bwd_partner);
             wl.checkConsistency();
             return false;
         }
