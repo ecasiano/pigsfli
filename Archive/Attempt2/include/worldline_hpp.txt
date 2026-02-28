@@ -1,0 +1,151 @@
+// ============================================================================
+//  worldline.hpp
+//  -------------
+//  The Monte Carlo engine.
+//
+//  Responsibilities:
+//
+//      • owns (later) the KinkPool and WorldlineTopology
+//      • implements ALL move kernels (worm, non-worm, SWAP)
+//      • computes Metropolis ratios using Model and TrialWavefunction
+//      • updates the configuration
+//      • dispatches moves based on probabilities
+//      • exposes a read-only ConfigurationView for estimators
+//
+//  This is the heart of the simulation. It manipulates kinks, performs
+//  insertions/deletions/time-shifts, and enforces detailed balance.
+//
+//  All physics is delegated to:
+//
+//      • Model (Hamiltonian)
+//      • TrialWavefunction (boundary amplitudes)
+//
+//  All measurement is delegated to:
+//
+//      • Estimator
+//
+//  This file should remain focused on Monte Carlo logic and nothing else.
+// ============================================================================
+
+#pragma once
+#include "model.hpp"
+#include "trial_wavefunction.hpp"
+#include "estimator.hpp"
+#include "simulation_parameters.hpp"
+#include "configuration_view.hpp"
+
+// NOTE: These will be reintroduced once topology is implemented.
+// #include "kink.hpp"
+
+class Worldline
+{
+public:
+    Worldline(const Model &model,
+              const TrialWavefunction &psi_trial,
+              const SimulationParams &params,
+              std::size_t max_kinks);
+
+    void attempt_move();
+    void sweep(int n_moves);
+
+    void measure(Estimator &est) const;
+
+    const ConfigurationView &view() const { return cfg_view_; }
+
+    bool check_invariants() const;
+
+private:
+    void choose_and_execute_move();
+
+    // ============================================================
+    //  Non-Worm Moves: Finite T (Bulk)
+    // ============================================================
+
+    void move_insert_kink_antikink_pair();
+    void move_delete_kink_antikink_pair();
+
+    void move_timeshift_kink();
+
+    // ============================================================
+    //  Non-Worm Moves: T = 0 (Edge)
+    // ============================================================
+
+    void move_insert_kink_after_zero_edge();
+    void move_delete_kink_after_zero_edge();
+
+    void move_insert_kink_before_beta_edge();
+    void move_delete_kink_before_beta_edge();
+
+    // ============================================================
+    //  Worm Moves: Finite T (Bulk)
+    // ============================================================
+
+    void move_insert_worm();
+    void move_delete_worm();
+    void move_insert_antiworm();
+    void move_delete_antiworm();
+
+    void move_timeshift_head();
+    void move_timeshift_tail();
+
+    void move_insert_kink_before_head();
+    void move_delete_kink_before_head();
+
+    void move_insert_kink_before_tail();
+    void move_delete_kink_before_tail();
+
+    void move_insert_kink_after_head();
+    void move_delete_kink_after_head();
+
+    void move_insert_kink_after_tail();
+    void move_delete_kink_after_tail();
+
+    // ============================================================
+    //  Worm Moves: T = 0 (Edge)
+    // ============================================================
+
+    void move_insert_worm_zero_edge();
+    void move_delete_worm_zero_edge();
+
+    void move_insert_antiworm_zero_edge();
+    void move_delete_antiworm_zero_edge();
+
+    void move_insert_worm_beta_edge();
+    void move_delete_worm_beta_edge();
+
+    void move_insert_antiworm_beta_edge();
+    void move_delete_antiworm_beta_edge();
+
+    // ============================================================
+    //  SWAP Moves
+    // ============================================================
+
+    void move_insert_swap_kink();
+    void move_delete_swap_kink();
+
+    void move_timeshift_head_across_swap_kink();
+    void move_timeshift_tail_across_swap_kink();
+
+    // ============================================================
+    //  Helpers
+    // ============================================================
+
+    double random_uniform();
+
+private:
+    // Temporarily removed until topology is implemented
+    // KinkPool pool_;
+    // WorldlineTopology topo_;
+
+    const Model &model_;
+    const TrialWavefunction &psi_trial_;
+    SimulationParams params_;
+
+    ConfigurationView cfg_view_;
+
+    struct
+    {
+        BoundaryFockState left_boundary;
+        BoundaryFockState right_boundary;
+    } config_;
+};

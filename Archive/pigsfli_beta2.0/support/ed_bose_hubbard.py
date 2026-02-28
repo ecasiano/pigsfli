@@ -141,9 +141,9 @@ def energy_components(psi, H, basis, L, N, t, U, mu=0.0, periodic=False):
 # ------------------------------------------------------------
 if __name__ == "__main__":
     L = 2
-    N = 2
+    N = 3
     t = 0.5
-    U = 1.0
+    U = 0.1
     mu = 0.0
 
     evals, evecs, basis, H = diagonalize_bose_hubbard(L, N, t, U, mu)

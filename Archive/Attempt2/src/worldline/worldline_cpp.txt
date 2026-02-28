@@ -1,0 +1,247 @@
+// ============================================================================
+//  worldline.cpp
+//  -------------
+//  Implements the Worldline Monte Carlo engine.
+//
+//  Contains:
+//
+//      • RNG setup
+//      • constructor
+//      • move dispatcher
+//      • ALL move kernels (non-worm, worm, SWAP)
+//      • invariant checking
+//      • measurement interface
+//
+//  This file is intentionally the “big one” — it is the central engine where
+//  all moves live. Keeping moves together:
+//
+//      • makes debugging easier
+//      • keeps logic coherent
+//      • avoids scattering internal details across files
+//
+//  The rest of the codebase (Model, TrialWavefunction, Estimator) plugs into
+//  this engine without ever touching its internals.
+// ============================================================================
+
+#include "../../include/worldline.hpp"
+#include "../../include/trial_wavefunction.hpp"
+#include <random>
+#include <cassert>
+#include <cmath>
+
+// ============================================================
+//  RNG helper
+// ============================================================
+
+namespace
+{
+    std::mt19937_64 &rng_engine()
+    {
+        static std::mt19937_64 eng{std::random_device{}()};
+        return eng;
+    }
+}
+
+// ============================================================
+//  Sampling helpers
+// ============================================================
+
+double Worldline::random_uniform()
+{
+    static std::uniform_real_distribution<double> dist(0.0, 1.0);
+    return dist(rng_engine());
+}
+
+double sample_tau(double beta)
+{
+    return random_uniform() * beta;
+}
+
+std::pair<double, double> sample_tau_pair(double beta)
+{
+    double tau1 = random_uniform() * beta;
+    double tau2 = random_uniform() * beta;
+
+    if (tau2 < tau1)
+        std::swap(tau1, tau2);
+
+    return {tau1, tau2};
+}
+
+// ============================================================
+//  Constructor
+// ============================================================
+
+Worldline::Worldline(const Model &model,
+                     const TrialWavefunction &psi_trial,
+                     const SimulationParams &params,
+                     std::size_t max_kinks)
+    : model_(model),
+      psi_trial_(psi_trial),
+      params_(params)
+{
+    // Minimal boundary initialization so KAPI/KAPD can run
+    config_.left_boundary.occupations.assign(params_.n_sites, 0);
+    config_.right_boundary.occupations.assign(params_.n_sites, 0);
+}
+
+// ============================================================
+//  Main MC interface
+// ============================================================
+
+void Worldline::attempt_move()
+{
+    choose_and_execute_move();
+}
+
+void Worldline::sweep(int n_moves)
+{
+    for (int i = 0; i < n_moves; ++i)
+        attempt_move();
+}
+
+void Worldline::measure(Estimator &est) const
+{
+    est.accumulate(cfg_view_, 1.0);
+}
+
+bool Worldline::check_invariants() const
+{
+    // TODO: verify prev/next consistency, partner pointers, etc.
+    return true;
+}
+
+// ============================================================
+//  Move dispatcher
+// ============================================================
+
+void Worldline::choose_and_execute_move()
+{
+    double r = random_uniform();
+
+    double p_insert = params_.p_insert_kink_antikink_pair;
+    double p_delete = params_.p_delete_kink_antikink_pair;
+
+    double norm = p_insert + p_delete;
+    p_insert /= norm;
+    p_delete /= norm;
+
+    if (r < p_insert)
+        move_insert_kink_antikink_pair();
+    else
+        move_delete_kink_antikink_pair();
+}
+
+// ============================================================
+//  Non-Worm Moves: Finite T (Bulk)
+// ============================================================
+
+void Worldline::move_insert_kink_antikink_pair()
+{
+    int site = 0; // TODO: sample uniformly
+    auto [tau1, tau2] = sample_tau_pair(params_.beta);
+
+    BoundaryFockState before = config_.left_boundary;
+    BoundaryFockState after = config_.left_boundary;
+
+    after.occupations[site] += 1;
+
+    double R_T = psi_trial_.trial_wavefunction_ratio_one_site(before, after, site);
+
+    double E_before = model_.diagonal_energy(before);
+    double E_after = model_.diagonal_energy(after);
+    double dE_diag = E_after - E_before;
+
+    double H_off = model_.offdiagonal_element(before, after);
+
+    double P_forward = 1.0;
+    double P_reverse = 1.0;
+
+    double weight_ratio =
+        R_T *
+        std::exp(-params_.beta * dE_diag) *
+        std::abs(H_off);
+
+    double R = weight_ratio * (P_reverse / P_forward);
+
+    bool accept = (random_uniform() < std::min(1.0, R));
+
+    if (accept)
+        config_.left_boundary = after;
+
+    std::cout << "Insert at tau1=" << tau1 << " tau2=" << tau2 << "\n";
+}
+
+void Worldline::move_delete_kink_antikink_pair()
+{
+    int site = 0; // TODO: choose actual existing kink site
+
+    BoundaryFockState before = config_.left_boundary;
+    BoundaryFockState after = config_.left_boundary;
+
+    after.occupations[site] -= 1;
+
+    double R_T = psi_trial_.trial_wavefunction_ratio_one_site(before, after, site);
+
+    double E_before = model_.diagonal_energy(before);
+    double E_after = model_.diagonal_energy(after);
+    double dE_diag = E_after - E_before;
+
+    double H_off = model_.offdiagonal_element(after, before);
+
+    double P_forward = 1.0;
+    double P_reverse = 1.0;
+
+    double weight_ratio =
+        R_T *
+        std::exp(-params_.beta * dE_diag) *
+        std::abs(H_off);
+
+    double R = weight_ratio * (P_reverse / P_forward);
+
+    bool accept = (random_uniform() < std::min(1.0, R));
+
+    if (accept)
+        config_.left_boundary = after;
+}
+
+// ============================================================
+//  Worm Moves: Finite T (Bulk)
+// ============================================================
+
+void Worldline::move_insert_worm() {}
+void Worldline::move_delete_worm() {}
+void Worldline::move_insert_antiworm() {}
+void Worldline::move_delete_antiworm() {}
+void Worldline::move_timeshift_head() {}
+void Worldline::move_timeshift_tail() {}
+void Worldline::move_insert_kink_before_head() {}
+void Worldline::move_delete_kink_before_head() {}
+void Worldline::move_insert_kink_before_tail() {}
+void Worldline::move_delete_kink_before_tail() {}
+void Worldline::move_insert_kink_after_head() {}
+void Worldline::move_delete_kink_after_head() {}
+void Worldline::move_insert_kink_after_tail() {}
+void Worldline::move_delete_kink_after_tail() {}
+
+// ============================================================
+//  Worm Moves: T = 0 (Edge)
+// ============================================================
+
+void Worldline::move_insert_worm_zero_edge() {}
+void Worldline::move_delete_worm_zero_edge() {}
+void Worldline::move_insert_antiworm_zero_edge() {}
+void Worldline::move_delete_antiworm_zero_edge() {}
+void Worldline::move_insert_worm_beta_edge() {}
+void Worldline::move_delete_worm_beta_edge() {}
+void Worldline::move_insert_antiworm_beta_edge() {}
+void Worldline::move_delete_antiworm_beta_edge() {}
+
+// ============================================================
+//  SWAP Moves
+// ============================================================
+
+void Worldline::move_insert_swap_kink() {}
+void Worldline::move_delete_swap_kink() {}
+void Worldline::move_timeshift_head_across_swap_kink() {}
+void Worldline::move_timeshift_tail_across_swap_kink() {}

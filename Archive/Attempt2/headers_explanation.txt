@@ -1,0 +1,48 @@
+// ============================================================================
+//  model.hpp
+//  ---------
+//  Defines the abstract Model interface.
+//
+//  The Model encapsulates ALL PHYSICS of the Hamiltonian:
+//
+//      • diagonal energies ε(α)
+//      • off-diagonal hopping matrix elements h(α→β)
+//      • any model-specific local configuration information
+//
+//  The Worldline engine NEVER hard-codes physics. It always queries the Model
+//  for energy differences and matrix elements when computing Metropolis ratios.
+//
+//  This design allows:
+//
+//      • swapping Bose-Hubbard ↔ Fermi-Hubbard ↔ spin models
+//      • adding long-range hopping or disorder
+//      • experimenting with new Hamiltonians
+//
+//  …all WITHOUT touching the worldline engine or move implementations.
+//
+//  This file should remain small, stable, and purely abstract.
+// ============================================================================
+
+// ============================================================================
+//  trial_wavefunction.hpp
+//  ----------------------
+//  Defines the abstract TrialWavefunction interface.
+//
+//  In PIGS, the boundary states |α₀⟩ and |α_β⟩ come from a trial distribution.
+//  Boundary moves (zero-edge and beta-edge) require evaluating:
+//
+//      • log Ψ_T(α)
+//      • log-amplitude ratios log[Ψ_T(β)/Ψ_T(α)]
+//
+//  The Worldline engine NEVER hard-codes trial-state logic. It only calls this
+//  interface when computing Metropolis ratios for boundary updates.
+//
+//  This allows:
+//
+//      • Gutzwiller trial states
+//      • Jastrow factors
+//      • neural-network trial states
+//      • DMRG boundary states
+//
+//  …all without modifying the worldline engine.
+// ============================================================================
